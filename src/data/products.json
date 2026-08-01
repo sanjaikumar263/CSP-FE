@@ -201,7 +201,7 @@
     "title": "OUR HERITAGE",
     "heading": "A Legacy Woven with Trust",
     "description": "For over five decades, Chennai Silk Palace has been a symbol of purity, quality and tradition. Our passion for silk and commitment to excellence continues to be woven into every saree we create.",
-    "image": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80",
+    "image": "src/assets/Shop Image.png",
     "stats": [
       { "value": "50+", "label": "Years of Trust" },
       { "value": "1L+", "label": "Happy Customers" },
