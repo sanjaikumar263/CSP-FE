@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
-import productsData from '../data/products.json';
-import logoSvg from '../assets/chennai palace logo_page.png';
+import Header from '../components/Header';
 import './StoreProductListPage.css';
+import logoSvg from '../assets/hero_logo.svg';
+
 
 // Initial sample catalog items matching the screenshot
 const STORE_PRODUCTS = [
@@ -284,92 +285,8 @@ export default function StoreProductListPage() {
 
   return (
     <div className="store-list-container">
-      {/* Announcement Bar */}
-      <div className="top-announce-bar">
-        <span>🚚 Free Express Shipping on Orders Over MYR 100+</span>
-      </div>
-
-      {/* Main Header */}
-      <header className="main-header">
-        <div className="header-inner">
-          <Link to="/" className="brand-text-logo">
-            <img src={logoSvg} alt="Chennai Silk Palace" className="brand-logo-img" />
-          </Link>
-
-          <form className="header-search-container" onSubmit={handleHeaderSearchSubmit}>
-            <input
-              type="text"
-              className="search-input"
-              placeholder="Search for products, collections..."
-              value={headerSearch}
-              onChange={(e) => setHeaderSearch(e.target.value)}
-            />
-            <button type="submit" className="search-submit-btn" aria-label="Search">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="11" cy="11" r="7" />
-                <line x1="21" y1="21" x2="16.5" y2="16.5" />
-              </svg>
-            </button>
-          </form>
-
-          <div className="header-actions">
-            <button className="action-btn" aria-label="Wishlist">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-              </svg>
-              <span>Wishlist</span>
-            </button>
-
-            <button className="action-btn" aria-label="My Account">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-              <span>My Account</span>
-            </button>
-
-            <button className="action-btn cart-btn" aria-label="Cart">
-              <div className="cart-icon-wrapper">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-                  <line x1="3" y1="6" x2="21" y2="6" />
-                  <path d="M16 10a4 4 0 0 1-8 0" />
-                </svg>
-                <span className="cart-badge">{cartCount}</span>
-              </div>
-              <span>Cart</span>
-            </button>
-
-            <button className="mobile-toggle-btn" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} aria-label="Toggle navigation">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="3" y1="12" x2="21" y2="12" />
-                <line x1="3" y1="6" x2="21" y2="6" />
-                <line x1="3" y1="18" x2="21" y2="18" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* Secondary Navigation */}
-      <nav className={`secondary-nav ${mobileMenuOpen ? 'open' : ''}`}>
-        <div className="nav-inner">
-          <ul className="nav-menu">
-            <li><Link to="/">HOME</Link></li>
-            <li className={!searchVal && categoryVal === 'Sarees' ? 'active' : ''}><Link to="/products?category=Sarees">SAREES</Link></li>
-            <li className={!searchVal && categoryVal === 'Collections' ? 'active' : ''}><Link to="/products?category=Collections">COLLECTIONS</Link></li>
-            <li className={!searchVal && categoryVal === 'New Arrivals' ? 'active' : ''}><Link to="/products?category=New Arrivals">NEW ARRIVALS</Link></li>
-            <li><Link to="/">ABOUT US</Link></li>
-            <li><Link to="/">CONTACT US</Link></li>
-          </ul>
-          <div className="nav-contact-phone">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-            </svg>
-            <span>03 33727272</span>
-          </div>
-        </div>
-      </nav>
+      {/* Common Header */}
+      <Header />
 
       {/* Dark Navy Hero Banner matching screenshot */}
       <section className="search-banner-section">
@@ -386,13 +303,7 @@ export default function StoreProductListPage() {
             </p>
           </div>
 
-          <div className="banner-model-side">
-            <img
-              src="https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=600&q=80"
-              alt="Silk Saree Model"
-              className="banner-model-img"
-            />
-          </div>
+         
         </div>
       </section>
 

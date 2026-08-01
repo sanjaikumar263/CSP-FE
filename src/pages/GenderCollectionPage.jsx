@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useParams, useSearchParams, useNavigate } from 'react-router-dom';
-import logoSvg from '../assets/chennai palace logo_page.png';
+import Header from '../components/Header';
 import './GenderCollectionPage.css';
 
 const GENDER_HERO_DATA = {
@@ -135,36 +135,8 @@ export default function GenderCollectionPage() {
 
   return (
     <div className="gender-page-container">
-      {/* Top Header Navbar */}
-      <header className="gp-header">
-        <div className="gp-header-inner">
-          <Link to="/" className="gp-logo-link">
-            <img src={logoSvg} alt="Chennai Silk Palace" className="gp-logo-img" />
-          </Link>
-
-          <nav className="gp-main-nav">
-            <Link to="/" className="gp-nav-item">HOME</Link>
-            <Link to="/gender/women" className={`gp-nav-item ${selectedGender === 'women' ? 'active' : ''}`}>WOMEN</Link>
-            <Link to="/gender/men" className={`gp-nav-item ${selectedGender === 'men' ? 'active' : ''}`}>MEN</Link>
-            <Link to="/gender/unisex" className={`gp-nav-item ${selectedGender === 'unisex' ? 'active' : ''}`}>UNISEX</Link>
-            <Link to="/products" className="gp-nav-item">ALL COLLECTIONS</Link>
-            <Link to="/admin" className="gp-nav-item gp-admin-btn">ADMIN PANEL</Link>
-          </nav>
-
-          <form className="gp-search-form" onSubmit={handleSearchSubmit}>
-            <svg className="gp-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="11" cy="11" r="8"/>
-              <path d="m21 21-4.3-4.3"/>
-            </svg>
-            <input
-              type="text"
-              placeholder="Search gender collection..."
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-            />
-          </form>
-        </div>
-      </header>
+      {/* Common Header */}
+      <Header />
 
       {/* Hero Section */}
       <section className="gp-hero" style={{ backgroundImage: `linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(248, 244, 236, 0.94)), url(${heroInfo.bgImage})` }}>
