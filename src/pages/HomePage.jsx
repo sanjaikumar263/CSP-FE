@@ -19,6 +19,23 @@ export default function HomePage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [trendingProducts, setTrendingProducts] = useState(productsData.trendingProducts || []);
   const [loadingProducts, setLoadingProducts] = useState(true);
+  const [heroSlides, setHeroSlides] = useState(productsData.heroSlides || []);
+
+  useEffect(() => {
+    const fetchBanners = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/banners');
+        const data = await res.json();
+        if (res.ok && data.success && Array.isArray(data.data) && data.data.length > 0) {
+          setHeroSlides(data.data);
+        }
+      } catch (err) {
+        console.warn('Using static fallback for hero slides:', err);
+      }
+    };
+
+    fetchBanners();
+  }, []);
 
   useEffect(() => {
     const q = searchParams.get('search');
@@ -66,7 +83,6 @@ export default function HomePage() {
     fetchLatestProducts();
   }, []);
 
-  const heroSlides = productsData.heroSlides;
   const trustBadges = productsData.trustBadges;
   const featuredCategories = productsData.featuredCategories;
   const lehengaCollection = productsData.lehengaCollection;
@@ -115,6 +131,8 @@ export default function HomePage() {
     );
   });
 
+  const activeSlide = heroSlides[currentSlide] || heroSlides[0] || {};
+
   return (
     <div className="home-page-container">
       {/* Common Header */}
@@ -133,12 +151,12 @@ export default function HomePage() {
           <div className="hero-content-grid">
             <div className="hero-text-side">
               <div className="hero-headline-group">
-                <h2 className="hero-title-main">{heroSlides[currentSlide].title}</h2>
-                <h2 className="hero-title-highlight">{heroSlides[currentSlide].titleHighlight}</h2>
+                <h2 className="hero-title-main">{activeSlide.title}</h2>
+                <h2 className="hero-title-highlight">{activeSlide.titleHighlight}</h2>
               </div>
-              <p className="hero-subtitle">{heroSlides[currentSlide].subtitle}</p>
-              <a href={heroSlides[currentSlide].ctaLink} className="hero-cta-btn">
-                {heroSlides[currentSlide].ctaText}
+              <p className="hero-subtitle">{activeSlide.subtitle}</p>
+              <a href={activeSlide.ctaLink || '#trending'} className="hero-cta-btn">
+                {activeSlide.ctaText || 'SHOP NOW'}
               </a>
 
               {/* Trust Badges */}
@@ -174,8 +192,8 @@ export default function HomePage() {
 
             <div className="hero-image-side">
               <img
-                src={heroSlides[currentSlide].image}
-                alt={heroSlides[currentSlide].title}
+                src={activeSlide.image}
+                alt={activeSlide.title || 'Hero Banner Slide'}
                 className="hero-main-img"
               />
             </div>

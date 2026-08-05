@@ -1,13 +1,31 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import logoSvg from '../assets/chennai palace logo_page.png';
+import { useAuth } from '../context/AuthContext';
+import logoSvg from '../assets/hero_logo.svg';
 import './AdminSidebar.css';
 
 export default function AdminSidebar() {
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
   const isActive = (path) => pathname === path;
+
+  const handleLogout = () => {
+    logout();
+    navigate('/admin/login', { replace: true });
+  };
+
+  // Extract initials for avatar
+  const getInitials = (name) => {
+    if (!name) return 'AD';
+    const parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+  };
 
   return (
     <>
@@ -37,13 +55,21 @@ export default function AdminSidebar() {
               <path d="M4 4h16l-1.5 13.5a2 2 0 0 1-2 1.8H7.5a2 2 0 0 1-2-1.8L4 4Z"/>
               <path d="M8 4a4 4 0 0 1 8 0"/>
             </svg>
-            Orders <span className="count">18</span>
+            Orders
           </Link>
           <Link to="/admin/products" className={isActive('/admin/products') || isActive('/admin/products/add') ? 'active' : ''}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
               <path d="M4 8l8-4 8 4-8 4-8-4Z"/><path d="M4 8v8l8 4 8-4V8"/><path d="M12 12v8"/>
             </svg>
             Products
+          </Link>
+          <Link to="/admin/banners" className={isActive('/admin/banners') ? 'active' : ''}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+              <circle cx="8.5" cy="8.5" r="1.5"/>
+              <polyline points="21 15 16 10 5 21"/>
+            </svg>
+            Hero Banners
           </Link>
           <Link to="#">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
@@ -80,11 +106,27 @@ export default function AdminSidebar() {
 
         <div className="side-foot">
           <div className="admin">
-            <div className="avatar">RM</div>
-            <div>
-              <div className="name">Radhika Menon</div>
-              <div className="mail">Store Manager</div>
+            <div className="avatar">{getInitials(user?.name)}</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div className="name" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {user?.name || 'Radhika Menon'}
+              </div>
+              <div className="mail" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {user?.email || 'admin@example.com'}
+              </div>
             </div>
+            <button
+              onClick={handleLogout}
+              className="admin-logout-btn"
+              title="Logout from Admin"
+              aria-label="Logout"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+            </button>
           </div>
         </div>
       </aside>

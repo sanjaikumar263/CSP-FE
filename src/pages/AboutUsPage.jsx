@@ -14,7 +14,7 @@ export default function AboutUsPage() {
       <section className="about-hero-section">
         <div className="about-hero-overlay"></div>
         <div className="about-hero-content">
-          <div className="ornament-eyebrow">ABOUT CHENNAI SILK PALACE</div>
+          <div className="about-hero-subtitle">ABOUT CHENNAI SILK PALACE</div>
           <h1 className="about-hero-title">A Legacy of Trust, Tradition & Excellence</h1>
           <p className="about-hero-subtitle">
             Crafting elegance and preserving timeless Indian textile traditions for over four decades in Malaysia.
