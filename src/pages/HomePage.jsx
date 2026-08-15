@@ -3,6 +3,7 @@ import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import productsData from '../data/products.json';
 import shopImg from '../assets/Shop Image.png';
 import Header from '../components/Header';
+import Footer from '../components/Footer';
 import './HomePage.css';
 import logoSvg from '../assets/hero_logo.svg';
 
@@ -317,7 +318,7 @@ export default function HomePage() {
                       }}
                       aria-label="Add to Wishlist"
                     >
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill={wishlist[prod.id] ? '#0a305d' : 'none'} stroke={wishlist[prod.id] ? '#0a305d' : '#555'} strokeWidth="1.8">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill={wishlist[prod.id] ? '#580C23' : 'none'} stroke={wishlist[prod.id] ? '#580C23' : '#555'} strokeWidth="1.8">
                         <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                       </svg>
                     </button>
@@ -503,148 +504,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Newsletter Subscription Section */}
-      <section className="newsletter-section">
-        <div className="container-inner">
-          <div className="newsletter-card">
-            <div className="newsletter-icon-circle">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-                <polyline points="22,6 12,13 2,6" />
-              </svg>
-            </div>
-            <div className="newsletter-text-box">
-              <h3 className="newsletter-title">Stay Updated</h3>
-              <p className="newsletter-desc">
-                Subscribe to get special offers, free giveaways and once-in-a-lifetime deals.
-              </p>
-            </div>
-            <form onSubmit={handleNewsletterSubmit} className="newsletter-form">
-              <input
-                type="email"
-                required
-                placeholder="Enter your email address"
-                value={emailInput}
-                onChange={(e) => setEmailInput(e.target.value)}
-                className="newsletter-email-input"
-              />
-              <button type="submit" className="newsletter-submit-btn">
-                SUBSCRIBE
-              </button>
-            </form>
-            {subscribed && <div className="newsletter-success-toast">Thank you for subscribing!</div>}
-          </div>
-        </div>
-      </section>
 
       {/* Footer Section */}
-      <footer className="site-footer" id="footer">
-        <div className="container-inner">
-          <div className="footer-top-grid">
-            {/* Column 1: Brand Info */}
-            <div className="footer-col brand-col">
-              <div className="footer-brand-text">
-                <img src={logoSvg} alt="Chennai Silk Palace" className="footer-logo-img" />
-              </div>
-              <p className="footer-about-text">
-                Your ultimate destination for exquisite silk sarees and traditional Indian wear. Experience timeless elegance, handcrafted with passion.
-              </p>
-              <div className="footer-social-links">
-                <a href="#facebook" aria-label="Facebook">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
-                  </svg>
-                </a>
-                <a href="#instagram" aria-label="Instagram">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
-                  </svg>
-                </a>
-                <a href="#whatsapp" aria-label="WhatsApp">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
-                  </svg>
-                </a>
-                <a href="#youtube" aria-label="YouTube">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z" />
-                    <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" fill="#fff" />
-                  </svg>
-                </a>
-              </div>
-            </div>
-
-            {/* Column 2: Shop */}
-            <div className="footer-col">
-              <h4 className="footer-heading">SHOP</h4>
-              <ul className="footer-links">
-                <li><a href="#sarees">Sarees</a></li>
-                <li><a href="#collections">Collections</a></li>
-                <li><a href="#new-arrivals">New Arrivals</a></li>
-                <li><a href="#gift-cards">Gift Cards</a></li>
-                <li><a href="#special-offers">Special Offers</a></li>
-              </ul>
-            </div>
-
-            {/* Column 3: Customer Service */}
-            <div className="footer-col">
-              <h4 className="footer-heading">CUSTOMER SERVICE</h4>
-              <ul className="footer-links">
-                <li><a href="#my-account">My Account</a></li>
-                <li><a href="#track-order">Track Order</a></li>
-                <li><a href="#shipping">Shipping & Delivery</a></li>
-                <li><a href="#returns">Returns & Exchanges</a></li>
-                <li><a href="#faqs">FAQs</a></li>
-                <li><a href="#privacy">Privacy Policy</a></li>
-              </ul>
-            </div>
-
-            {/* Column 4: About Us */}
-            <div className="footer-col">
-              <h4 className="footer-heading">ABOUT US</h4>
-              <ul className="footer-links">
-                <li><a href="#our-story">Our Story</a></li>
-                <li><a href="#achievements">Achievements</a></li>
-                <li><a href="#our-owners">Our Owners</a></li>
-                <li><a href="#store-locator">Store Locator</a></li>
-                <li><a href="#contact">Contact Us</a></li>
-              </ul>
-            </div>
-
-            {/* Column 5: Contact Us & Admin */}
-            <div className="footer-col contact-admin-col">
-              <h4 className="footer-heading">CONTACT US</h4>
-              <div className="footer-contact-info">
-                <p>📞 03 33727272</p>
-                <p>✉️ info@chennaisilkpalace.com</p>
-                <p>📍 No. 1, Jalan Sultan Iskandar, 30000 Ipoh, Perak, Malaysia.</p>
-              </div>
-
-              <div className="admin-login-box">
-                <div className="admin-box-title">ADMIN LOGIN</div>
-                <div className="admin-box-sub">Secure login for admin panel.</div>
-                <Link to="/admin" className="admin-login-btn">
-                  ADMIN LOGIN
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          <div className="footer-bottom-bar">
-            <div className="copyright-text">
-              © 2025 Chennai Silk Palace. All Rights Reserved.
-            </div>
-            <div className="payment-gateways">
-              <span>We Accept</span>
-              <span className="pay-badge">VISA</span>
-              <span className="pay-badge">Mastercard</span>
-              <span className="pay-badge">Stripe</span>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

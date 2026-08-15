@@ -27,7 +27,7 @@
 }
 
 .pd-breadcrumb a:hover {
-  color: var(--primary-maroon, #0a305d);
+  color: var(--primary-maroon, #580C23);
 }
 
 .pd-breadcrumb .sep {
@@ -86,7 +86,7 @@
 
 .pd-thumb-box.active,
 .pd-thumb-box:hover {
-  border-color: var(--primary-maroon, #0a305d);
+  border-color: var(--primary-maroon, #580C23);
 }
 
 .pd-video-thumb {
@@ -152,7 +152,7 @@
   height: 38px;
   border-radius: 50%;
   background: #ffffff;
-  color: var(--primary-maroon, #0a305d);
+  color: var(--primary-maroon, #580C23);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -259,7 +259,7 @@
 .pd-price-amount {
   font-size: 28px;
   font-weight: 800;
-  color: var(--primary-maroon, #0a305d);
+  color: var(--primary-maroon, #580C23);
 }
 
 .pd-tax-note {
@@ -407,7 +407,7 @@
 
 .pd-add-to-cart-btn {
   flex: 1.3;
-  background-color: var(--primary-maroon, #0a305d);
+  background-color: var(--primary-maroon, #580C23);
   color: #ffffff;
   border: none;
   border-radius: 4px;
@@ -447,8 +447,8 @@
 
 .pd-wishlist-btn:hover,
 .pd-wishlist-btn.active {
-  border-color: var(--primary-maroon, #0a305d);
-  color: var(--primary-maroon, #0a305d);
+  border-color: var(--primary-maroon, #580C23);
+  color: var(--primary-maroon, #580C23);
   background-color: #F8FAFC;
 }
 
@@ -496,11 +496,11 @@
 }
 
 .pd-tab-btn:hover {
-  color: var(--primary-maroon, #0a305d);
+  color: var(--primary-maroon, #580C23);
 }
 
 .pd-tab-btn.active {
-  color: var(--primary-maroon, #0a305d);
+  color: var(--primary-maroon, #580C23);
 }
 
 .pd-tab-btn.active::after {
@@ -510,7 +510,7 @@
   left: 0;
   width: 100%;
   height: 3px;
-  background-color: var(--primary-maroon, #0a305d);
+  background-color: var(--primary-maroon, #580C23);
 }
 
 .pd-tab-content-card {
@@ -563,7 +563,7 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background-color: var(--primary-maroon, #0a305d);
+  background-color: var(--primary-maroon, #580C23);
   color: #ffffff;
   font-size: 11px;
   display: flex;
@@ -598,7 +598,7 @@
 }
 
 .ornament-line {
-  color: var(--primary-maroon, #0a305d);
+  color: var(--primary-maroon, #580C23);
   font-size: 14px;
 }
 
@@ -663,7 +663,7 @@
 .rel-price {
   font-size: 13.5px;
   font-weight: 800;
-  color: var(--primary-maroon, #0a305d);
+  color: var(--primary-maroon, #580C23);
   margin-bottom: 4px;
 }
 

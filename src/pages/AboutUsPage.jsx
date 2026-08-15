@@ -1,8 +1,18 @@
 import { Link } from 'react-router-dom';
 import shopImg from '../assets/Shop Image.png';
+import ownerImg1 from '../assets/IMG_1208.JPG';
+import ownerImg2 from '../assets/IMG_5426.JPG';
+import ownerImg3 from '../assets/IMG_5427.JPG';
+import ownerImg4 from '../assets/IMG_5914.JPG';
+import ownerImg5 from '../assets/IMG_5664.JPG';
 import logoSvg from '../assets/hero_logo.svg';
 import Header from '../components/Header';
+import Footer from '../components/Footer';
 import './AboutUsPage.css';
+
+// Dynamically load 2019 Lucky Draw celebration photos (curate 15 photos for optimal rendering)
+const luckyDrawModules = import.meta.glob('../assets/2019_LUCKY DRAW/*.JPG', { eager: true, import: 'default' });
+const luckyDrawImages = Object.values(luckyDrawModules).slice(0, 15);
 
 export default function AboutUsPage() {
   return (
@@ -43,10 +53,53 @@ export default function AboutUsPage() {
             </div>
 
             <div className="director-image-side">
-              <img src={shopImg} alt="Chennai Silk Palace Storefront & Director Legacy" className="director-img" />
+              <img src={ownerImg4} alt="Mr. Thanasekaran Vellaikkoothan - Director, Chennai Silk Palace" className="director-img" />
               <div className="director-experience-badge">
                 <span className="years-num">40+</span>
                 <span className="years-lbl">Years of Visionary Leadership</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Owner & Leadership Gallery Section */}
+      <section className="about-owner-gallery-section">
+        <div className="about-container">
+          <div className="section-header-centered">
+            <div className="ornament-eyebrow">OUR LEADERSHIP & FAMILY</div>
+            <h2 className="section-main-title">Behind the Legacy of Chennai Silk Palace</h2>
+            <p className="section-sub-title">Guided by Mr. Thanasekaran Vellaikkoothan, our dedicated team upholds decades of commitment to excellence and authentic craftsmanship.</p>
+          </div>
+
+          <div className="owner-gallery-grid">
+            <div className="owner-gallery-card">
+              <div className="gallery-img-wrapper">
+                <img src={ownerImg1} alt="Mr. Thanasekaran Vellaikkoothan & Store Team" />
+              </div>
+              <div className="gallery-card-content">
+                <h4>Visionary Leadership</h4>
+                <p>Director Mr. Thanasekaran Vellaikkoothan leading the dedicated team at Chennai Silk Palace.</p>
+              </div>
+            </div>
+
+            <div className="owner-gallery-card">
+              <div className="gallery-img-wrapper">
+                <img src={ownerImg5} alt="Chennai Silk Palace Store Team & Management" />
+              </div>
+              <div className="gallery-card-content">
+                <h4>Excellence & Tradition</h4>
+                <p>Preserving cultural authenticity and delivering warm personalized service to every customer.</p>
+              </div>
+            </div>
+
+            <div className="owner-gallery-card">
+              <div className="gallery-img-wrapper">
+                <img src={ownerImg3} alt="Chennai Silk Palace Family & Staff" />
+              </div>
+              <div className="gallery-card-content">
+                <h4>Generations of Trust</h4>
+                <p>Our experienced family of staff committed to 40+ years of high-quality Indian textile retailing.</p>
               </div>
             </div>
           </div>
@@ -225,6 +278,65 @@ export default function AboutUsPage() {
         </div>
       </section>
 
+      {/* 2019 Grand Lucky Draw Moving Marquee Section */}
+      {luckyDrawImages.length > 0 && (
+        <section className="about-marquee-section">
+          <div className="about-container">
+            <div className="section-header-centered">
+              <div className="ornament-eyebrow">COMMUNITY & CUSTOMER CELEBRATIONS</div>
+              <h2 className="section-main-title">2019 Grand Lucky Draw Event</h2>
+              <p className="section-sub-title">
+                Highlight moments from our unforgettable 2019 Grand Lucky Draw celebration, honoring customer loyalty and decades of patronage.
+              </p>
+            </div>
+          </div>
+
+          {/* Marquee Row 1 (Scrolling Left to Right) */}
+          <div className="marquee-container">
+            <div className="marquee-track">
+              {luckyDrawImages.concat(luckyDrawImages).map((imgUrl, index) => (
+                <div 
+                  key={`m1-${index}`} 
+                  className="marquee-card"
+                  style={{
+                    width: '260px',
+                    height: '175px',
+                    minWidth: '260px',
+                    maxWidth: '260px',
+                    minHeight: '175px',
+                    maxHeight: '175px',
+                    flex: '0 0 260px',
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    position: 'relative',
+                    boxShadow: '0 6px 18px rgba(88, 12, 35, 0.08)',
+                    border: '1px solid rgba(88, 12, 35, 0.12)',
+                    background: '#ffffff'
+                  }}
+                >
+                  <img 
+                    src={imgUrl} 
+                    alt={`2019 Lucky Draw Event ${index + 1}`} 
+                    loading="lazy"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      maxWidth: '100%',
+                      maxHeight: '100%',
+                      objectFit: 'cover',
+                      display: 'block'
+                    }} 
+                  />
+                  <div className="marquee-card-overlay">
+                    <span className="marquee-badge">2019 Lucky Draw</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Why Customers Choose Us */}
       <section className="about-why-us-section">
         <div className="about-container">
@@ -350,53 +462,7 @@ export default function AboutUsPage() {
       </section>
 
       {/* Footer Section */}
-      <footer className="main-footer" id="footer">
-        <div className="container-inner">
-          <div className="footer-grid">
-            <div className="footer-col brand-col">
-              <img src={logoSvg} alt="Chennai Silk Palace Logo" className="footer-logo-img" />
-              <p className="footer-brand-desc">
-                Chennai Silk Palace brings you the finest handpicked silk sarees and ethnic wear straight from master artisans since 1965.
-              </p>
-            </div>
-
-            <div className="footer-col">
-              <h4 className="footer-heading">QUICK LINKS</h4>
-              <ul className="footer-links">
-                <li><Link to="/">Home</Link></li>
-                <li><Link to="/products">All Collections</Link></li>
-                <li><Link to="/gender/women">Women's Sarees</Link></li>
-                <li><Link to="/gender/men">Men's Wear</Link></li>
-                <li><Link to="/about">About Us</Link></li>
-              </ul>
-            </div>
-
-            <div className="footer-col">
-              <h4 className="footer-heading">CUSTOMER SERVICE</h4>
-              <ul className="footer-links">
-                <li><a href="#shipping">Shipping Info</a></li>
-                <li><a href="#returns">Returns & Exchange</a></li>
-                <li><a href="#care">Silk Care Guide</a></li>
-                <li><a href="#faq">Frequently Asked Questions</a></li>
-              </ul>
-            </div>
-
-            <div className="footer-col">
-              <h4 className="footer-heading">CONTACT US</h4>
-              <ul className="footer-contact-list">
-                <li>📍 Klang, Selangor, Malaysia</li>
-                <li>📞 +60 3 3372 7272</li>
-                <li>✉️ support@chennaisilkpalace.com</li>
-                <li>⏰ Daily: 10:00 AM - 9:30 PM</li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="footer-bottom-bar">
-            <p>© {new Date().getFullYear()} Chennai Silk Palace. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

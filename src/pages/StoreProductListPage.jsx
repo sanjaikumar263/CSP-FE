@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
+import Footer from '../components/Footer';
 import './StoreProductListPage.css';
-import logoSvg from '../assets/hero_logo.svg';
 
 
 // Initial sample catalog items matching the screenshot
@@ -421,28 +421,7 @@ export default function StoreProductListPage() {
               </div>
             </div>
 
-            {/* Color Filter */}
-            <div className="filter-group">
-              <h4 className="group-title">COLOR</h4>
-              <div className="color-swatches-grid">
-                {[
-                  { name: 'Gold', hex: '#EAB308' },
-                  { name: 'Magenta', hex: '#EC4899' },
-                  { name: 'Pink', hex: '#F43F5E' },
-                  { name: 'Blue', hex: '#3B82F6' },
-                  { name: 'Green', hex: '#10B981' },
-                  { name: 'White', hex: '#FFFFFF' }
-                ].map(col => (
-                  <button
-                    key={col.name}
-                    className={`color-swatch-dot ${selectedColor === col.name ? 'active' : ''}`}
-                    style={{ backgroundColor: col.hex }}
-                    onClick={() => setSelectedColor(selectedColor === col.name ? '' : col.name)}
-                    title={col.name}
-                  />
-                ))}
-              </div>
-            </div>
+           
 
             {/* Occasion Filter */}
             <div className="filter-group">
@@ -494,7 +473,7 @@ export default function StoreProductListPage() {
           <main className="product-grid-main">
             {loading ? (
               <div style={{ textAlign: 'center', padding: '80px 20px', background: '#ffffff', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#0a305d" strokeWidth="2.5" style={{ animation: 'spin 1s linear infinite', marginBottom: '14px' }}>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#580C23" strokeWidth="2.5" style={{ animation: 'spin 1s linear infinite', marginBottom: '14px' }}>
                   <circle cx="12" cy="12" r="10" strokeDasharray="32" strokeDashoffset="10"/>
                 </svg>
                 <div style={{ fontSize: '16px', fontWeight: '700', color: '#0F172A' }}>Loading Products...</div>
@@ -514,7 +493,7 @@ export default function StoreProductListPage() {
                         }}
                         aria-label="Add to Wishlist"
                       >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill={wishlist[prod.id] ? '#0a305d' : 'none'} stroke={wishlist[prod.id] ? '#0a305d' : '#555'} strokeWidth="1.8">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill={wishlist[prod.id] ? '#580C23' : 'none'} stroke={wishlist[prod.id] ? '#580C23' : '#555'} strokeWidth="1.8">
                           <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                         </svg>
                       </button>
@@ -655,102 +634,7 @@ export default function StoreProductListPage() {
       </section>
 
       {/* Footer */}
-      <footer className="site-footer">
-        <div className="container-inner">
-          <div className="footer-top-grid">
-            <div className="footer-col brand-col">
-              <div className="footer-brand-text">
-                <img src={logoSvg} alt="Chennai Silk Palace" className="footer-logo-img" />
-              </div>
-              <p className="footer-about-text">
-                Your ultimate destination for exquisite silk sarees and traditional Indian wear. Experience timeless elegance, handcrafted with passion.
-              </p>
-              <div className="footer-social-links">
-                <a href="#facebook" aria-label="Facebook">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
-                  </svg>
-                </a>
-                <a href="#instagram" aria-label="Instagram">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
-                  </svg>
-                </a>
-                <a href="#whatsapp" aria-label="WhatsApp">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
-                  </svg>
-                </a>
-              </div>
-            </div>
-
-            <div className="footer-col">
-              <h4 className="footer-heading">SHOP</h4>
-              <ul className="footer-links">
-                <li><Link to="/products?category=Sarees">Sarees</Link></li>
-                <li><Link to="/products?category=Collections">Collections</Link></li>
-                <li><Link to="/products?category=New Arrivals">New Arrivals</Link></li>
-                <li><Link to="/products">Gift Cards</Link></li>
-                <li><Link to="/products">Special Offers</Link></li>
-              </ul>
-            </div>
-
-            <div className="footer-col">
-              <h4 className="footer-heading">CUSTOMER SERVICE</h4>
-              <ul className="footer-links">
-                <li><Link to="/">My Account</Link></li>
-                <li><Link to="/">Track Order</Link></li>
-                <li><Link to="/">Shipping & Delivery</Link></li>
-                <li><Link to="/">Returns & Exchanges</Link></li>
-                <li><Link to="/">FAQs</Link></li>
-                <li><Link to="/">Privacy Policy</Link></li>
-              </ul>
-            </div>
-
-            <div className="footer-col">
-              <h4 className="footer-heading">ABOUT US</h4>
-              <ul className="footer-links">
-                <li><Link to="/">Our Story</Link></li>
-                <li><Link to="/">Achievements</Link></li>
-                <li><Link to="/">Our Owners</Link></li>
-                <li><Link to="/">Store Locator</Link></li>
-                <li><Link to="/">Contact Us</Link></li>
-              </ul>
-            </div>
-
-            <div className="footer-col contact-admin-col">
-              <h4 className="footer-heading">CONTACT US</h4>
-              <div className="footer-contact-info">
-                <p>📞 03 33727272</p>
-                <p>✉️ info@chennaisilkpalace.com</p>
-                <p>📍 No. 1, Jalan Sultan Iskandar, 30000 Ipoh, Perak, Malaysia.</p>
-              </div>
-
-              <div className="admin-login-box">
-                <div className="admin-box-title">ADMIN LOGIN</div>
-                <div className="admin-box-sub">Secure login for admin panel.</div>
-                <Link to="/admin" className="admin-login-btn">
-                  ADMIN LOGIN
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          <div className="footer-bottom-bar">
-            <div className="copyright-text">
-              © 2025 Chennai Silk Palace. All Rights Reserved.
-            </div>
-            <div className="payment-gateways">
-              <span>We Accept</span>
-              <span className="pay-badge">VISA</span>
-              <span className="pay-badge">Mastercard</span>
-              <span className="pay-badge">Stripe</span>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

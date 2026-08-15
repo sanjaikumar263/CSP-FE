@@ -1,13 +1,13 @@
 /* Header.css - Standalone Common Header Styles */
 
 :root {
-  --primary-navy: #0a305d;
-  --navy-hover: #1f3a68;
+  --primary-navy: #580C23;
+  --navy-hover: #72102e;
   --gold-accent: #D4AF37;
   --gold-light: #ffc73a;
   --bg-cream: #FAF6F0;
   --text-dark: #1C1917;
-  --border-light: rgba(10, 48, 93, 0.12);
+  --border-light: rgba(88, 12, 35, 0.12);
 }
 
 .header-component-wrapper {
@@ -18,7 +18,7 @@
 
 /* Top Announcement Bar */
 .top-announce-bar {
-  background-color: var(--primary-navy, #0a305d);
+  background-color: var(--primary-navy, #580C23);
   color: var(--gold-light, #ffc73a);
   text-align: center;
   padding: 8px 16px;
@@ -79,8 +79,8 @@
 
 .header-search-container:focus-within {
   background-color: #ffffff;
-  border-color: var(--primary-navy, #0a305d);
-  box-shadow: 0 0 0 3px rgba(10, 48, 93, 0.1);
+  border-color: var(--primary-navy, #580C23);
+  box-shadow: 0 0 0 3px rgba(88, 12, 35, 0.1);
 }
 
 .search-input {
@@ -93,7 +93,7 @@
 }
 
 .search-submit-btn {
-  background-color: var(--primary-navy, #0a305d);
+  background-color: var(--primary-navy, #580C23);
   color: #ffffff;
   border: none;
   border-radius: 50%;
@@ -135,7 +135,7 @@
 }
 
 .action-btn:hover {
-  color: var(--primary-navy, #0a305d);
+  color: var(--primary-navy, #580C23);
 }
 
 .cart-icon-wrapper {
@@ -149,7 +149,7 @@
   position: absolute;
   top: -6px;
   right: -8px;
-  background-color: var(--primary-navy, #0a305d);
+  background-color: var(--primary-navy, #580C23);
   color: #ffffff;
   font-size: 10px;
   font-weight: 700;
@@ -173,7 +173,7 @@
 
 /* Secondary Navigation Bar */
 .secondary-nav {
-  background-color: var(--primary-navy, #0a305d);
+  background-color: var(--primary-navy, #580C23);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   padding: 0;
 }

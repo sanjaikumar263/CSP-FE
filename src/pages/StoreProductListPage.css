@@ -94,7 +94,7 @@
 }
 
 .catalog-breadcrumb a:hover {
-  color: var(--primary-maroon, #0a305d);
+  color: var(--primary-maroon, #580C23);
 }
 
 .catalog-breadcrumb .sep {
@@ -152,8 +152,8 @@
 
 .grid-icon-btn.active,
 .grid-icon-btn:hover {
-  border-color: var(--primary-maroon, #0a305d);
-  color: var(--primary-maroon, #0a305d);
+  border-color: var(--primary-maroon, #580C23);
+  color: var(--primary-maroon, #580C23);
   background-color: #F8FAFC;
 }
 
@@ -200,7 +200,7 @@
 }
 
 .clear-all-btn:hover {
-  color: var(--primary-maroon, #0a305d);
+  color: var(--primary-maroon, #580C23);
 }
 
 .filter-group {
@@ -240,7 +240,7 @@
 }
 
 .checkbox-item input[type="checkbox"] {
-  accent-color: var(--primary-maroon, #0a305d);
+  accent-color: var(--primary-maroon, #580C23);
   cursor: pointer;
 }
 
@@ -257,7 +257,7 @@
 
 .range-input {
   width: 100%;
-  accent-color: var(--primary-maroon, #0a305d);
+  accent-color: var(--primary-maroon, #580C23);
   cursor: pointer;
 }
 
@@ -288,7 +288,7 @@
 .color-swatch-dot:hover,
 .color-swatch-dot.active {
   transform: scale(1.25);
-  border-color: var(--primary-maroon, #0a305d);
+  border-color: var(--primary-maroon, #580C23);
   box-shadow: 0 0 0 2px rgba(10, 48, 93, 0.2);
 }
 
@@ -399,7 +399,7 @@
 }
 
 .card-price-current {
-  color: var(--primary-maroon, #0a305d);
+  color: var(--primary-maroon, #580C23);
 }
 
 .card-price-original {
@@ -428,9 +428,9 @@
 }
 
 .add-to-collection-btn:hover {
-  background-color: var(--primary-maroon, #0a305d);
+  background-color: var(--primary-maroon, #580C23);
   color: #ffffff;
-  border-color: var(--primary-maroon, #0a305d);
+  border-color: var(--primary-maroon, #580C23);
 }
 
 /* Empty State */
@@ -461,7 +461,7 @@
 }
 
 .reset-filters-btn {
-  background-color: var(--primary-maroon, #0a305d);
+  background-color: var(--primary-maroon, #580C23);
   color: #ffffff;
   font-size: 12px;
   font-weight: 700;
@@ -497,15 +497,15 @@
 }
 
 .page-num-btn.active {
-  background-color: var(--primary-maroon, #0a305d);
+  background-color: var(--primary-maroon, #580C23);
   color: #ffffff;
-  border-color: var(--primary-maroon, #0a305d);
+  border-color: var(--primary-maroon, #580C23);
 }
 
 .page-num-btn:hover:not(.active),
 .page-nav-btn:hover:not(:disabled) {
-  border-color: var(--primary-maroon, #0a305d);
-  color: var(--primary-maroon, #0a305d);
+  border-color: var(--primary-maroon, #580C23);
+  color: var(--primary-maroon, #580C23);
 }
 
 .page-nav-btn:disabled {

@@ -1,9 +1,9 @@
 /* AboutUsPage.css - Styled using exact Home Page Color Scheme & Design System */
 
 :root {
-  --primary-navy: #0a305d;
-  --navy-dark: #0e1b38;
-  --navy-hover: #1f3a68;
+  --primary-navy: #580C23;
+  --navy-dark: #3a0817;
+  --navy-hover: #72102e;
   --gold-accent: #D4AF37;
   --gold-light: #ffc73a;
   --gold-pale: #194070;
@@ -11,7 +11,7 @@
   --bg-sand: #F5EFE6;
   --text-dark: #1C1917;
   --text-muted: #61779a;
-  --border-light: rgba(10, 48, 93, 0.12);
+  --border-light: rgba(88, 12, 35, 0.12);
 }
 
 .about-page-container {
@@ -69,7 +69,7 @@
 /* About Hero Banner */
 .about-hero-section {
   position: relative;
-  background: linear-gradient(135deg, #0e1b38 0%, #0a305d 50%, #1f3a68 100%);
+  background: linear-gradient(135deg, #3a0817 0%, #580C23 50%, #72102e 100%);
   color: #ffffff;
   padding: 100px 24px 90px;
   text-align: center;
@@ -187,6 +187,7 @@
   width: 100%;
   height: 480px;
   object-fit: cover;
+  object-position: top center;
   display: block;
 }
 
@@ -543,14 +544,14 @@
 }
 
 .csr-card {
-  background: linear-gradient(135deg, #0e1b38 0%, #0a305d 50%, #1f3a68 100%);
+  background: linear-gradient(135deg, #3a0817 0%, #580C23 50%, #72102e 100%);
   color: #ffffff;
   padding: 50px 48px;
   border-radius: 20px;
   text-align: center;
   max-width: 900px;
   margin: 0 auto;
-  box-shadow: 0 16px 35px rgba(10, 48, 93, 0.2);
+  box-shadow: 0 16px 35px rgba(88, 12, 35, 0.2);
 }
 
 .csr-badge {
@@ -633,7 +634,7 @@
 /* Legacy Concluding Banner */
 .about-legacy-banner {
   padding: 100px 0;
-  background: linear-gradient(135deg, #071328 0%, #0a305d 50%, #0e1b38 100%);
+  background: linear-gradient(135deg, #25050f 0%, #580C23 50%, #3a0817 100%);
   color: #ffffff;
   text-align: center;
 }
@@ -723,6 +724,7 @@
 
 /* Responsive Styles */
 @media (max-width: 992px) {
+
   .director-card,
   .cultural-grid,
   .awards-grid,
@@ -767,12 +769,241 @@
   .about-hero-title {
     font-size: 32px;
   }
+
   .section-main-title,
   .director-name,
   .legacy-title {
     font-size: 28px;
   }
-  .legacy-pillars-row {
+}
+
+/* Owner & Leadership Gallery Section */
+.about-owner-gallery-section {
+  padding: 80px 0;
+  background-color: #FAF6F0;
+  border-top: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.owner-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+  margin-top: 40px;
+}
+
+.owner-gallery-card {
+  background: #ffffff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(88, 12, 35, 0.06);
+  border: 1px solid rgba(88, 12, 35, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.owner-gallery-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 40px rgba(88, 12, 35, 0.12);
+}
+
+.gallery-img-wrapper {
+  width: 100%;
+  height: 280px;
+  overflow: hidden;
+  position: relative;
+}
+
+.gallery-img-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  transition: transform 0.4s ease;
+}
+
+.owner-gallery-card:hover .gallery-img-wrapper img {
+  transform: scale(1.05);
+}
+
+.gallery-card-content {
+  padding: 24px;
+}
+
+.gallery-card-content h4 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #580C23;
+  margin-bottom: 8px;
+}
+
+.gallery-card-content p {
+  font-size: 13.5px;
+  color: #64748B;
+  line-height: 1.6;
+}
+
+@media (max-width: 900px) {
+  .owner-gallery-grid {
     grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+
+/* ==========================================================================
+   2019 Grand Lucky Draw Moving Marquee Section
+   ========================================================================== */
+.about-marquee-section {
+  padding: 70px 0 60px;
+  background-color: #FAF6F0;
+  overflow: hidden;
+  position: relative;
+  border-top: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.marquee-container {
+  display: flex;
+  overflow: hidden;
+  width: 100%;
+  position: relative;
+  margin-top: 30px;
+  user-select: none;
+}
+
+.marquee-container + .marquee-container {
+  margin-top: 18px;
+}
+
+/* Subtle edge gradient fading masks */
+.marquee-container::before,
+.marquee-container::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 140px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.marquee-container::before {
+  left: 0;
+  background: linear-gradient(to right, #FAF6F0 0%, rgba(250, 246, 240, 0) 100%);
+}
+
+.marquee-container::after {
+  right: 0;
+  background: linear-gradient(to left, #FAF6F0 0%, rgba(250, 246, 240, 0) 100%);
+}
+
+.marquee-track {
+  display: flex;
+  gap: 20px;
+  width: max-content;
+  animation: marquee-scroll-ltr 35s linear infinite;
+  will-change: transform;
+}
+
+.marquee-container:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+.marquee-reverse .marquee-track {
+  animation: marquee-scroll-rtl 35s linear infinite;
+}
+
+.marquee-reverse:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+/* Left to Right Scroll */
+@keyframes marquee-scroll-ltr {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+/* Right to Left Scroll */
+@keyframes marquee-scroll-rtl {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-card {
+  position: relative;
+  width: 280px !important;
+  height: 190px !important;
+  min-width: 280px !important;
+  max-width: 280px !important;
+  min-height: 190px !important;
+  max-height: 190px !important;
+  flex: 0 0 280px !important;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(88, 12, 35, 0.08);
+  border: 1px solid rgba(88, 12, 35, 0.12);
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+  background: #ffffff;
+}
+
+.marquee-card:hover {
+  transform: translateY(-4px) scale(1.03);
+  box-shadow: 0 14px 32px rgba(88, 12, 35, 0.2);
+  z-index: 5;
+}
+
+.marquee-card img {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+}
+
+.marquee-card-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 12px 14px;
+  background: linear-gradient(to top, rgba(10, 20, 40, 0.78) 0%, transparent 100%);
+  display: flex;
+  align-items: flex-end;
+}
+
+.marquee-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #ffffff;
+  background: rgba(88, 12, 35, 0.88);
+  padding: 4px 12px;
+  border-radius: 20px;
+  letter-spacing: 0.04em;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+}
+
+@media (max-width: 768px) {
+  .marquee-card {
+    width: 220px !important;
+    height: 150px !important;
+    min-width: 220px !important;
+    max-width: 220px !important;
+    min-height: 150px !important;
+    max-height: 150px !important;
+    flex: 0 0 220px !important;
+  }
+  .marquee-container::before,
+  .marquee-container::after {
+    width: 60px;
   }
 }
