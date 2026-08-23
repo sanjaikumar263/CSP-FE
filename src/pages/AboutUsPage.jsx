@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import shopImg from '../assets/Shop Image.png';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { API_BASE_URL } from '../config';
 import './AboutUsPage.css';
 
 export default function AboutUsPage() {
@@ -23,7 +24,7 @@ export default function AboutUsPage() {
   useEffect(() => {
     const fetchStoreInfo = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/store-info');
+        const res = await fetch(`${API_BASE_URL}/store-info`);
         const data = await res.json();
         if (res.ok && data.success && data.data) {
           setStoreInfo(prev => ({

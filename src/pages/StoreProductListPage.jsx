@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { API_BASE_URL } from '../config';
 import './StoreProductListPage.css';
 
 
@@ -152,7 +153,7 @@ export default function StoreProductListPage() {
     const fetchCatalog = async () => {
       try {
         setLoading(true);
-        const res = await fetch('http://localhost:5000/api/products');
+        const res = await fetch(`${API_BASE_URL}/products`);
         const data = await res.json();
         if (res.ok && data.success && Array.isArray(data.data)) {
           const mapped = data.data.map((item, idx) => ({

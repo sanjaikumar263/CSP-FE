@@ -1,8 +1,9 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { API_BASE_URL as CENTRAL_API_BASE_URL } from '../config';
 
 const AuthContext = createContext(null);
 
-const API_BASE_URL = 'http://localhost:5000/api/auth';
+const API_BASE_URL = `${CENTRAL_API_BASE_URL}/auth`;
 
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => localStorage.getItem('adminToken') || null);

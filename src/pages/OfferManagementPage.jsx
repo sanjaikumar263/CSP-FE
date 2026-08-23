@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import AdminSidebar from '../components/AdminSidebar';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE_URL, BACKEND_URL } from '../config';
 import './OfferManagementPage.css';
 
 export default function OfferManagementPage() {
@@ -34,7 +35,7 @@ export default function OfferManagementPage() {
     try {
       setLoading(true);
       setError('');
-      const res = await fetch('http://localhost:5000/api/offers/admin', {
+      const res = await fetch(`${API_BASE_URL}/offers/admin`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -102,7 +103,7 @@ export default function OfferManagementPage() {
 
     try {
       setUploadingImage(true);
-      const res = await fetch('http://localhost:5000/api/upload', {
+      const res = await fetch(`${API_BASE_URL}/upload`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -111,7 +112,7 @@ export default function OfferManagementPage() {
       });
       const data = await res.json();
       if (res.ok && (data.url || data.filePath)) {
-        const imageUrl = data.url || (data.filePath ? (data.filePath.startsWith('http') ? data.filePath : `http://localhost:5000${data.filePath}`) : '');
+        const imageUrl = data.url || (data.filePath ? (data.filePath.startsWith('http') ? data.filePath : `${BACKEND_URL}${data.filePath}`) : '');
         setFormData(prev => ({ ...prev, image: imageUrl }));
         setSuccessMsg('Image uploaded successfully!');
         setTimeout(() => setSuccessMsg(''), 3000);
@@ -135,8 +136,8 @@ export default function OfferManagementPage() {
 
     try {
       const url = editingOffer
-        ? `http://localhost:5000/api/offers/${editingOffer._id}`
-        : 'http://localhost:5000/api/offers';
+        ? `${API_BASE_URL}/offers/${editingOffer._id}`
+        : `${API_BASE_URL}/offers`;
       const method = editingOffer ? 'PUT' : 'POST';
 
       const res = await fetch(url, {
@@ -165,7 +166,7 @@ export default function OfferManagementPage() {
 
   const handleToggleStatus = async (offerId, currentStatus) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/offers/${offerId}/toggle`, {
+      const res = await fetch(`${API_BASE_URL}/offers/${offerId}/toggle`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -188,7 +189,7 @@ export default function OfferManagementPage() {
   const handleDelete = async (offerId) => {
     if (!window.confirm('Are you sure you want to delete this offer?')) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/offers/${offerId}`, {
+      const res = await fetch(`${API_BASE_URL}/offers/${offerId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

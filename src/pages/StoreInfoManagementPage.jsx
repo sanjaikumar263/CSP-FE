@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import AdminSidebar from '../components/AdminSidebar';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE_URL, BACKEND_URL } from '../config';
 import './StoreInfoManagementPage.css';
 
 export default function StoreInfoManagementPage() {
@@ -73,7 +74,7 @@ export default function StoreInfoManagementPage() {
     try {
       setLoading(true);
       setError('');
-      const res = await fetch('http://localhost:5000/api/store-info');
+      const res = await fetch(`${API_BASE_URL}/store-info`);
       const data = await res.json();
       if (res.ok && data.success && data.data) {
         setFormData(prev => ({
@@ -102,7 +103,7 @@ export default function StoreInfoManagementPage() {
 
     try {
       setUploadingImage(true);
-      const res = await fetch('http://localhost:5000/api/upload', {
+      const res = await fetch(`${API_BASE_URL}/upload`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -111,7 +112,7 @@ export default function StoreInfoManagementPage() {
       });
       const data = await res.json();
       if (res.ok && (data.url || data.filePath)) {
-        const imageUrl = data.url || (data.filePath ? (data.filePath.startsWith('http') ? data.filePath : `http://localhost:5000${data.filePath}`) : '');
+        const imageUrl = data.url || (data.filePath ? (data.filePath.startsWith('http') ? data.filePath : `${BACKEND_URL}${data.filePath}`) : '');
         setFormData(prev => ({ ...prev, directorImage: imageUrl }));
         setSuccessMsg('Director image uploaded successfully!');
         setTimeout(() => setSuccessMsg(''), 3000);
@@ -155,7 +156,7 @@ export default function StoreInfoManagementPage() {
       setError('');
       setSuccessMsg('');
 
-      const res = await fetch('http://localhost:5000/api/store-info', {
+      const res = await fetch(`${API_BASE_URL}/store-info`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

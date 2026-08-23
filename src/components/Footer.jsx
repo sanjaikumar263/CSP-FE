@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import logoSvg from '../assets/hero_logo.svg';
+import { API_BASE_URL } from '../config';
 import './Footer.css';
 
 export default function Footer() {
@@ -18,7 +19,7 @@ export default function Footer() {
   useEffect(() => {
     const fetchStoreInfo = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/store-info');
+        const res = await fetch(`${API_BASE_URL}/store-info`);
         const data = await res.json();
         if (res.ok && data.success && data.data) {
           setStoreInfo(prev => ({

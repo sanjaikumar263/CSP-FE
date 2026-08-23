@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { API_BASE_URL } from '../config';
 import './GenderCollectionPage.css';
 
 const GENDER_HERO_DATA = {
@@ -60,7 +61,7 @@ export default function GenderCollectionPage() {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      let url = 'http://localhost:5000/api/products';
+      let url = `${API_BASE_URL}/products`;
       const params = new URLSearchParams();
 
       if (selectedGender !== 'all') {

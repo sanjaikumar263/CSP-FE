@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import AdminSidebar from '../components/AdminSidebar';
+import { API_BASE_URL } from '../config';
 import './ProductListPage.css';
 
 const STATUS_LABEL = { published: 'Published', draft: 'Draft', outofstock: 'Out of Stock' };
@@ -18,7 +19,7 @@ export default function ProductListPage() {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const res = await fetch('http://localhost:5000/api/products');
+      const res = await fetch(`${API_BASE_URL}/products`);
       const data = await res.json();
       if (res.ok && data.success && Array.isArray(data.data)) {
         const mapped = data.data.map((item, idx) => ({
@@ -83,7 +84,7 @@ export default function ProductListPage() {
     const deleteProductImages = async (targetProd) => {
       if (targetProd?.img && targetProd.img.startsWith('http')) {
         try {
-          await fetch('http://localhost:5000/api/upload', {
+          await fetch(`${API_BASE_URL}/upload`, {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ public_id: targetProd.img })
@@ -99,7 +100,7 @@ export default function ProductListPage() {
       const targetProd = products.find(p => p.id === targetId);
       if (targetProd?._id) {
         try {
-          await fetch(`http://localhost:5000/api/products/${targetProd._id}`, { method: 'DELETE' });
+          await fetch(`${API_BASE_URL}/products/${targetProd._id}`, { method: 'DELETE' });
           await deleteProductImages(targetProd);
         } catch (e) {
           console.warn('API delete warning:', e);
@@ -112,7 +113,7 @@ export default function ProductListPage() {
         const targetProd = products.find(p => p.id === targetId);
         if (targetProd?._id) {
           try {
-            await fetch(`http://localhost:5000/api/products/${targetProd._id}`, { method: 'DELETE' });
+            await fetch(`${API_BASE_URL}/products/${targetProd._id}`, { method: 'DELETE' });
             await deleteProductImages(targetProd);
           } catch (e) {
             console.warn('API delete warning:', e);

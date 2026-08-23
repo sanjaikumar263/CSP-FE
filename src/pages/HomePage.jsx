@@ -4,6 +4,7 @@ import productsData from '../data/products.json';
 import shopImg from '../assets/Shop Image.png';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { API_BASE_URL } from '../config';
 import './HomePage.css';
 
 export default function HomePage() {
@@ -25,7 +26,7 @@ export default function HomePage() {
   useEffect(() => {
     const fetchBanners = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/banners');
+        const res = await fetch(`${API_BASE_URL}/banners`);
         const data = await res.json();
         if (res.ok && data.success && Array.isArray(data.data) && data.data.length > 0) {
           setHeroSlides(data.data);
@@ -37,7 +38,7 @@ export default function HomePage() {
 
     const fetchOffers = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/offers');
+        const res = await fetch(`${API_BASE_URL}/offers`);
         const data = await res.json();
         if (res.ok && data.success && Array.isArray(data.data)) {
           setOffers(data.data);
@@ -62,7 +63,7 @@ export default function HomePage() {
     const fetchLatestProducts = async () => {
       try {
         setLoadingProducts(true);
-        const res = await fetch('http://localhost:5000/api/products/latest');
+        const res = await fetch(`${API_BASE_URL}/products/latest`);
         const data = await res.json();
         if (res.ok && data.success && Array.isArray(data.data) && data.data.length > 0) {
           const mapped = data.data.map((item, idx) => {

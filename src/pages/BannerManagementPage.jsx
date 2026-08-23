@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import AdminSidebar from '../components/AdminSidebar';
 import { useAuth } from '../context/AuthContext';
+import { API_BASE_URL } from '../config';
 import './BannerManagementPage.css';
 
 export default function BannerManagementPage() {
@@ -32,7 +33,7 @@ export default function BannerManagementPage() {
     try {
       setLoading(true);
       setError('');
-      const res = await fetch('http://localhost:5000/api/banners/admin', {
+      const res = await fetch(`${API_BASE_URL}/banners/admin`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -96,7 +97,7 @@ export default function BannerManagementPage() {
 
     try {
       setUploadingImage(true);
-      const res = await fetch('http://localhost:5000/api/upload', {
+      const res = await fetch(`${API_BASE_URL}/upload`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -126,8 +127,8 @@ export default function BannerManagementPage() {
 
     try {
       const url = editingBanner
-        ? `http://localhost:5000/api/banners/${editingBanner._id}`
-        : 'http://localhost:5000/api/banners';
+        ? `${API_BASE_URL}/banners/${editingBanner._id}`
+        : `${API_BASE_URL}/banners`;
       const method = editingBanner ? 'PUT' : 'POST';
 
       const res = await fetch(url, {
@@ -156,7 +157,7 @@ export default function BannerManagementPage() {
 
   const handleToggleActive = async (banner) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/banners/${banner._id}`, {
+      const res = await fetch(`${API_BASE_URL}/banners/${banner._id}`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -180,7 +181,7 @@ export default function BannerManagementPage() {
     if (!window.confirm('Are you sure you want to delete this banner slide?')) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/banners/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/banners/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import productsData from '../data/products.json';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { API_BASE_URL } from '../config';
 import './ProductDetailPage.css';
 
 // Sample product gallery images for Kanchipuram / Banarasi silk sarees
@@ -92,7 +93,7 @@ export default function ProductDetailPage() {
     const fetchProduct = async () => {
       try {
         if (id) {
-          const res = await fetch(`http://localhost:5000/api/products/${id}`);
+          const res = await fetch(`${API_BASE_URL}/products/${id}`);
           const data = await res.json();
           if (res.ok && data.success && data.data) {
             setApiProduct(data.data);

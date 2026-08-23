@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import AdminSidebar from '../components/AdminSidebar';
+import { API_BASE_URL } from '../config';
 import './ProductAddPage.css';
 
 const INITIAL_THUMBS = [
@@ -44,7 +45,7 @@ export default function ProductAddPage() {
     if (id) {
       const fetchProductDetails = async () => {
         try {
-          const res = await fetch(`http://localhost:5000/api/products/${id}`);
+          const res = await fetch(`${API_BASE_URL}/products/${id}`);
           const data = await res.json();
           if (res.ok && data.success && data.data) {
             const p = data.data;
@@ -94,7 +95,7 @@ export default function ProductAddPage() {
     // Call DELETE API if thumbnail is hosted on Cloudinary or server
     if (targetThumb && (targetThumb.public_id || (targetThumb.src && targetThumb.src.startsWith('http')))) {
       try {
-        const res = await fetch('http://localhost:5000/api/upload', {
+        const res = await fetch(`${API_BASE_URL}/upload`, {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ public_id: targetThumb.public_id || targetThumb.src })
@@ -136,7 +137,7 @@ export default function ProductAddPage() {
           const formData = new FormData();
           formData.append('image', file);
 
-          const res = await fetch('http://localhost:5000/api/upload', {
+          const res = await fetch(`${API_BASE_URL}/upload`, {
             method: 'POST',
             body: formData
           });
@@ -188,7 +189,7 @@ export default function ProductAddPage() {
         formData.append('old_public_id', targetThumb.public_id || targetThumb.src);
       }
 
-      const res = await fetch('http://localhost:5000/api/upload', {
+      const res = await fetch(`${API_BASE_URL}/upload`, {
         method: 'PUT',
         body: formData
       });
@@ -265,7 +266,7 @@ export default function ProductAddPage() {
       inStock: parseInt(stockQuantity, 10) > 0
     };
 
-    const url = isEditMode ? `http://localhost:5000/api/products/${id}` : 'http://localhost:5000/api/products';
+    const url = isEditMode ? `${API_BASE_URL}/products/${id}` : `${API_BASE_URL}/products`;
     const method = isEditMode ? 'PUT' : 'POST';
 
     try {

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import AdminSidebar from '../components/AdminSidebar';
+import { API_BASE_URL } from '../config';
 import './AdminDashboardPage.css';
 
 export default function AdminDashboardPage() {
@@ -21,9 +22,9 @@ export default function AdminDashboardPage() {
         setLoading(true);
         // Fetch products, offers, banners in parallel
         const [prodRes, offerRes, bannerRes] = await Promise.all([
-          fetch('http://localhost:5000/api/products'),
-          fetch('http://localhost:5000/api/offers'),
-          fetch('http://localhost:5000/api/banners')
+          fetch(`${API_BASE_URL}/products`),
+          fetch(`${API_BASE_URL}/offers`),
+          fetch(`${API_BASE_URL}/banners`)
         ]);
 
         const prodData = await prodRes.json();
