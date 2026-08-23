@@ -26,7 +26,7 @@ const GENDER_HERO_DATA = {
 
   all: {
     title: "Shop By Gender",
-    subtitle: "Explore our complete curated collections tailored for Men, Women, and Unisex accessories.",
+    subtitle: "Explore our complete curated collections tailored for Men and Women.",
     eyebrow: "FULL CATALOGUE",
     bgImage: "",
     badge: "Generations of Trust"
@@ -41,7 +41,7 @@ export default function GenderCollectionPage() {
   // Normalize active gender tab
   const activeGenderFromParam = (genderType || searchParams.get('gender') || 'all').toLowerCase();
   const [selectedGender, setSelectedGender] = useState(
-    ['women', 'men', 'unisex'].includes(activeGenderFromParam) ? activeGenderFromParam : 'all'
+    ['women', 'men'].includes(activeGenderFromParam) ? activeGenderFromParam : 'all'
   );
 
   const [products, setProducts] = useState([]);
@@ -55,7 +55,7 @@ export default function GenderCollectionPage() {
   useEffect(() => {
     if (genderType) {
       const g = genderType.toLowerCase();
-      if (['women', 'men', 'unisex'].includes(g)) {
+      if (['women', 'men'].includes(g)) {
         setSelectedGender(g);
       }
     }
@@ -68,7 +68,7 @@ export default function GenderCollectionPage() {
       const params = new URLSearchParams();
 
       if (selectedGender !== 'all') {
-        const genderQueryVal = selectedGender === 'women' ? 'Women' : (selectedGender === 'men' ? 'Men' : 'Unisex');
+        const genderQueryVal = selectedGender === 'women' ? 'Women' : 'Men';
         params.append('gender', genderQueryVal);
       }
 
@@ -136,7 +136,7 @@ export default function GenderCollectionPage() {
     ? ['All', "Men's Wear", 'Kurta Sets', 'Dhoti Sets', 'Traditional Wear']
     : (selectedGender === 'women'
       ? ['All', 'Soft Silk', 'Kanchipuram Silk', 'Banarasi Silk', 'Tussar Silk', "Women's Wear"]
-      : ['All', 'Accessories', 'Unisex', 'Silk Sarees', "Men's Wear"]);
+      : ['All', 'Accessories', 'Silk Sarees', "Men's Wear"]);
 
   return (
     <div className="gender-page-container">
@@ -176,13 +176,6 @@ export default function GenderCollectionPage() {
           >
             <span className="tab-icon">👔</span>
             Men's Collection
-          </button>
-          <button
-            className={`gp-gender-tab ${selectedGender === 'unisex' ? 'active' : ''}`}
-            onClick={() => handleGenderTabChange('unisex')}
-          >
-            <span className="tab-icon">🧣</span>
-            Unisex &amp; Accessories
           </button>
         </div>
       </div>

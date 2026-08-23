@@ -174,7 +174,6 @@ export default function ProductListPage() {
             <option>All Genders</option>
             <option>Women</option>
             <option>Men</option>
-            <option>Unisex</option>
           </select>
           <select className="filter-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
             <option>All Status</option>

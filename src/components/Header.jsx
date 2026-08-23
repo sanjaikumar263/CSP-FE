@@ -120,7 +120,7 @@ export default function Header({ initialSearchQuery = '', onSearchSubmit }) {
               <span>Wishlist</span>
             </Link>
 
-            <Link to="/admin" className="action-btn" aria-label="My Account">
+            <Link to="/" className="action-btn" aria-label="My Account">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                 <circle cx="12" cy="7" r="4" />

@@ -497,7 +497,7 @@ export default function ProductAddPage() {
               <h3>Target Gender</h3>
               <div className="phint">Specify which gender collection this product belongs to.</div>
               <div className="status-toggle">
-                {['Women', 'Men', 'Unisex'].map(g => (
+                {['Women', 'Men'].map(g => (
                   <button
                     key={g}
                     type="button"

@@ -138,46 +138,7 @@ button {
   font-weight: 600;
 }
 
-.header-search-container {
-  flex: 1;
-  max-width: 480px;
-  display: flex;
-  align-items: center;
-  border: 1px solid rgba(10, 48, 93, 0.2);
-  border-radius: 4px;
-  overflow: hidden;
-  background-color: #FAF8F5;
-  transition: border-color 0.2s ease;
-}
 
-.header-search-container:focus-within {
-  border-color: var(--primary-maroon);
-  background-color: #ffffff;
-}
-
-.search-input {
-  flex: 1;
-  border: none;
-  padding: 10px 16px;
-  font-size: 13.5px;
-  outline: none;
-  background: transparent;
-  color: var(--text-dark);
-}
-
-.search-submit-btn {
-  background-color: var(--primary-maroon);
-  color: #ffffff;
-  padding: 10px 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s ease;
-}
-
-.search-submit-btn:hover {
-  background-color: var(--maroon-hover);
-}
 
 .header-actions {
   display: flex;
@@ -1153,7 +1114,7 @@ button {
 
 .gender-cards-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 28px;
   margin-top: 36px;
 }

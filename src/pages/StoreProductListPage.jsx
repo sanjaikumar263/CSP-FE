@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -143,6 +143,36 @@ export default function StoreProductListPage() {
   // Products & Loading state from API
   const [catalogItems, setCatalogItems] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Default categories base list
+  const BASE_CATEGORIES = [
+    'Banarasi Silk',
+    'Kanchipuram Silk',
+    "Men's Wear",
+    'Lehengas',
+    'Soft Silk',
+    'Accessories',
+    'Tussar Silk'
+  ];
+
+  // Dynamic Category Counts computed from API product dataset
+  const dynamicCategories = useMemo(() => {
+    const countsMap = {};
+    BASE_CATEGORIES.forEach(cat => {
+      countsMap[cat] = 0;
+    });
+
+    catalogItems.forEach(item => {
+      if (item.category) {
+        countsMap[item.category] = (countsMap[item.category] || 0) + 1;
+      }
+    });
+
+    return Object.keys(countsMap).map(name => ({
+      name,
+      count: countsMap[name]
+    }));
+  }, [catalogItems]);
 
   // Filter States
   const [selectedCategories, setSelectedCategories] = useState([]);
@@ -367,7 +397,7 @@ export default function StoreProductListPage() {
             <div className="filter-group">
               <h4 className="group-title">GENDER</h4>
               <div className="radio-list">
-                {['All', 'Women', 'Men', 'Unisex'].map(g => (
+                {['All', 'Women', 'Men'].map(g => (
                   <label key={g} className="checkbox-item">
                     <input
                       type="radio"
@@ -385,15 +415,7 @@ export default function StoreProductListPage() {
             <div className="filter-group">
               <h4 className="group-title">CATEGORY</h4>
               <div className="checkbox-list">
-                {[
-                  { name: 'Banarasi Silk', count: 12 },
-                  { name: 'Kanchipuram Silk', count: 8 },
-                  { name: "Men's Wear", count: 10 },
-                  { name: 'Lehengas', count: 6 },
-                  { name: 'Soft Silk', count: 6 },
-                  { name: 'Accessories', count: 5 },
-                  { name: 'Tussar Silk', count: 4 }
-                ].map(c => (
+                {dynamicCategories.map(c => (
                   <label key={c.name} className="checkbox-item">
                     <input
                       type="checkbox"
@@ -425,73 +447,8 @@ export default function StoreProductListPage() {
               </div>
             </div>
 
-            {/* Color Filter */}
-            <div className="filter-group">
-              <h4 className="group-title">COLOR</h4>
-              <div className="color-swatches-grid">
-                {[
-                  { name: 'Gold', hex: '#EAB308' },
-                  { name: 'Magenta', hex: '#EC4899' },
-                  { name: 'Pink', hex: '#F43F5E' },
-                  { name: 'Blue', hex: '#3B82F6' },
-                  { name: 'Green', hex: '#10B981' },
-                  { name: 'White', hex: '#FFFFFF' }
-                ].map(col => (
-                  <button
-                    key={col.name}
-                    className={`color-swatch-dot ${selectedColor === col.name ? 'active' : ''}`}
-                    style={{ backgroundColor: col.hex }}
-                    onClick={() => setSelectedColor(selectedColor === col.name ? '' : col.name)}
-                    title={col.name}
-                  />
-                ))}
-              </div>
-            </div>
+            
 
-            {/* Occasion Filter */}
-            <div className="filter-group">
-              <h4 className="group-title">OCCASION</h4>
-              <div className="checkbox-list">
-                {[
-                  { name: 'Wedding', count: 14 },
-                  { name: 'Festive', count: 16 },
-                  { name: 'Party Wear', count: 8 },
-                  { name: 'Casual', count: 4 }
-                ].map(occ => (
-                  <label key={occ.name} className="checkbox-item">
-                    <input
-                      type="checkbox"
-                      checked={selectedOccasions.includes(occ.name)}
-                      onChange={() => handleOccasionToggle(occ.name)}
-                    />
-                    <span className="cb-label">{occ.name} ({occ.count})</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Availability Filter */}
-            <div className="filter-group">
-              <h4 className="group-title">AVAILABILITY</h4>
-              <div className="checkbox-list">
-                <label className="checkbox-item">
-                  <input
-                    type="checkbox"
-                    checked={availability.inStock}
-                    onChange={(e) => setAvailability({ ...availability, inStock: e.target.checked })}
-                  />
-                  <span className="cb-label">In Stock (22)</span>
-                </label>
-                <label className="checkbox-item">
-                  <input
-                    type="checkbox"
-                    checked={availability.outOfStock}
-                    onChange={(e) => setAvailability({ ...availability, outOfStock: e.target.checked })}
-                  />
-                  <span className="cb-label">Out of Stock (2)</span>
-                </label>
-              </div>
-            </div>
           </aside>
 
           {/* Right Product Grid (4 Columns matching screenshot) */}

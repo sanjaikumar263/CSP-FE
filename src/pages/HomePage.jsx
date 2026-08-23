@@ -18,8 +18,6 @@ export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [wishlist, setWishlist] = useState({});
   const [searchQuery, setSearchQuery] = useState(initialQuery);
-  const [emailInput, setEmailInput] = useState('');
-  const [subscribed, setSubscribed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [trendingProducts, setTrendingProducts] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
@@ -136,15 +134,6 @@ export default function HomePage() {
   const handleClearSearch = () => {
     setSearchQuery('');
     setSearchParams({});
-  };
-
-  const handleNewsletterSubmit = (e) => {
-    e.preventDefault();
-    if (emailInput.trim()) {
-      setSubscribed(true);
-      setEmailInput('');
-      setTimeout(() => setSubscribed(false), 4000);
-    }
   };
 
   const filteredTrendingProducts = trendingProducts.filter((prod) => {
@@ -292,16 +281,6 @@ export default function HomePage() {
                 <h3 className="gender-title">Men's Collection</h3>
                 <p className="gender-desc">Pure Silk Shirts, Gold Zari Dhotis &amp; Handcrafted Kurta Sets for regal style.</p>
                 <Link to="/gender/men" className="gender-cta-btn">EXPLORE MEN →</Link>
-              </div>
-            </div>
-
-            <div className="gender-card unisex-card">
-              <div className="gender-card-bg"></div>
-              <div className="gender-card-content">
-                <span className="gender-tag">ARTISANAL ACCESSORIES</span>
-                <h3 className="gender-title">Unisex Collection</h3>
-                <p className="gender-desc">Handwoven Silk Shawls, Heritage Stoles &amp; Festive Accessories for all.</p>
-                <Link to="/gender/unisex" className="gender-cta-btn">EXPLORE UNISEX →</Link>
               </div>
             </div>
           </div>
@@ -579,40 +558,6 @@ export default function HomePage() {
                 </svg>
               </Link>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Newsletter Subscription Section */}
-      <section className="newsletter-section">
-        <div className="container-inner">
-          <div className="newsletter-card">
-            <div className="newsletter-icon-circle">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-                <polyline points="22,6 12,13 2,6" />
-              </svg>
-            </div>
-            <div className="newsletter-text-box">
-              <h3 className="newsletter-title">Stay Updated</h3>
-              <p className="newsletter-desc">
-                Subscribe to get special offers, free giveaways and once-in-a-lifetime deals.
-              </p>
-            </div>
-            <form onSubmit={handleNewsletterSubmit} className="newsletter-form">
-              <input
-                type="email"
-                required
-                placeholder="Enter your email address"
-                value={emailInput}
-                onChange={(e) => setEmailInput(e.target.value)}
-                className="newsletter-email-input"
-              />
-              <button type="submit" className="newsletter-submit-btn">
-                SUBSCRIBE
-              </button>
-            </form>
-            {subscribed && <div className="newsletter-success-toast">Thank you for subscribing!</div>}
           </div>
         </div>
       </section>
