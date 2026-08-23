@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { Link, useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import Loader from '../components/Loader';
+import SafeImage from '../components/SafeImage';
+import placeholderSvg from '../assets/placeholder.svg';
 import { API_BASE_URL } from '../config';
 import './GenderCollectionPage.css';
 
@@ -10,14 +13,14 @@ const GENDER_HERO_DATA = {
     title: "Women's Collection",
     subtitle: "Discover opulent Kanchipuram silks, Banarasi weaves, and artisanal ethnic wear crafted for royalty.",
     eyebrow: "HERITAGE ELEGANCE",
-    bgImage: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=1400&q=80",
+    bgImage: "",
     badge: "100% Pure Silk Sarees"
   },
   men: {
     title: "Men's Collection",
     subtitle: "Regal silk shirts, traditional dhotis, and royal handcrafted kurta sets tailored for every celebratory occasion.",
     eyebrow: "TRADITIONAL SPLENDOR",
-    bgImage: "https://images.unsplash.com/photo-1617137968427-85924c800a22?auto=format&fit=crop&w=1400&q=80",
+    bgImage: "",
     badge: "Authentic Zari Weaves"
   },
 
@@ -25,7 +28,7 @@ const GENDER_HERO_DATA = {
     title: "Shop By Gender",
     subtitle: "Explore our complete curated collections tailored for Men, Women, and Unisex accessories.",
     eyebrow: "FULL CATALOGUE",
-    bgImage: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1400&q=80",
+    bgImage: "",
     badge: "Generations of Trust"
   }
 };
@@ -216,10 +219,7 @@ export default function GenderCollectionPage() {
 
         {/* Product Grid */}
         {loading ? (
-          <div className="gp-loading-state">
-            <div className="gp-spinner"></div>
-            <p>Loading {heroInfo.title}...</p>
-          </div>
+          <Loader message={`Loading ${heroInfo.title}...`} />
         ) : products.length === 0 ? (
           <div className="gp-empty-state">
             <div className="empty-icon">🛍️</div>
@@ -234,8 +234,8 @@ export default function GenderCollectionPage() {
             {products.map(product => (
               <div key={product._id || product.id} className="gp-product-card">
                 <div className="gp-card-image-wrap">
-                  <img
-                    src={product.image || product.images?.[0] || 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=600&q=80'}
+                  <SafeImage
+                    src={product.image || product.images?.[0] || placeholderSvg}
                     alt={product.name}
                     className="gp-card-img"
                   />

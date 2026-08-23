@@ -259,7 +259,7 @@ export default function ProductAddPage() {
       category: selectedCategories[0] || 'Soft Silk',
       categories: selectedCategories.length > 0 ? selectedCategories : ['Soft Silk'],
       gender: gender || 'Women',
-      images: imageUrls.length > 0 ? imageUrls : ['https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=600&q=80'],
+      images: imageUrls,
       tags: tags,
       status: targetStatus,
       currency: 'MYR',

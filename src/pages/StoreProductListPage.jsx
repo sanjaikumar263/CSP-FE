@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import Loader from '../components/Loader';
+import SafeImage from '../components/SafeImage';
+import placeholderSvg from '../assets/placeholder.svg';
 import { API_BASE_URL } from '../config';
 import './StoreProductListPage.css';
 
@@ -15,7 +18,7 @@ const STORE_PRODUCTS = [
     price: 170.00,
     originalPrice: 220.00,
     currency: 'MYR',
-    image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=600&q=80',
+    image: placeholderSvg,
     isNew: true,
     color: 'Magenta',
     occasion: 'Wedding',
@@ -29,7 +32,7 @@ const STORE_PRODUCTS = [
     price: 155.00,
     originalPrice: 199.00,
     currency: 'MYR',
-    image: 'https://images.unsplash.com/photo-1617137968427-85924c800a22?auto=format&fit=crop&w=600&q=80',
+    image: placeholderSvg,
     isNew: true,
     color: 'Cream Gold',
     occasion: 'Wedding',
@@ -43,7 +46,7 @@ const STORE_PRODUCTS = [
     price: 380.00,
     originalPrice: 450.00,
     currency: 'MYR',
-    image: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=600&q=80',
+    image: placeholderSvg,
     isNew: true,
     color: 'Pink',
     occasion: 'Party Wear',
@@ -57,7 +60,7 @@ const STORE_PRODUCTS = [
     price: 210.00,
     originalPrice: 270.00,
     currency: 'MYR',
-    image: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=600&q=80',
+    image: placeholderSvg,
     isNew: true,
     color: 'White',
     occasion: 'Wedding',
@@ -71,7 +74,7 @@ const STORE_PRODUCTS = [
     price: 140.00,
     originalPrice: 210.00,
     currency: 'MYR',
-    image: 'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=600&q=80',
+    image: placeholderSvg,
     isNew: false,
     color: 'Magenta',
     occasion: 'Wedding',
@@ -85,7 +88,7 @@ const STORE_PRODUCTS = [
     price: 85.00,
     originalPrice: 110.00,
     currency: 'MYR',
-    image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=600&q=80',
+    image: placeholderSvg,
     isNew: true,
     color: 'Maroon Gold',
     occasion: 'Festive',
@@ -99,7 +102,7 @@ const STORE_PRODUCTS = [
     price: 180.00,
     originalPrice: null,
     currency: 'MYR',
-    image: 'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=600&q=80',
+    image: placeholderSvg,
     isNew: false,
     color: 'Pink',
     occasion: 'Party Wear',
@@ -113,7 +116,7 @@ const STORE_PRODUCTS = [
     price: 190.00,
     originalPrice: null,
     currency: 'MYR',
-    image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=600&q=80',
+    image: placeholderSvg,
     isNew: true,
     color: 'Blue',
     occasion: 'Festive',
@@ -163,7 +166,7 @@ export default function StoreProductListPage() {
             price: item.price,
             originalPrice: item.originalPrice || item.salePrice || null,
             currency: item.currency || 'MYR',
-            image: item.image || item.images?.[0] || 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=600&q=80',
+            image: item.image || item.images?.[0] || placeholderSvg,
             isNew: item.isNewProduct || idx % 2 === 0,
             color: item.color || 'Pink',
             occasion: item.occasion || 'Wedding',
@@ -494,13 +497,7 @@ export default function StoreProductListPage() {
           {/* Right Product Grid (4 Columns matching screenshot) */}
           <main className="product-grid-main">
             {loading ? (
-              <div style={{ textAlign: 'center', padding: '80px 20px', background: '#ffffff', borderRadius: '6px', border: '1px solid #E2E8F0' }}>
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#0a305d" strokeWidth="2.5" style={{ animation: 'spin 1s linear infinite', marginBottom: '14px' }}>
-                  <circle cx="12" cy="12" r="10" strokeDasharray="32" strokeDashoffset="10"/>
-                </svg>
-                <div style={{ fontSize: '16px', fontWeight: '700', color: '#0F172A' }}>Loading Products...</div>
-                <div style={{ fontSize: '13px', color: '#64748B', marginTop: '4px' }}>Fetching latest collection from database</div>
-              </div>
+              <Loader message="Fetching latest collection from database..." />
             ) : filteredList.length > 0 ? (
               <div className="store-products-grid">
                 {filteredList.map((prod) => (
@@ -520,7 +517,7 @@ export default function StoreProductListPage() {
                         </svg>
                       </button>
                       <Link to={`/product/${prod.id}`}>
-                        <img src={prod.image} alt={prod.name} className="card-img" />
+                        <SafeImage src={prod.image || placeholderSvg} alt={prod.name} className="card-img" />
                       </Link>
                     </div>
 

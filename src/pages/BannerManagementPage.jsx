@@ -387,7 +387,7 @@ export default function BannerManagementPage() {
                     <input
                       type="url"
                       className="form-input"
-                      placeholder="https://images.unsplash.com/..."
+                      placeholder="https://example.com/banner-image.jpg"
                       value={formData.image}
                       onChange={(e) => setFormData({ ...formData, image: e.target.value })}
                       required

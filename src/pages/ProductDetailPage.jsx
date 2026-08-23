@@ -3,16 +3,14 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import productsData from '../data/products.json';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import SafeImage from '../components/SafeImage';
+import placeholderSvg from '../assets/placeholder.svg';
 import { API_BASE_URL } from '../config';
 import './ProductDetailPage.css';
 
 // Sample product gallery images for Kanchipuram / Banarasi silk sarees
 const SAMPLE_GALLERY_IMAGES = [
-  'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1000&q=80',
-  'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=1000&q=80',
-  'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=1000&q=80',
-  'https://images.unsplash.com/photo-1609357605129-26f69add5d6e?auto=format&fit=crop&w=1000&q=80',
-  'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1000&q=80',
+  placeholderSvg
 ];
 
 const RELATED_PRODUCTS = [
@@ -22,7 +20,7 @@ const RELATED_PRODUCTS = [
     price: 180.00,
     rating: 5,
     reviewsCount: 96,
-    image: 'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=500&q=80'
+    image: placeholderSvg
   },
   {
     id: 2,
@@ -30,7 +28,7 @@ const RELATED_PRODUCTS = [
     price: 160.00,
     rating: 5,
     reviewsCount: 84,
-    image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=500&q=80'
+    image: placeholderSvg
   },
   {
     id: 3,
@@ -38,7 +36,7 @@ const RELATED_PRODUCTS = [
     price: 140.00,
     rating: 5,
     reviewsCount: 72,
-    image: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?auto=format&fit=crop&w=500&q=80'
+    image: placeholderSvg
   },
   {
     id: 4,
@@ -46,7 +44,7 @@ const RELATED_PRODUCTS = [
     price: 190.00,
     rating: 5,
     reviewsCount: 68,
-    image: 'https://images.unsplash.com/photo-1609357605129-26f69add5d6e?auto=format&fit=crop&w=500&q=80'
+    image: placeholderSvg
   },
   {
     id: 5,
@@ -54,7 +52,7 @@ const RELATED_PRODUCTS = [
     price: 210.00,
     rating: 5,
     reviewsCount: 54,
-    image: 'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=500&q=80'
+    image: placeholderSvg
   },
   {
     id: 6,
@@ -62,7 +60,7 @@ const RELATED_PRODUCTS = [
     price: 230.00,
     rating: 5,
     reviewsCount: 48,
-    image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=500&q=80'
+    image: placeholderSvg
   }
 ];
 
@@ -200,8 +198,8 @@ export default function ProductDetailPage() {
                   </div>
                 </div>
               ) : (
-                <img
-                  src={product.images[selectedImage]}
+                <SafeImage
+                  src={product.images?.[selectedImage] || placeholderSvg}
                   alt={product.title}
                   className="pd-main-image"
                 />
@@ -405,8 +403,8 @@ export default function ProductDetailPage() {
                 </div>
 
                 <div className="tab-image-side">
-                  <img
-                    src="https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80"
+                  <SafeImage
+                    src={placeholderSvg}
                     alt="Banarasi Silk Weave Detail"
                     className="tab-detail-img"
                   />
@@ -436,7 +434,7 @@ export default function ProductDetailPage() {
               <div key={rel.id} className="pd-rel-card">
                 <Link to={`/product/${rel.id}`} onClick={() => window.scrollTo(0, 0)}>
                   <div className="rel-img-wrapper">
-                    <img src={rel.image} alt={rel.name} />
+                    <SafeImage src={rel.image || placeholderSvg} alt={rel.name} />
                   </div>
                   <div className="rel-info">
                     <div className="rel-name">{rel.name}</div>

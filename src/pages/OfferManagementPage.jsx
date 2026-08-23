@@ -379,7 +379,7 @@ export default function OfferManagementPage() {
                   type="text"
                   required
                   className="form-control"
-                  placeholder="https://images.unsplash.com/..."
+                  placeholder="https://example.com/image.jpg"
                   value={formData.image}
                   onChange={(e) => setFormData({ ...formData, image: e.target.value })}
                 />

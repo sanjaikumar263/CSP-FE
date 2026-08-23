@@ -4,6 +4,9 @@ import productsData from '../data/products.json';
 import shopImg from '../assets/Shop Image.png';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import Loader from '../components/Loader';
+import SafeImage from '../components/SafeImage';
+import placeholderSvg from '../assets/placeholder.svg';
 import { API_BASE_URL } from '../config';
 import './HomePage.css';
 
@@ -18,9 +21,9 @@ export default function HomePage() {
   const [emailInput, setEmailInput] = useState('');
   const [subscribed, setSubscribed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [trendingProducts, setTrendingProducts] = useState(productsData.trendingProducts || []);
+  const [trendingProducts, setTrendingProducts] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
-  const [heroSlides, setHeroSlides] = useState(productsData.heroSlides || []);
+  const [heroSlides, setHeroSlides] = useState([]);
   const [offers, setOffers] = useState([]);
 
   useEffect(() => {
@@ -28,11 +31,15 @@ export default function HomePage() {
       try {
         const res = await fetch(`${API_BASE_URL}/banners`);
         const data = await res.json();
-        if (res.ok && data.success && Array.isArray(data.data) && data.data.length > 0) {
-          setHeroSlides(data.data);
+        if (res.ok && data.success && Array.isArray(data.data)) {
+          const validSlides = data.data.filter(slide => (slide.image && slide.image.trim() !== '') || (slide.title && slide.title.trim() !== ''));
+          setHeroSlides(validSlides);
+        } else {
+          setHeroSlides([]);
         }
       } catch (err) {
-        console.warn('Using static fallback for hero slides:', err);
+        console.warn('Hero slides fetch error:', err);
+        setHeroSlides([]);
       }
     };
 
@@ -81,15 +88,18 @@ export default function HomePage() {
               price: numPrice,
               originalPrice: numOrig,
               currency: item.currency || 'MYR',
-              image: item.image || item.images?.[0] || 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=600&q=80',
+              image: item.image || item.images?.[0] || placeholderSvg,
               isNew: item.isNewProduct !== undefined ? item.isNewProduct : true,
               rating: item.rating || 5.0
             };
           });
           setTrendingProducts(mapped);
+        } else {
+          setTrendingProducts([]);
         }
       } catch (err) {
         console.warn('Error fetching latest products from backend API:', err);
+        setTrendingProducts([]);
       } finally {
         setLoadingProducts(false);
       }
@@ -98,10 +108,10 @@ export default function HomePage() {
     fetchLatestProducts();
   }, []);
 
-  const trustBadges = productsData.trustBadges;
-  const featuredCategories = productsData.featuredCategories;
-  const lehengaCollection = productsData.lehengaCollection;
-  const shopByCategories = productsData.shopByCategories;
+  const trustBadges = productsData.trustBadges || [];
+  const featuredCategories = (productsData.featuredCategories || []).filter(cat => cat.image && cat.image.trim() !== '');
+  const lehengaCollection = (productsData.lehengaCollection || []).filter(item => item.image && item.image.trim() !== '');
+  const shopByCategories = (productsData.shopByCategories || []).filter(cat => cat.image && cat.image.trim() !== '');
   const heritageInfo = productsData.heritageInfo;
 
   const handleNextSlide = () => {
@@ -147,108 +157,113 @@ export default function HomePage() {
   });
 
   const activeSlide = heroSlides[currentSlide] || heroSlides[0] || {};
+  const hasHeroContent = heroSlides.length > 0 && heroSlides.some(slide => (slide.image && slide.image.trim() !== '') || (slide.title && slide.title.trim() !== ''));
 
   return (
     <div className="home-page-container">
       {/* Common Header */}
       <Header />
 
-      {/* Hero Banner Section */}
-      <section className="hero-banner-section">
-        <div className="hero-slide-wrapper">
-          <button className="hero-arrow prev-arrow" onClick={handlePrevSlide} aria-label="Previous Slide">
-            ‹
-          </button>
-          <button className="hero-arrow next-arrow" onClick={handleNextSlide} aria-label="Next Slide">
-            ›
-          </button>
+      {/* Hero Banner Section (Hidden when no banner content exists) */}
+      {hasHeroContent && (
+        <section className="hero-banner-section">
+          <div className="hero-slide-wrapper">
+            <button className="hero-arrow prev-arrow" onClick={handlePrevSlide} aria-label="Previous Slide">
+              ‹
+            </button>
+            <button className="hero-arrow next-arrow" onClick={handleNextSlide} aria-label="Next Slide">
+              ›
+            </button>
 
-          <div className="hero-content-grid">
-            <div className="hero-text-side">
-              <div className="hero-headline-group">
-                <h2 className="hero-title-main">{activeSlide.title}</h2>
-                <h2 className="hero-title-highlight">{activeSlide.titleHighlight}</h2>
-              </div>
-              <p className="hero-subtitle">{activeSlide.subtitle}</p>
-              <a href={activeSlide.ctaLink || '#trending'} className="hero-cta-btn">
-                {activeSlide.ctaText || 'SHOP NOW'}
-              </a>
+            <div className="hero-content-grid">
+              <div className="hero-text-side">
+                <div className="hero-headline-group">
+                  <h2 className="hero-title-main">{activeSlide.title}</h2>
+                  <h2 className="hero-title-highlight">{activeSlide.titleHighlight}</h2>
+                </div>
+                <p className="hero-subtitle">{activeSlide.subtitle}</p>
+                <a href={activeSlide.ctaLink || '#trending'} className="hero-cta-btn">
+                  {activeSlide.ctaText || 'SHOP NOW'}
+                </a>
 
-              {/* Trust Badges */}
-              <div className="hero-trust-bar">
-                {trustBadges.map((badge) => (
-                  <div key={badge.id} className="trust-item">
-                    <div className="trust-icon-box">
-                      {badge.icon === 'shield' && (
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                        </svg>
-                      )}
-                      {badge.icon === 'sparkles' && (
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                        </svg>
-                      )}
-                      {badge.icon === 'award' && (
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <circle cx="12" cy="8" r="7" />
-                          <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
-                        </svg>
-                      )}
+                {/* Trust Badges */}
+                <div className="hero-trust-bar">
+                  {trustBadges.map((badge) => (
+                    <div key={badge.id} className="trust-item">
+                      <div className="trust-icon-box">
+                        {badge.icon === 'shield' && (
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                          </svg>
+                        )}
+                        {badge.icon === 'sparkles' && (
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                          </svg>
+                        )}
+                        {badge.icon === 'award' && (
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <circle cx="12" cy="8" r="7" />
+                            <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
+                          </svg>
+                        )}
+                      </div>
+                      <div className="trust-text-box">
+                        <div className="trust-title">{badge.title}</div>
+                        <div className="trust-sub">{badge.subtitle}</div>
+                      </div>
                     </div>
-                    <div className="trust-text-box">
-                      <div className="trust-title">{badge.title}</div>
-                      <div className="trust-sub">{badge.subtitle}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="hero-image-side">
-              <img
-                src={activeSlide.image}
-                alt={activeSlide.title || 'Hero Banner Slide'}
-                className="hero-main-img"
-              />
-            </div>
-          </div>
-
-          {/* Slider Indicator Dots */}
-          <div className="hero-dots">
-            {heroSlides.map((_, index) => (
-              <button
-                key={index}
-                className={`dot ${index === currentSlide ? 'active' : ''}`}
-                onClick={() => setCurrentSlide(index)}
-                aria-label={`Go to slide ${index + 1}`}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 4 Feature Category Cards */}
-      <section className="featured-categories-section" id="categories">
-        <div className="container-inner">
-          <div className="category-cards-grid">
-            {featuredCategories.map((cat) => (
-              <div key={cat.id} className="featured-cat-card">
-                <img src={cat.image} alt={cat.title} className="cat-card-bg" />
-                <div className="cat-card-overlay">
-                  <div className="cat-card-info">
-                    <h3 className="cat-title">{cat.title}</h3>
-                    <p className="cat-subtitle">{cat.subtitle}</p>
-                    <Link to={`/products?category=${encodeURIComponent(cat.title + ' ' + cat.subtitle)}`} className="cat-explore-btn">
-                      EXPLORE →
-                    </Link>
-                  </div>
+                  ))}
                 </div>
               </div>
-            ))}
+
+              <div className="hero-image-side">
+                <SafeImage
+                  src={activeSlide.image || placeholderSvg}
+                  alt={activeSlide.title || 'Hero Banner Slide'}
+                  className="hero-main-img"
+                />
+              </div>
+            </div>
+
+            {/* Slider Indicator Dots */}
+            <div className="hero-dots">
+              {heroSlides.map((_, index) => (
+                <button
+                  key={index}
+                  className={`dot ${index === currentSlide ? 'active' : ''}`}
+                  onClick={() => setCurrentSlide(index)}
+                  aria-label={`Go to slide ${index + 1}`}
+                />
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
+
+      {/* 4 Feature Category Cards */}
+      {featuredCategories.length > 0 && (
+        <section className="featured-categories-section" id="categories">
+          <div className="container-inner">
+            <div className="category-cards-grid">
+              {featuredCategories.map((cat) => (
+                <div key={cat.id} className="featured-cat-card">
+                  <SafeImage src={cat.image || placeholderSvg} alt={cat.title} className="cat-card-bg" />
+                  <div className="cat-card-overlay">
+                    <div className="cat-card-info">
+                      <h3 className="cat-title">{cat.title}</h3>
+                      <p className="cat-subtitle">{cat.subtitle}</p>
+                      <Link to={`/products?category=${encodeURIComponent(cat.title + ' ' + cat.subtitle)}`} className="cat-explore-btn">
+                        EXPLORE →
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Shop By Gender Module Section */}
       <section className="shop-by-gender-section" id="gender-module">
@@ -261,7 +276,7 @@ export default function HomePage() {
 
           <div className="gender-cards-grid">
             <div className="gender-card women-card">
-              <div className="gender-card-bg" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=800&q=80')" }}></div>
+              <div className="gender-card-bg"></div>
               <div className="gender-card-content">
                 <span className="gender-tag">HERITAGE SAREES &amp; LEHENGAS</span>
                 <h3 className="gender-title">Women's Collection</h3>
@@ -271,7 +286,7 @@ export default function HomePage() {
             </div>
 
             <div className="gender-card men-card">
-              <div className="gender-card-bg" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1617137968427-85924c800a22?auto=format&fit=crop&w=800&q=80')" }}></div>
+              <div className="gender-card-bg"></div>
               <div className="gender-card-content">
                 <span className="gender-tag">ROYAL TRADITIONAL WEAR</span>
                 <h3 className="gender-title">Men's Collection</h3>
@@ -281,7 +296,7 @@ export default function HomePage() {
             </div>
 
             <div className="gender-card unisex-card">
-              <div className="gender-card-bg" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=800&q=80')" }}></div>
+              <div className="gender-card-bg"></div>
               <div className="gender-card-content">
                 <span className="gender-tag">ARTISANAL ACCESSORIES</span>
                 <h3 className="gender-title">Unisex Collection</h3>
@@ -316,13 +331,15 @@ export default function HomePage() {
             </div>
           )}
 
-          {filteredTrendingProducts.length > 0 ? (
+          {loadingProducts ? (
+            <Loader message="Loading Latest Products..." />
+          ) : filteredTrendingProducts.length > 0 ? (
             <div className="products-grid">
               {filteredTrendingProducts.map((prod) => (
                 <div key={prod.id} className="product-card">
                   <div className="product-image-container">
                     <Link to={`/product/${prod.id}`}>
-                      <img src={prod.image} alt={prod.name} className="product-img" />
+                      <SafeImage src={prod.image || placeholderSvg} alt={prod.name} className="product-img" />
                     </Link>
                     <button
                       className={`wishlist-icon-btn ${wishlist[prod.id] ? 'active' : ''}`}
@@ -376,40 +393,42 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Lehenga Collection Showcase */}
-      <section className="lehenga-showcase-section" id="lehenga">
-        <div className="container-inner">
-          <div className="lehenga-layout-grid">
-            <div className="lehenga-info-box">
-              <span className="lehenga-tag">NEW COLLECTION</span>
-              <h2 className="lehenga-heading">Lehenga Collection</h2>
-              <p className="lehenga-subtext">
-                From classic elegance to modern grace - find the perfect lehenga for every celebration.
-              </p>
-              <a href="#explore-lehengas" className="lehenga-btn">
-                EXPLORE COLLECTION
-              </a>
-            </div>
-
-            <div className="lehenga-slider-area">
-              <div className="lehenga-items-row">
-                {lehengaCollection.map((item) => (
-                  <div key={item.id} className="lehenga-card">
-                    <Link to={`/product/${item.id}`}>
-                      <div className="lehenga-img-wrapper">
-                        <img src={item.image} alt={item.title} />
-                      </div>
-                    </Link>
-                  </div>
-                ))}
+      {/* Lehenga Collection Showcase (Only shown if items exist) */}
+      {lehengaCollection.length > 0 && (
+        <section className="lehenga-showcase-section" id="lehenga">
+          <div className="container-inner">
+            <div className="lehenga-layout-grid">
+              <div className="lehenga-info-box">
+                <span className="lehenga-tag">NEW COLLECTION</span>
+                <h2 className="lehenga-heading">Lehenga Collection</h2>
+                <p className="lehenga-subtext">
+                  From classic elegance to modern grace - find the perfect lehenga for every celebration.
+                </p>
+                <a href="#explore-lehengas" className="lehenga-btn">
+                  EXPLORE COLLECTION
+                </a>
               </div>
-              <button className="lehenga-slide-arrow" aria-label="Next Lehenga">
-                ›
-              </button>
+
+              <div className="lehenga-slider-area">
+                <div className="lehenga-items-row">
+                  {lehengaCollection.map((item) => (
+                    <div key={item.id} className="lehenga-card">
+                      <Link to={`/product/${item.id}`}>
+                        <div className="lehenga-img-wrapper">
+                          <img src={item.image} alt={item.title} />
+                        </div>
+                      </Link>
+                    </div>
+                  ))}
+                </div>
+                <button className="lehenga-slide-arrow" aria-label="Next Lehenga">
+                  ›
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Special Offers Section (Only rendered when offer status is ON / active) */}
       {offers && offers.length > 0 && (
@@ -515,26 +534,28 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Shop By Category (Circular Collections) */}
-      <section className="shop-by-category-section">
-        <div className="container-inner">
-          <div className="section-header-centered">
-            <div className="ornament-eyebrow">SHOP BY CATEGORY</div>
-            <h2 className="section-main-title">Explore Our Collections</h2>
-          </div>
+      {/* Shop By Category (Circular Collections - Only shown if items exist) */}
+      {shopByCategories.length > 0 && (
+        <section className="shop-by-category-section">
+          <div className="container-inner">
+            <div className="section-header-centered">
+              <div className="ornament-eyebrow">SHOP BY CATEGORY</div>
+              <h2 className="section-main-title">Explore Our Collections</h2>
+            </div>
 
-          <div className="circle-categories-grid">
-            {shopByCategories.map((item) => (
-              <Link key={item.id} to={`/products?category=${encodeURIComponent(item.name)}`} className="circle-cat-item">
-                <div className="circle-img-container">
-                  <img src={item.image} alt={item.name} />
-                </div>
-                <span className="circle-cat-label">{item.name}</span>
-              </Link>
-            ))}
+            <div className="circle-categories-grid">
+              {shopByCategories.map((item) => (
+                <Link key={item.id} to={`/products?category=${encodeURIComponent(item.name)}`} className="circle-cat-item">
+                  <div className="circle-img-container">
+                    <img src={item.image} alt={item.name} />
+                  </div>
+                  <span className="circle-cat-label">{item.name}</span>
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Our Heritage Section */}
       <section className="heritage-section" id="heritage">
