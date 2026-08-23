@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
+import Footer from '../components/Footer';
 import './GenderCollectionPage.css';
 
 const GENDER_HERO_DATA = {
@@ -279,9 +280,7 @@ export default function GenderCollectionPage() {
       </main>
 
       {/* Footer */}
-      <footer className="gp-footer">
-        <p>© 2026 Chennai Silk Palace. All rights reserved. Premium Heritage &amp; Traditional Wear.</p>
-      </footer>
+      <Footer />
     </div>
   );
 }

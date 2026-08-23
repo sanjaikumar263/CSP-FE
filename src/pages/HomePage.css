@@ -1053,7 +1053,7 @@ button {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  background-color: #8b1820;
+  background-color: #2d188b;
   color: #ffffff;
   padding: 14px 34px;
   border-radius: 30px;
@@ -1070,10 +1070,10 @@ button {
 }
 
 .heritage-about-btn:hover {
-  background-color: #a31d27;
+  background-color: #261da3;
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(139, 24, 32, 0.45);
-  color: #ffffff;
+  box-shadow: 0 8px 24px rgba(30, 24, 139, 0.45);
+  color: #e0da1f;
 }
 
 .heritage-about-btn:hover svg {
@@ -1338,6 +1338,173 @@ button {
   color: #166534;
   font-size: 12.5px;
   font-weight: 600;
+}
+
+/* ==========================================================================
+   11. Special Offers Banner Section
+   ========================================================================== */
+.special-offers-banner-section {
+  padding: 60px 0;
+  background-color: #040d1a;
+}
+
+.special-offer-card {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(232, 200, 116, 0.3);
+  display: flex;
+  align-items: center;
+  min-height: 380px;
+  margin-bottom: 30px;
+}
+
+.special-offer-card:last-child {
+  margin-bottom: 0;
+}
+
+.offer-banner-image-wrap {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.offer-banner-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.65);
+}
+
+.offer-banner-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(6, 21, 39, 0.95) 0%, rgba(6, 21, 39, 0.7) 55%, rgba(6, 21, 39, 0.2) 100%);
+}
+
+.offer-banner-content {
+  position: relative;
+  z-index: 2;
+  padding: 50px;
+  max-width: 680px;
+}
+
+.offer-badge-tag {
+  display: inline-block;
+  background: rgba(232, 200, 116, 0.2);
+  border: 1px solid var(--gold-accent);
+  color: var(--gold-light);
+  padding: 6px 16px;
+  border-radius: 30px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+.offer-banner-title {
+  font-family: var(--font-serif);
+  font-size: 36px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 14px;
+  line-height: 1.25;
+}
+
+.offer-banner-desc {
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 24px;
+}
+
+.offer-promotions-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.offer-discount-badge {
+  background: var(--primary-maroon);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 800;
+  padding: 8px 18px;
+  border-radius: 8px;
+  letter-spacing: 0.04em;
+  box-shadow: 0 4px 14px rgba(107, 15, 26, 0.4);
+}
+
+.offer-coupon-box {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  border: 1px dashed rgba(232, 200, 116, 0.6);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.offer-coupon-box strong {
+  color: var(--gold-light);
+  font-size: 15px;
+  letter-spacing: 0.08em;
+}
+
+.offer-validity-text {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
+.offer-cta-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background-color: var(--gold-accent);
+  color: var(--bg-navy-dark);
+  padding: 14px 32px;
+  border-radius: 30px;
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 20px rgba(232, 200, 116, 0.35);
+}
+
+.offer-cta-button:hover {
+  background-color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(255, 255, 255, 0.4);
+}
+
+.offer-cta-button svg {
+  transition: transform 0.3s ease;
+}
+
+.offer-cta-button:hover svg {
+  transform: translateX(4px);
+}
+
+@media (max-width: 768px) {
+  .offer-banner-content {
+    padding: 32px 24px;
+  }
+  .offer-banner-title {
+    font-size: 26px;
+  }
+  .offer-banner-desc {
+    font-size: 13.5px;
+  }
 }
 
 /* ==========================================================================

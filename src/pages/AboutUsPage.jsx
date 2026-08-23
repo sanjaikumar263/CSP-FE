@@ -1,10 +1,43 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import shopImg from '../assets/Shop Image.png';
-import logoSvg from '../assets/hero_logo.svg';
 import Header from '../components/Header';
+import Footer from '../components/Footer';
 import './AboutUsPage.css';
 
 export default function AboutUsPage() {
+  const [storeInfo, setStoreInfo] = useState({
+    heroSubtitleTag: 'ABOUT CHENNAI SILK PALACE',
+    heroTitle: 'A Legacy of Trust, Tradition & Excellence',
+    heroSubtitle: 'Crafting elegance and preserving timeless Indian textile traditions for over four decades in Malaysia.',
+    directorName: 'Mr. Thanasekaran Vellaikkoothan',
+    directorRole: 'Director, Chennai Silk Palace Sdn. Bhd.',
+    directorQuote: '"Behind every great brand is a visionary whose passion transforms dreams into reality. For over four decades, Mr. Thanasekaran Vellaikkoothan has been a respected pioneer in Malaysia’s textile industry, building Chennai Silk Palace into one of the country’s most trusted and admired destinations for authentic Indian textiles and traditional attire."',
+    directorBody: 'Driven by a commitment to quality, integrity, authenticity, and exceptional customer service, he has earned the confidence of generations of customers. Today, Chennai Silk Palace is more than a textile retailer — it is a household name synonymous with elegance, heritage, and timeless craftsmanship.',
+    directorYears: '40+',
+    directorImage: '',
+    visionText: 'To preserve the timeless beauty of Indian textiles while continuously delivering quality, authenticity, innovation, and exceptional customer experiences for generations to come.',
+    missionText: 'To be Malaysia’s most trusted destination for premium Indian textiles by offering authentic products, outstanding value, personalised service, and an unforgettable shopping experience, while preserving cultural heritage and making a meaningful contribution to the community.'
+  });
+
+  useEffect(() => {
+    const fetchStoreInfo = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/store-info');
+        const data = await res.json();
+        if (res.ok && data.success && data.data) {
+          setStoreInfo(prev => ({
+            ...prev,
+            ...data.data
+          }));
+        }
+      } catch (err) {
+        console.warn('Using fallback store info in AboutUsPage:', err);
+      }
+    };
+    fetchStoreInfo();
+  }, []);
+
   return (
     <div className="about-page-container">
       {/* Common Header */}
@@ -14,10 +47,10 @@ export default function AboutUsPage() {
       <section className="about-hero-section">
         <div className="about-hero-overlay"></div>
         <div className="about-hero-content">
-          <div className="about-hero-subtitle">ABOUT CHENNAI SILK PALACE</div>
-          <h1 className="about-hero-title">A Legacy of Trust, Tradition & Excellence</h1>
+          <div className="about-hero-subtitle">{storeInfo.heroSubtitleTag}</div>
+          <h1 className="about-hero-title">{storeInfo.heroTitle}</h1>
           <p className="about-hero-subtitle">
-            Crafting elegance and preserving timeless Indian textile traditions for over four decades in Malaysia.
+            {storeInfo.heroSubtitle}
           </p>
         </div>
       </section>
@@ -28,24 +61,24 @@ export default function AboutUsPage() {
           <div className="director-card">
             <div className="director-info-side">
               <div className="director-badge">LEADERSHIP</div>
-              <h2 className="director-name">Mr. Thanasekaran Vellaikkoothan</h2>
-              <p className="director-role">Director, Chennai Silk Palace Sdn. Bhd.</p>
+              <h2 className="director-name">{storeInfo.directorName}</h2>
+              <p className="director-role">{storeInfo.directorRole}</p>
               
               <div className="director-divider"></div>
 
               <p className="director-quote-text">
-                "Behind every great brand is a visionary whose passion transforms dreams into reality. For over four decades, Mr. Thanasekaran Vellaikkoothan has been a respected pioneer in Malaysia’s textile industry, building Chennai Silk Palace into one of the country’s most trusted and admired destinations for authentic Indian textiles and traditional attire."
+                {storeInfo.directorQuote}
               </p>
               
               <p className="director-body-text">
-                Driven by a commitment to quality, integrity, authenticity, and exceptional customer service, he has earned the confidence of generations of customers. Today, Chennai Silk Palace is more than a textile retailer — it is a household name synonymous with elegance, heritage, and timeless craftsmanship.
+                {storeInfo.directorBody}
               </p>
             </div>
 
             <div className="director-image-side">
-              <img src={shopImg} alt="Chennai Silk Palace Storefront & Director Legacy" className="director-img" />
+              <img src={storeInfo.directorImage || shopImg} alt="Chennai Silk Palace Storefront & Director Legacy" className="director-img" />
               <div className="director-experience-badge">
-                <span className="years-num">40+</span>
+                <span className="years-num">{storeInfo.directorYears}</span>
                 <span className="years-lbl">Years of Visionary Leadership</span>
               </div>
             </div>
@@ -62,60 +95,19 @@ export default function AboutUsPage() {
           </div>
 
           <div className="journey-timeline">
-            {/* Timeline Item 1 */}
-            <div className="timeline-item">
-              <div className="timeline-year">1985</div>
-              <div className="timeline-content">
-                <h3>The Early Vision</h3>
-                <p>
-                  Mr. Thanasekaran’s entrepreneurial journey began in 1985 with a clear vision to bring the finest Indian textiles to customers in Malaysia. Travelling extensively between India and Malaysia, he personally sourced premium fabrics from renowned textile manufacturers and established long-lasting relationships built on trust and quality.
-                </p>
-              </div>
-            </div>
-
-            {/* Timeline Item 2 */}
-            <div className="timeline-item">
-              <div className="timeline-year">1992</div>
-              <div className="timeline-content">
-                <h3>Wholesale Operations Established</h3>
-                <p>
-                  In 1992, he officially established his wholesale textile company in Malaysia under his late father’s name. By importing textile products directly from India in large container shipments, he created an efficient and reliable supply network that served retailers nationwide while strengthening Malaysia’s textile industry.
-                </p>
-              </div>
-            </div>
-
-            {/* Timeline Item 3 */}
-            <div className="timeline-item">
-              <div className="timeline-year">2004 - 2006</div>
-              <div className="timeline-content">
-                <h3>Creating an Iconic Landmark</h3>
-                <p>
-                  A defining milestone came in 2004, when Mr. Thanasekaran acquired the historic Standard Chartered Bank building in Klang. Recognising its heritage value, he carefully restored the landmark while preserving its architectural charm. In 2006, it reopened as the flagship showroom of Chennai Silk Palace.
-                </p>
-              </div>
-            </div>
-
-            {/* Timeline Item 4 */}
-            <div className="timeline-item">
-              <div className="timeline-year">2012</div>
-              <div className="timeline-content">
-                <h3>Ipoh Branch Expansion</h3>
-                <p>
-                  The opening of the Ipoh showroom brought Chennai Silk Palace’s signature quality and exceptional service closer to customers in Perak and the northern region.
-                </p>
-              </div>
-            </div>
-
-            {/* Timeline Item 5 */}
-            <div className="timeline-item">
-              <div className="timeline-year">2013</div>
-              <div className="timeline-content">
-                <h3>Penang Branch Expansion</h3>
-                <p>
-                  The Penang showroom further strengthened the brand’s nationwide presence, making premium Indian textiles more accessible while continuing the company’s tradition of excellence.
-                </p>
-              </div>
-            </div>
+            {storeInfo.timeline && storeInfo.timeline.length > 0 ? (
+              storeInfo.timeline.map((item, idx) => (
+                <div key={idx} className="timeline-item">
+                  <div className="timeline-year">{item.year}</div>
+                  <div className="timeline-content">
+                    <h3>{item.title}</h3>
+                    <p>{item.description}</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p style={{ color: '#94a3b8', textAlign: 'center' }}>No timeline milestones available.</p>
+            )}
           </div>
         </div>
       </section>
@@ -259,7 +251,7 @@ export default function AboutUsPage() {
               </div>
               <div className="check-item">
                 <span className="check-icon">✓</span>
-                <span>A trusted family owned business with over 40 years of experience</span>
+                <span>A trusted family owned business with over {storeInfo.directorYears} of experience</span>
               </div>
               <div className="check-item">
                 <span className="check-icon">✓</span>
@@ -301,7 +293,7 @@ export default function AboutUsPage() {
               <div className="vm-icon">👁️</div>
               <h2>Our Vision</h2>
               <p>
-                To preserve the timeless beauty of Indian textiles while continuously delivering quality, authenticity, innovation, and exceptional customer experiences for generations to come.
+                {storeInfo.visionText}
               </p>
             </div>
 
@@ -309,7 +301,7 @@ export default function AboutUsPage() {
               <div className="vm-icon">🎯</div>
               <h2>Our Mission</h2>
               <p>
-                To be Malaysia’s most trusted destination for premium Indian textiles by offering authentic products, outstanding value, personalised service, and an unforgettable shopping experience, while preserving cultural heritage and making a meaningful contribution to the community.
+                {storeInfo.missionText}
               </p>
             </div>
           </div>
@@ -350,53 +342,7 @@ export default function AboutUsPage() {
       </section>
 
       {/* Footer Section */}
-      <footer className="main-footer" id="footer">
-        <div className="container-inner">
-          <div className="footer-grid">
-            <div className="footer-col brand-col">
-              <img src={logoSvg} alt="Chennai Silk Palace Logo" className="footer-logo-img" />
-              <p className="footer-brand-desc">
-                Chennai Silk Palace brings you the finest handpicked silk sarees and ethnic wear straight from master artisans since 1965.
-              </p>
-            </div>
-
-            <div className="footer-col">
-              <h4 className="footer-heading">QUICK LINKS</h4>
-              <ul className="footer-links">
-                <li><Link to="/">Home</Link></li>
-                <li><Link to="/products">All Collections</Link></li>
-                <li><Link to="/gender/women">Women's Sarees</Link></li>
-                <li><Link to="/gender/men">Men's Wear</Link></li>
-                <li><Link to="/about">About Us</Link></li>
-              </ul>
-            </div>
-
-            <div className="footer-col">
-              <h4 className="footer-heading">CUSTOMER SERVICE</h4>
-              <ul className="footer-links">
-                <li><a href="#shipping">Shipping Info</a></li>
-                <li><a href="#returns">Returns & Exchange</a></li>
-                <li><a href="#care">Silk Care Guide</a></li>
-                <li><a href="#faq">Frequently Asked Questions</a></li>
-              </ul>
-            </div>
-
-            <div className="footer-col">
-              <h4 className="footer-heading">CONTACT US</h4>
-              <ul className="footer-contact-list">
-                <li>📍 Klang, Selangor, Malaysia</li>
-                <li>📞 +60 3 3372 7272</li>
-                <li>✉️ support@chennaisilkpalace.com</li>
-                <li>⏰ Daily: 10:00 AM - 9:30 PM</li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="footer-bottom-bar">
-            <p>© {new Date().getFullYear()} Chennai Silk Palace. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

@@ -11,6 +11,8 @@ import GenderCollectionPage from './pages/GenderCollectionPage';
 import AboutUsPage from './pages/AboutUsPage';
 import AdminLoginPage from './pages/AdminLoginPage';
 import BannerManagementPage from './pages/BannerManagementPage';
+import OfferManagementPage from './pages/OfferManagementPage';
+import StoreInfoManagementPage from './pages/StoreInfoManagementPage';
 
 export default function App() {
   return (
@@ -65,6 +67,22 @@ export default function App() {
           element={
             <ProtectedRoute>
               <BannerManagementPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/offers"
+          element={
+            <ProtectedRoute>
+              <OfferManagementPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/settings"
+          element={
+            <ProtectedRoute>
+              <StoreInfoManagementPage />
             </ProtectedRoute>
           }
         />
