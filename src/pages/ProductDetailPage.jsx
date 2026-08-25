@@ -1,142 +1,135 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import productsData from '../data/products.json';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import Loader from '../components/Loader';
 import SafeImage from '../components/SafeImage';
 import placeholderSvg from '../assets/placeholder.svg';
 import { API_BASE_URL } from '../config';
 import './ProductDetailPage.css';
 
-// Sample product gallery images for Kanchipuram / Banarasi silk sarees
-const SAMPLE_GALLERY_IMAGES = [
-  placeholderSvg
-];
-
-const RELATED_PRODUCTS = [
-  {
-    id: 1,
-    name: 'Banarasi Silk Saree',
-    price: 180.00,
-    rating: 5,
-    reviewsCount: 96,
-    image: placeholderSvg
-  },
-  {
-    id: 2,
-    name: 'Kanchipuram Silk Saree',
-    price: 160.00,
-    rating: 5,
-    reviewsCount: 84,
-    image: placeholderSvg
-  },
-  {
-    id: 3,
-    name: 'Soft Silk Saree',
-    price: 140.00,
-    rating: 5,
-    reviewsCount: 72,
-    image: placeholderSvg
-  },
-  {
-    id: 4,
-    name: 'Tussar Silk Saree',
-    price: 190.00,
-    rating: 5,
-    reviewsCount: 68,
-    image: placeholderSvg
-  },
-  {
-    id: 5,
-    name: 'Designer Silk Saree',
-    price: 210.00,
-    rating: 5,
-    reviewsCount: 54,
-    image: placeholderSvg
-  },
-  {
-    id: 6,
-    name: 'Paithani Silk Saree',
-    price: 230.00,
-    rating: 5,
-    reviewsCount: 48,
-    image: placeholderSvg
-  }
-];
-
 export default function ProductDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [selectedImage, setSelectedImage] = useState(0);
-  const [isVideoActive, setIsVideoActive] = useState(false);
   const [quantity, setQuantity] = useState(1);
-  const [activeTab, setActiveTab] = useState('description');
   const [isWishlisted, setIsWishlisted] = useState(false);
-  const [cartCount, setCartCount] = useState(0);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/?search=${encodeURIComponent(searchQuery.trim())}`);
-    }
-  };
-
   const [apiProduct, setApiProduct] = useState(null);
+  const [relatedProducts, setRelatedProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Scroll to top on load or ID change and fetch product if backend ID
+  // Scroll to top on load or ID change and fetch product & related products from backend
   useEffect(() => {
     window.scrollTo(0, 0);
-    const fetchProduct = async () => {
+    setSelectedImage(0);
+
+    const fetchProductData = async () => {
       try {
+        setLoading(true);
         if (id) {
           const res = await fetch(`${API_BASE_URL}/products/${id}`);
           const data = await res.json();
           if (res.ok && data.success && data.data) {
-            setApiProduct(data.data);
+            const prodData = data.data;
+            setApiProduct(prodData);
+
+            // Fetch related products from backend
+            try {
+              const relRes = await fetch(`${API_BASE_URL}/products`);
+              const relData = await relRes.json();
+              if (relRes.ok && relData.success && Array.isArray(relData.data)) {
+                // Exclude current product
+                const currentIdStr = String(prodData._id || prodData.id || id);
+                let otherProducts = relData.data.filter(
+                  p => String(p._id || p.id) !== currentIdStr
+                );
+
+                // If same category exists, prioritize same category products
+                if (prodData.category) {
+                  const sameCat = otherProducts.filter(p => p.category === prodData.category);
+                  const diffCat = otherProducts.filter(p => p.category !== prodData.category);
+                  otherProducts = [...sameCat, ...diffCat];
+                }
+
+                setRelatedProducts(otherProducts.slice(0, 4));
+              } else {
+                setRelatedProducts([]);
+              }
+            } catch (rErr) {
+              console.warn('Error fetching related products:', rErr);
+              setRelatedProducts([]);
+            }
+          } else {
+            setApiProduct(null);
+            setRelatedProducts([]);
           }
         }
       } catch (err) {
         console.warn('Error fetching product detail from backend:', err);
+        setApiProduct(null);
+        setRelatedProducts([]);
+      } finally {
+        setLoading(false);
       }
     };
-    fetchProduct();
+
+    fetchProductData();
   }, [id]);
 
-  // Find product from JSON or use fallback matching screenshot
-  const foundProd = apiProduct || 
-                    productsData.trendingProducts.find(p => p.id === parseInt(id) || p.id === id || p._id === id) || 
-                    productsData.lehengaCollection.find(p => p.id === parseInt(id) || p.id === id || p._id === id);
+  if (loading) {
+    return (
+      <div className="product-detail-container">
+        <Header />
+        <div className="container-inner" style={{ padding: '60px 0', textAlign: 'center' }}>
+          <Loader message="Loading Product Details..." />
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!apiProduct) {
+    return (
+      <div className="product-detail-container">
+        <Header />
+        <div className="container-inner" style={{ padding: '80px 20px', textAlign: 'center' }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🛍️</div>
+          <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#1E293B', marginBottom: '8px' }}>Product Not Found</h2>
+          <p style={{ color: '#64748B', marginBottom: '24px' }}>The product you are looking for does not exist or has been removed.</p>
+          <Link to="/" style={{ display: 'inline-block', background: '#0a305d', color: '#fff', padding: '10px 24px', borderRadius: '6px', textDecoration: 'none', fontWeight: 600 }}>
+            Back to Home
+          </Link>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  const rawImages = (apiProduct.images && apiProduct.images.length > 0)
+    ? apiProduct.images
+    : (apiProduct.image ? [apiProduct.image] : [placeholderSvg]);
 
   const product = {
-    id: id || 1,
-    title: foundProd?.name || foundProd?.title || 'Kanchipuram Banarasi Silk Saree',
-    category: foundProd?.category || 'Banarasi Silk Sarees',
-    subCategory: 'Sarees',
-    price: foundProd?.price ? (typeof foundProd.price === 'number' ? foundProd.price : parseFloat(foundProd.price.replace(/[^0-9.]/g, ''))) : 170.00,
-    rating: foundProd?.rating || 5.0,
-    reviewsCount: foundProd?.reviewsCount || 128,
-    inStock: foundProd?.inStock ?? true,
-    fabric: foundProd?.fabric || 'Pure Banarasi Silk',
-    color: foundProd?.color || 'Magenta Pink',
-    blouse: 'Matching Blouse Piece',
-    size: '6.3 Meters (with Blouse Piece)',
-    work: 'Zari Weaving',
-    occasion: foundProd?.occasion || 'Wedding, Festival, Party Wear',
-    images: (foundProd?.images && foundProd.images.length > 0) ? foundProd.images : (foundProd?.image ? [foundProd.image, ...SAMPLE_GALLERY_IMAGES.slice(1)] : SAMPLE_GALLERY_IMAGES),
-    description: foundProd?.description || 'This exquisite Kanchipuram Banarasi Silk Saree is a timeless masterpiece woven with rich zari motifs and intricate floral patterns. Crafted for those special moments that deserve nothing but the finest.',
-    features: [
-      'Pure Kanchipuram Banarasi Silk',
-      'Intricate Gold Zari Weaving',
-      'Rich Pallu with Traditional Motifs',
-      'Comes with Matching Blouse Piece',
-      'Lightweight & Comfortable to Drape'
-    ]
-  };
-
-  const handleAddToCart = () => {
-    setCartCount(prev => prev + quantity);
+    id: apiProduct._id || apiProduct.id || id,
+    title: apiProduct.name || apiProduct.title || 'Product Details',
+    category: Array.isArray(apiProduct.categories) && apiProduct.categories.length > 0
+      ? apiProduct.categories.join(', ')
+      : (apiProduct.category || ''),
+    gender: apiProduct.gender || '',
+    price: apiProduct.price ? (typeof apiProduct.price === 'number' ? apiProduct.price : parseFloat(String(apiProduct.price).replace(/[^0-9.]/g, '')) || 0) : 0.00,
+    salePrice: (apiProduct.salePrice !== undefined && apiProduct.salePrice !== null && apiProduct.salePrice !== '')
+      ? (typeof apiProduct.salePrice === 'number' ? apiProduct.salePrice : parseFloat(String(apiProduct.salePrice).replace(/[^0-9.]/g, '')) || null)
+      : null,
+    sku: apiProduct.sku || '',
+    stockQuantity: apiProduct.stockQuantity ?? (apiProduct.inStock ? 10 : 0),
+    inStock: apiProduct.inStock ?? ((apiProduct.stockQuantity ?? 1) > 0),
+    images: rawImages,
+    description: apiProduct.description || '',
+    fabric: apiProduct.fabric || '',
+    color: apiProduct.color || '',
+    work: apiProduct.work || '',
+    occasion: apiProduct.occasion || '',
+    tags: apiProduct.tags || []
   };
 
   return (
@@ -149,10 +142,12 @@ export default function ProductDetailPage() {
         <div className="pd-breadcrumb">
           <Link to="/">Home</Link>
           <span className="sep">›</span>
-          <Link to="/">{product.subCategory}</Link>
-          <span className="sep">›</span>
-          <Link to="/">{product.category}</Link>
-          <span className="sep">›</span>
+          {product.category && (
+            <>
+              <Link to={`/products?category=${encodeURIComponent(product.category)}`}>{product.category}</Link>
+              <span className="sep">›</span>
+            </>
+          )}
           <span className="current">{product.title}</span>
         </div>
 
@@ -160,50 +155,26 @@ export default function ProductDetailPage() {
         <div className="pd-main-grid">
           {/* Gallery Side */}
           <div className="pd-gallery-section">
-            <div className="pd-thumb-column">
-              {product.images.map((img, idx) => (
-                <div
-                  key={idx}
-                  className={`pd-thumb-box ${selectedImage === idx && !isVideoActive ? 'active' : ''}`}
-                  onClick={() => {
-                    setSelectedImage(idx);
-                    setIsVideoActive(false);
-                  }}
-                >
-                  <img src={img} alt={`Thumbnail ${idx + 1}`} />
-                </div>
-              ))}
-              <div
-                className={`pd-thumb-box pd-video-thumb ${isVideoActive ? 'active' : ''}`}
-                onClick={() => setIsVideoActive(true)}
-              >
-                <div className="video-icon-circle">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                    <polygon points="5 3 19 12 5 21 5 3" />
-                  </svg>
-                </div>
-                <span>VIDEO</span>
+            {product.images.length > 1 && (
+              <div className="pd-thumb-column">
+                {product.images.map((img, idx) => (
+                  <div
+                    key={idx}
+                    className={`pd-thumb-box ${selectedImage === idx ? 'active' : ''}`}
+                    onClick={() => setSelectedImage(idx)}
+                  >
+                    <SafeImage src={img} alt={`Thumbnail ${idx + 1}`} />
+                  </div>
+                ))}
               </div>
-            </div>
+            )}
 
             <div className="pd-main-image-wrapper">
-              <span className="bestseller-badge">BEST SELLER</span>
-              {isVideoActive ? (
-                <div className="pd-video-container">
-                  <div className="video-placeholder">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
-                      <polygon points="5 3 19 12 5 21 5 3" />
-                    </svg>
-                    <p>Playing Product Video Showcase</p>
-                  </div>
-                </div>
-              ) : (
-                <SafeImage
-                  src={product.images?.[selectedImage] || placeholderSvg}
-                  alt={product.title}
-                  className="pd-main-image"
-                />
-              )}
+              <SafeImage
+                src={product.images?.[selectedImage] || product.images?.[0] || placeholderSvg}
+                alt={product.title}
+                className="pd-main-image"
+              />
               <button className="pd-zoom-btn" aria-label="Zoom Image">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <circle cx="11" cy="11" r="7" />
@@ -217,70 +188,85 @@ export default function ProductDetailPage() {
 
           {/* Info Side */}
           <div className="pd-info-section">
-            {/* Category Badges */}
-            <div className="pd-badge-row">
-              <span className="pd-tag-pill">Banarasi Silk</span>
-              <span className="pd-tag-pill">Handloom</span>
-            </div>
+            {/* Category Badges / Tags */}
+            {(product.tags.length > 0 ? product.tags : (product.category ? [product.category] : [])).length > 0 && (
+              <div className="pd-badge-row">
+                {(product.tags.length > 0 ? product.tags : [product.category]).map((tag, i) => (
+                  <span key={i} className="pd-tag-pill">{tag}</span>
+                ))}
+              </div>
+            )}
 
             {/* Product Title */}
             <h1 className="pd-title">{product.title}</h1>
 
-            {/* Rating & Stock */}
+            {/* Stock Status */}
             <div className="pd-rating-stock-row">
-              <div className="pd-stars">
-                ★★★★★
-                <span className="reviews-text">({product.reviewsCount} Reviews)</span>
-              </div>
               <div className="pd-stock-status">
-                <span className="green-dot"></span> In Stock
+                <span className={`green-dot ${product.inStock && product.stockQuantity > 0 ? '' : 'red-dot'}`}></span>
+                {product.inStock && product.stockQuantity > 0 ? 'In Stock' : 'Out of Stock'}
               </div>
             </div>
 
             {/* Price */}
             <div className="pd-price-box">
-              <div className="pd-price-amount">MYR {product.price.toFixed(2)}</div>
+              <div className="pd-price-amount">
+                MYR {product.price.toFixed(2)}
+                {product.salePrice && (
+                  <span className="pd-sale-price-strike"> MYR {product.salePrice.toFixed(2)}</span>
+                )}
+              </div>
               <div className="pd-tax-note">Inclusive of all taxes</div>
             </div>
 
-            {/* Specifications Grid */}
+            {/* Dynamic Specifications Grid */}
             <div className="pd-specs-table">
-              <div className="spec-row">
-                <div className="spec-label">
-                  <span className="spec-icon">🧶</span> Fabric
+              {product.sku && (
+                <div className="spec-row">
+                  <div className="spec-label"><span className="spec-icon">🏷️</span> SKU</div>
+                  <div className="spec-value">{product.sku}</div>
                 </div>
-                <div className="spec-value">{product.fabric}</div>
-              </div>
-              <div className="spec-row">
-                <div className="spec-label">
-                  <span className="spec-icon">🎨</span> Color
+              )}
+              {product.category && (
+                <div className="spec-row">
+                  <div className="spec-label"><span className="spec-icon">📁</span> Category</div>
+                  <div className="spec-value">{product.category}</div>
                 </div>
-                <div className="spec-value">{product.color}</div>
-              </div>
-              <div className="spec-row">
-                <div className="spec-label">
-                  <span className="spec-icon">👚</span> Blouse
+              )}
+              {product.gender && (
+                <div className="spec-row">
+                  <div className="spec-label"><span className="spec-icon">👤</span> Gender</div>
+                  <div className="spec-value">{product.gender}</div>
                 </div>
-                <div className="spec-value">{product.blouse}</div>
-              </div>
+              )}
               <div className="spec-row">
-                <div className="spec-label">
-                  <span className="spec-icon">📐</span> Size
-                </div>
-                <div className="spec-value">{product.size}</div>
+                <div className="spec-label"><span className="spec-icon">📦</span> Stock</div>
+                <div className="spec-value">{product.inStock && product.stockQuantity > 0 ? `${product.stockQuantity} units available` : 'Out of Stock'}</div>
               </div>
-              <div className="spec-row">
-                <div className="spec-label">
-                  <span className="spec-icon">⚙️</span> Work
+              {product.fabric && (
+                <div className="spec-row">
+                  <div className="spec-label"><span className="spec-icon">🧶</span> Fabric</div>
+                  <div className="spec-value">{product.fabric}</div>
                 </div>
-                <div className="spec-value">{product.work}</div>
-              </div>
-              <div className="spec-row">
-                <div className="spec-label">
-                  <span className="spec-icon">💃</span> Occasion
+              )}
+              {product.color && (
+                <div className="spec-row">
+                  <div className="spec-label"><span className="spec-icon">🎨</span> Color</div>
+                  <div className="spec-value">{product.color}</div>
                 </div>
-                <div className="spec-value">{product.occasion}</div>
-              </div>
+              )}
+              {product.work && (
+                <div className="spec-row">
+                  <div className="spec-label"><span className="spec-icon">⚙️</span> Work</div>
+                  <div className="spec-value">{product.work}</div>
+                </div>
+              )}
+              {product.occasion && (
+                <div className="spec-row">
+                  <div className="spec-label"><span className="spec-icon">💃</span> Occasion</div>
+                  <div className="spec-value">{product.occasion}</div>
+                </div>
+              )}
             </div>
 
             {/* Delivery Info Banner */}
@@ -305,37 +291,16 @@ export default function ProductDetailPage() {
             <div className="pd-quantity-row">
               <span className="qty-title">Quantity</span>
               <div className="qty-stepper-box">
-                <button
-                  className="qty-btn"
-                  onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                >
-                  −
-                </button>
+                <button className="qty-btn" onClick={() => setQuantity(q => Math.max(1, q - 1))}>−</button>
                 <span className="qty-num">{quantity}</span>
-                <button
-                  className="qty-btn"
-                  onClick={() => setQuantity(q => q + 1)}
-                >
-                  +
-                </button>
+                <button className="qty-btn" onClick={() => setQuantity(q => q + 1)}>+</button>
               </div>
             </div>
 
             {/* Action Buttons */}
             <div className="pd-actions-row">
-              <button
-                className="pd-buy-now-btn disabled-action-btn"
-                disabled
-                title="Coming Soon"
-              >
-                ⚡ BUY NOW
-              </button>
-
-              <button
-                className="pd-add-to-cart-btn disabled-action-btn"
-                disabled
-                title="Coming Soon"
-              >
+              <button className="pd-buy-now-btn disabled-action-btn" disabled title="Coming Soon">⚡ BUY NOW</button>
+              <button className="pd-add-to-cart-btn disabled-action-btn" disabled title="Coming Soon">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
                   <line x1="3" y1="6" x2="21" y2="6" />
@@ -343,7 +308,6 @@ export default function ProductDetailPage() {
                 </svg>
                 ADD TO CART
               </button>
-
               <button
                 className={`pd-wishlist-btn ${isWishlisted ? 'active' : ''}`}
                 onClick={() => setIsWishlisted(!isWishlisted)}
@@ -357,97 +321,60 @@ export default function ProductDetailPage() {
 
             {/* Guarantees */}
             <div className="pd-guarantee-row">
-              <div className="guarantee-item">
-                🔒 <span>100% Secure Payment</span>
-              </div>
-              <div className="guarantee-item">
-                🔄 <span>Easy Returns & 7 Days Return Policy</span>
-              </div>
+              <div className="guarantee-item">🔒 <span>100% Secure Payment</span></div>
+              <div className="guarantee-item">🔄 <span>Easy Returns & 7 Days Return Policy</span></div>
             </div>
           </div>
         </div>
 
-        {/* Tabbed Section */}
-        <div className="pd-tabs-section">
-          <div className="pd-tabs-header">
-            {['description', 'details', 'care', 'shipping', 'reviews'].map(tab => (
-              <button
-                key={tab}
-                className={`pd-tab-btn ${activeTab === tab ? 'active' : ''}`}
-                onClick={() => setActiveTab(tab)}
-              >
-                {tab === 'description' && 'DESCRIPTION'}
-                {tab === 'details' && 'DETAILS'}
-                {tab === 'care' && 'CARE INSTRUCTIONS'}
-                {tab === 'shipping' && 'SHIPPING & RETURNS'}
-                {tab === 'reviews' && `REVIEWS (${product.reviewsCount})`}
-              </button>
-            ))}
-          </div>
-
-          <div className="pd-tab-content-card">
-            {activeTab === 'description' && (
-              <div className="tab-description-grid">
-                <div className="tab-text-side">
-                  <h3 className="tab-heading">A heritage we weave with pride.</h3>
-                  <p className="tab-paragraph">{product.description}</p>
-
-                  <ul className="tab-features-list">
-                    {product.features.map((feat, idx) => (
-                      <li key={idx}>
-                        <span className="check-icon">✓</span>
-                        <span>{feat}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="tab-image-side">
-                  <SafeImage
-                    src={placeholderSvg}
-                    alt="Banarasi Silk Weave Detail"
-                    className="tab-detail-img"
-                  />
-                </div>
-              </div>
-            )}
-
-            {activeTab !== 'description' && (
-              <div className="tab-generic-content">
-                <h3>{activeTab.toUpperCase()}</h3>
-                <p>Detailed information regarding {activeTab} for {product.title}. Premium handcrafted quality assured.</p>
-              </div>
+        {/* Dynamic Product Description Section */}
+        <div className="pd-description-card">
+          <h3 className="pd-section-heading">Description</h3>
+          <div className="pd-description-body">
+            {product.description ? (
+              product.description.split('\n').map((paragraph, idx) => (
+                <p key={idx}>{paragraph}</p>
+              ))
+            ) : (
+              <p className="no-desc">No description available for this product.</p>
             )}
           </div>
         </div>
 
-        {/* You May Also Like Section */}
-        <div className="pd-related-section">
-          <div className="pd-related-header">
-            <span className="ornament-line">❖</span>
-            <h2 className="related-title">You May Also Like</h2>
-            <span className="ornament-line">❖</span>
-          </div>
+        {/* You May Also Like Section - Only shown when backend related products exist */}
+        {relatedProducts.length > 0 && (
+          <div className="pd-related-section">
+            <div className="pd-related-header">
+              <span className="ornament-line">❖</span>
+              <h2 className="related-title">You May Also Like</h2>
+              <span className="ornament-line">❖</span>
+            </div>
 
-          <div className="pd-related-grid">
-            {RELATED_PRODUCTS.map((rel) => (
-              <div key={rel.id} className="pd-rel-card">
-                <Link to={`/product/${rel.id}`} onClick={() => window.scrollTo(0, 0)}>
-                  <div className="rel-img-wrapper">
-                    <SafeImage src={rel.image || placeholderSvg} alt={rel.name} />
+            <div className="pd-related-grid">
+              {relatedProducts.map((rel) => {
+                const relId = rel._id || rel.id;
+                const relPrice = typeof rel.price === 'number'
+                  ? rel.price
+                  : (parseFloat(String(rel.price).replace(/[^0-9.]/g, '')) || 0);
+                const relImg = rel.image || (Array.isArray(rel.images) && rel.images.length > 0 ? rel.images[0] : placeholderSvg);
+
+                return (
+                  <div key={relId} className="pd-rel-card">
+                    <Link to={`/product/${relId}`} onClick={() => window.scrollTo(0, 0)}>
+                      <div className="rel-img-wrapper">
+                        <SafeImage src={relImg} alt={rel.name || rel.title} />
+                      </div>
+                      <div className="rel-info">
+                        <div className="rel-name">{rel.name || rel.title}</div>
+                        <div className="rel-price">MYR {relPrice.toFixed(2)}</div>
+                      </div>
+                    </Link>
                   </div>
-                  <div className="rel-info">
-                    <div className="rel-name">{rel.name}</div>
-                    <div className="rel-price">MYR {rel.price.toFixed(2)}</div>
-                    <div className="rel-stars">
-                      ★★★★★ <span>({rel.reviewsCount})</span>
-                    </div>
-                  </div>
-                </Link>
-              </div>
-            ))}
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Footer */}

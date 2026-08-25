@@ -41,8 +41,8 @@ main{padding:30px 36px 80px; background-color: #F8FAFC;}
 .field textarea{resize:vertical; min-height:110px;}
 .two-col{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
 .prefix-input{position:relative;}
-.prefix-input span{position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:13px; color:var(--ink-soft); font-weight:800;}
-.prefix-input input{padding-left:56px;}
+.prefix-input span{position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:13px; color:var(--ink-soft); font-weight:800; pointer-events:none; z-index:1;}
+.field input[type=text].prefix-input input, .field .prefix-input input[type=text], .prefix-input input{padding-left:56px;}
 
 .dropzone{border:2px dashed #CBD5E1; border-radius:var(--radius); padding:36px 20px; text-align:center; cursor:pointer; transition:all .2s ease; background:#F8FAFC;}
 .dropzone.drag,.dropzone:hover{border-color:var(--teal); background:var(--teal-tint);}
