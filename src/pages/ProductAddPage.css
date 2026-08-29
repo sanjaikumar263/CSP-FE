@@ -17,13 +17,55 @@ main{padding:30px 36px 80px; background-color: #F8FAFC;}
 .back-link{display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:var(--ink-soft); margin-bottom:18px; transition:color 0.2s ease;}
 .back-link:hover{color:var(--teal);}
 
-.topbar{display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; gap:20px; flex-wrap:wrap;}
-.topbar h1{font-size:28px; font-weight:700; color:#0F172A;}
-.topbar .sub{font-size:13px; color:var(--ink-soft); margin-top:4px;}
-.top-actions{display:flex; gap:12px;}
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 24px 28px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+.topbar h1 {
+  font-size: 26px;
+  font-weight: 800;
+  color: #0F172A;
+}
+.topbar .sub {
+  font-size: 13.5px;
+  color: var(--ink-soft);
+  margin-top: 4px;
+  font-weight: 500;
+}
+.top-actions {
+  display: flex;
+  gap: 12px;
+}
 
-.btn-gold{background:var(--teal); color:#ffffff; border:1px solid var(--teal); padding:11px 22px; border-radius:var(--radius); font-size:12.5px; letter-spacing:.08em; text-transform:uppercase; font-weight:700; transition:all .2s ease; cursor:pointer;}
-.btn-gold:hover{background:#1F3A68; border-color:#1F3A68;}
+.btn-gold {
+  background: #0A305D;
+  color: #ffffff;
+  border: 1px solid #0A305D;
+  padding: 11px 22px;
+  border-radius: 8px;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 700;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(10, 48, 93, 0.2);
+}
+.btn-gold:hover {
+  background: #1F3A68;
+  border-color: #1F3A68;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(10, 48, 93, 0.3);
+}
 
 .btn-outline{background:var(--surface); color:var(--ink); border:1px solid #CBD5E1; padding:11px 20px; border-radius:var(--radius); font-size:12.5px; font-weight:700; cursor:pointer; transition:all 0.2s ease;}
 .btn-outline:hover{border-color:var(--teal); color:var(--teal);}

@@ -31,6 +31,36 @@ export default function OfferManagementPage() {
     order: 0
   });
 
+const OFFER_PLACEHOLDER_PRESETS = [
+  {
+    label: "👗 Women's Collection Offer",
+    image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1200&q=80",
+    badge: "HERITAGE SILK FESTIVAL",
+    title: "Women's Royal Silk Offer",
+    subtitle: "Get up to 35% off on Kanchipuram and Banarasi silk sarees",
+    discountText: "UP TO 35% OFF",
+    code: "SILK35"
+  },
+  {
+    label: "👔 Men's Collection Offer",
+    image: "https://images.unsplash.com/photo-1583391733956-6c78276477e2?auto=format&fit=crop&w=1200&q=80",
+    badge: "ROYAL ETHNIC SALE",
+    title: "Men's Traditional Kurta & Dhoti",
+    subtitle: "Special festive discounts on pure silk shirts & dhotis",
+    discountText: "FLAT 25% OFF",
+    code: "ROYAL25"
+  },
+  {
+    label: "🌸 Kanchipuram Festival",
+    image: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=1200&q=80",
+    badge: "GRAND WEAVE CELEBRATION",
+    title: "Kanchipuram Heritage Silk",
+    subtitle: "Handcrafted pure zari sarees directly from master weavers",
+    discountText: "FLAT 30% OFF",
+    code: "ZARI30"
+  }
+];
+
   const fetchOffers = async () => {
     try {
       setLoading(true);
@@ -393,6 +423,47 @@ export default function OfferManagementPage() {
                     style={{ fontSize: '12px', marginTop: '4px', color: '#cbd5e1' }}
                   />
                   {uploadingImage && <span style={{ fontSize: '11px', color: '#60a5fa', marginLeft: '8px' }}>Uploading...</span>}
+                </div>
+
+                {/* Quick Select Placeholder Images */}
+                <div style={{ marginTop: '12px', background: 'rgba(255,255,255,0.03)', padding: '10px 12px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  <label style={{ fontSize: '0.8rem', color: '#d4af37', fontWeight: 600, display: 'block', marginBottom: '6px' }}>
+                    ✨ Select Sample / Placeholder Preset:
+                  </label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    {OFFER_PLACEHOLDER_PRESETS.map((preset, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => {
+                          setFormData(prev => ({
+                            ...prev,
+                            image: preset.image,
+                            badge: prev.badge || preset.badge,
+                            title: prev.title || preset.title,
+                            subtitle: prev.subtitle || preset.subtitle,
+                            discountText: prev.discountText || preset.discountText,
+                            code: prev.code || preset.code
+                          }));
+                        }}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          background: formData.image === preset.image ? 'rgba(212, 175, 55, 0.25)' : 'rgba(255, 255, 255, 0.06)',
+                          border: formData.image === preset.image ? '1px solid #d4af37' : '1px solid rgba(255, 255, 255, 0.12)',
+                          color: formData.image === preset.image ? '#fef08a' : '#cbd5e1',
+                          padding: '5px 10px',
+                          borderRadius: '16px',
+                          fontSize: '0.78rem',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease'
+                        }}
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 

@@ -29,6 +29,59 @@ export default function BannerManagementPage() {
     order: 0
   });
 
+  const PLACEHOLDER_PRESETS = [
+    {
+      label: "👗 Women's Collection",
+      image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1200&q=80",
+      eyebrow: "HERITAGE SAREES & LEHENGAS",
+      title: "Women's Collection",
+      titleHighlight: "Exquisite Silk Sarees",
+      subtitle: "Exquisite Banarasi, Kanchipuram & Soft Silk Sarees crafted for timeless grace.",
+      ctaText: "EXPLORE WOMEN",
+      ctaLink: "/gender/women"
+    },
+    {
+      label: "👔 Men's Collection",
+      image: "https://images.unsplash.com/photo-1583391733956-6c78276477e2?auto=format&fit=crop&w=1200&q=80",
+      eyebrow: "ROYAL TRADITIONAL WEAR",
+      title: "Men's Collection",
+      titleHighlight: "Pure Zari & Silk Outfits",
+      subtitle: "Pure Silk Shirts, Gold Zari Dhotis & Handcrafted Kurta Sets for regal style.",
+      ctaText: "EXPLORE MEN",
+      ctaLink: "/gender/men"
+    },
+    {
+      label: "🌸 Kanchipuram Silk",
+      image: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=1200&q=80",
+      eyebrow: "ROYAL HERITAGE 2026",
+      title: "Kanchipuram Silk Splendor",
+      titleHighlight: "Woven with Pure Zari",
+      subtitle: "Handcrafted by master weavers with generational expertise and timeless elegance.",
+      ctaText: "SHOP KANCHIPURAM",
+      ctaLink: "/products?category=Kanchipuram Silk"
+    },
+    {
+      label: "👑 Royal Kurta & Dhoti",
+      image: "https://images.unsplash.com/photo-1607345366928-199ea26cfe3e?auto=format&fit=crop&w=1200&q=80",
+      eyebrow: "FESTIVE ESSENTIALS",
+      title: "Royal Kurta & Dhoti Sets",
+      titleHighlight: "Crafted for Celebrations",
+      subtitle: "Embracing authentic South Indian heritage with contemporary regal style.",
+      ctaText: "SHOP MEN'S WEAR",
+      ctaLink: "/gender/men"
+    },
+    {
+      label: "💃 Bridal Silk Lehenga",
+      image: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&w=1200&q=80",
+      eyebrow: "BRIDAL EDITIONS",
+      title: "Grand Wedding Collection",
+      titleHighlight: "Memories Woven in Gold",
+      subtitle: "Regal bridal lehengas adorned with intricate hand-embroidered zari.",
+      ctaText: "EXPLORE BRIDAL",
+      ctaLink: "/products?category=Lehengas"
+    }
+  ];
+
   const fetchBanners = async () => {
     try {
       setLoading(true);

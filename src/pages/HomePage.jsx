@@ -23,6 +23,10 @@ export default function HomePage() {
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [heroSlides, setHeroSlides] = useState([]);
   const [offers, setOffers] = useState([]);
+  const [genderImages, setGenderImages] = useState({
+    women: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1200&q=80',
+    men: 'https://images.unsplash.com/photo-1583391733956-6c78276477e2?auto=format&fit=crop&w=1200&q=80'
+  });
 
   useEffect(() => {
     const fetchBanners = async () => {
@@ -53,8 +57,45 @@ export default function HomePage() {
       }
     };
 
+    const fetchGenderImages = async () => {
+      try {
+        const [womenRes, menRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/products?gender=Women`),
+          fetch(`${API_BASE_URL}/products?gender=Men`)
+        ]);
+
+        const womenData = await womenRes.json();
+        const menData = await menRes.json();
+
+        let womenImg = '';
+        let menImg = '';
+
+        if (womenRes.ok && womenData.success && Array.isArray(womenData.data)) {
+          const firstWomen = womenData.data.find(p => p.image || p.images?.[0]);
+          if (firstWomen) {
+            womenImg = firstWomen.image || firstWomen.images[0];
+          }
+        }
+
+        if (menRes.ok && menData.success && Array.isArray(menData.data)) {
+          const firstMen = menData.data.find(p => p.image || p.images?.[0]);
+          if (firstMen) {
+            menImg = firstMen.image || firstMen.images[0];
+          }
+        }
+
+        setGenderImages(prev => ({
+          women: womenImg || prev.women,
+          men: menImg || prev.men
+        }));
+      } catch (err) {
+        console.warn('Error fetching gender images from backend API:', err);
+      }
+    };
+
     fetchBanners();
     fetchOffers();
+    fetchGenderImages();
   }, []);
 
   useEffect(() => {
@@ -265,7 +306,10 @@ export default function HomePage() {
 
           <div className="gender-cards-grid">
             <div className="gender-card women-card">
-              <div className="gender-card-bg"></div>
+              <div
+                className="gender-card-bg"
+                style={{ backgroundImage: `url(${genderImages.women})` }}
+              ></div>
               <div className="gender-card-content">
                 <span className="gender-tag">HERITAGE SAREES &amp; LEHENGAS</span>
                 <h3 className="gender-title">Women's Collection</h3>
@@ -275,7 +319,10 @@ export default function HomePage() {
             </div>
 
             <div className="gender-card men-card">
-              <div className="gender-card-bg"></div>
+              <div
+                className="gender-card-bg"
+                style={{ backgroundImage: `url(${genderImages.men})` }}
+              ></div>
               <div className="gender-card-content">
                 <span className="gender-tag">ROYAL TRADITIONAL WEAR</span>
                 <h3 className="gender-title">Men's Collection</h3>

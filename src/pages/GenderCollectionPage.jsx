@@ -13,14 +13,14 @@ const GENDER_HERO_DATA = {
     title: "Women's Collection",
     subtitle: "Discover opulent Kanchipuram silks, Banarasi weaves, and artisanal ethnic wear crafted for royalty.",
     eyebrow: "HERITAGE ELEGANCE",
-    bgImage: "",
+    bgImage: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1200&q=80",
     badge: "100% Pure Silk Sarees"
   },
   men: {
     title: "Men's Collection",
     subtitle: "Regal silk shirts, traditional dhotis, and royal handcrafted kurta sets tailored for every celebratory occasion.",
     eyebrow: "TRADITIONAL SPLENDOR",
-    bgImage: "",
+    bgImage: "https://images.unsplash.com/photo-1583391733956-6c78276477e2?auto=format&fit=crop&w=1200&q=80",
     badge: "Authentic Zari Weaves"
   },
 
@@ -28,7 +28,7 @@ const GENDER_HERO_DATA = {
     title: "Shop By Gender",
     subtitle: "Explore our complete curated collections tailored for Men and Women.",
     eyebrow: "FULL CATALOGUE",
-    bgImage: "",
+    bgImage: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=1200&q=80",
     badge: "Generations of Trust"
   }
 };

@@ -63,14 +63,15 @@ button {
   display: grid;
   grid-template-columns: 240px 1fr;
   min-height: 100vh;
-  background-color: #0b1320;
+  background-color: #F8FAFC;
 }
 
 main {
   padding: 32px 40px 60px;
-  background-color: #0b1320;
+  background-color: #F8FAFC;
   max-width: 1400px;
   width: 100%;
+  color: #1E293B;
 }
 
 .topbar {
@@ -79,19 +80,25 @@ main {
   justify-content: space-between;
   margin-bottom: 28px;
   gap: 20px;
+  padding: 24px 28px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
 }
 
 .topbar h1 {
   font-size: 26px;
-  font-weight: 700;
-  color: #ffffff;
+  font-weight: 800;
+  color: #0F172A;
   letter-spacing: -0.02em;
 }
 
 .topbar .sub {
   font-size: 13.5px;
-  color: #94a3b8;
+  color: #64748B;
   margin-top: 4px;
+  font-weight: 500;
 }
 
 .top-actions {
@@ -108,8 +115,8 @@ main {
 }
 
 .quick-action-card {
-  background: #152033;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
   border-radius: 12px;
   padding: 18px 16px;
   display: flex;
@@ -119,21 +126,22 @@ main {
   gap: 10px;
   text-align: center;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
 }
 
 .quick-action-card:hover {
-  border-color: rgba(56, 189, 248, 0.4);
+  border-color: #0A305D;
   transform: translateY(-2px);
-  background: #1e2d47;
+  background: #FFFFFF;
+  box-shadow: 0 8px 20px rgba(10, 48, 93, 0.08);
 }
 
 .quick-icon-wrap {
   width: 44px;
   height: 44px;
   border-radius: 10px;
-  background: rgba(2, 132, 199, 0.15);
-  color: #38bdf8;
+  background: #EFF6FF;
+  color: #0A305D;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -143,12 +151,12 @@ main {
 .quick-action-title {
   font-size: 13px;
   font-weight: 700;
-  color: #ffffff;
+  color: #0F172A;
 }
 
 .quick-action-sub {
   font-size: 11px;
-  color: #94a3b8;
+  color: #64748B;
 }
 
 .stat-grid {
@@ -159,11 +167,11 @@ main {
 }
 
 .stat-card {
-  background: #152033;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
   border-radius: 14px;
   padding: 22px 24px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
   position: relative;
   overflow: hidden;
 }
@@ -172,7 +180,7 @@ main {
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #94a3b8;
+  color: #64748B;
   font-weight: 700;
 }
 
@@ -180,7 +188,7 @@ main {
   font-size: 32px;
   font-weight: 800;
   margin: 10px 0 8px;
-  color: #ffffff;
+  color: #0F172A;
   letter-spacing: -0.02em;
 }
 
@@ -195,18 +203,18 @@ main {
 }
 
 .trend.up {
-  background: rgba(34, 197, 94, 0.15);
-  color: #4ade80;
+  background: #DCFCE7;
+  color: #166534;
 }
 
 .trend.down {
-  background: rgba(239, 68, 68, 0.15);
-  color: #f87171;
+  background: #FEE2E2;
+  color: #991B1B;
 }
 
 .trend.neutral {
-  background: rgba(56, 189, 248, 0.15);
-  color: #38bdf8;
+  background: #EFF6FF;
+  color: #0A305D;
 }
 
 .row {
@@ -220,11 +228,11 @@ main {
 }
 
 .panel {
-  background: #152033;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
   border-radius: 14px;
   padding: 28px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
 }
 
 .panel-head {
@@ -233,30 +241,30 @@ main {
   justify-content: space-between;
   margin-bottom: 20px;
   padding-bottom: 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid #F1F5F9;
 }
 
 .panel-head h3 {
   font-size: 18px;
   font-weight: 700;
-  color: #ffffff;
+  color: #0F172A;
 }
 
 .panel-head .sub {
   font-size: 12.5px;
-  color: #94a3b8;
+  color: #64748B;
   margin-top: 3px;
 }
 
 .panel-link {
   font-size: 13px;
   font-weight: 700;
-  color: #38bdf8;
+  color: #0A305D;
   transition: color 0.2s ease;
 }
 
 .panel-link:hover {
-  color: #ffffff;
+  color: #1f3a68;
   text-decoration: underline;
 }
 
@@ -268,7 +276,7 @@ main {
 
 .cat-bar-track {
   height: 8px;
-  background: #0b1320;
+  background: #F1F5F9;
   border-radius: 6px;
   overflow: hidden;
 }
@@ -288,11 +296,11 @@ main {
 
 .cat-name-row .name {
   font-weight: 700;
-  color: #ffffff;
+  color: #0F172A;
 }
 
 .cat-name-row .amt {
-  color: #94a3b8;
+  color: #64748B;
   font-weight: 600;
 }
 
@@ -306,18 +314,18 @@ thead th {
   font-size: 11.5px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #64748b;
+  color: #64748B;
   padding: 0 12px 14px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid #E2E8F0;
   font-weight: 700;
 }
 
 tbody td {
   padding: 14px 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid #F1F5F9;
   font-size: 13.5px;
   vertical-align: middle;
-  color: #cbd5e1;
+  color: #334155;
 }
 
 tbody tr:last-child td {
@@ -335,13 +343,13 @@ tbody tr:last-child td {
   height: 42px;
   border-radius: 8px;
   object-fit: cover;
-  background: #0b1320;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #F1F5F9;
+  border: 1px solid #E2E8F0;
 }
 
 .prod-title-text {
   font-weight: 700;
-  color: #ffffff;
+  color: #0F172A;
 }
 
 .pill-stock {
@@ -353,19 +361,19 @@ tbody tr:last-child td {
 }
 
 .pill-stock.in-stock {
-  background: rgba(34, 197, 94, 0.15);
-  color: #4ade80;
+  background: #DCFCE7;
+  color: #166534;
 }
 
 .pill-stock.low-stock {
-  background: rgba(239, 68, 68, 0.15);
-  color: #f87171;
+  background: #FEE2E2;
+  color: #991B1B;
 }
 
 .footer-note {
   text-align: center;
   font-size: 12px;
-  color: #64748b;
+  color: #94A3B8;
   padding-top: 20px;
 }
 

@@ -37,8 +37,13 @@ export default function AdminSidebar() {
 
       <aside className={`sidebar${open ? ' open' : ''}`} id="sidebar">
         <div className="side-logo">
-          <img src={logoSvg} alt="Chennai Silk Palace Admin" className="admin-side-logo-img" />
-          <div className="role-tag">ADMIN CONSOLE</div>
+          <div className="admin-logo-wrapper">
+            <img src={logoSvg} alt="Chennai Silk Palace Admin" className="admin-side-logo-img" />
+          </div>
+          <div className="role-tag">
+            <span className="role-dot"></span>
+            ADMIN CONSOLE
+          </div>
         </div>
 
         <div className="nav-label">Overview</div>
