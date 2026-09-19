@@ -8,15 +8,16 @@ import Loader from '../components/Loader';
 import SafeImage from '../components/SafeImage';
 import placeholderSvg from '../assets/placeholder.svg';
 import { API_BASE_URL } from '../config';
+import { useShop } from '../context/ShopContext';
 import './HomePage.css';
 
 export default function HomePage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { addToCart, toggleWishlist, isWishlisted } = useShop();
   const initialQuery = searchParams.get('search') || '';
   
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [wishlist, setWishlist] = useState({});
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [trendingProducts, setTrendingProducts] = useState([]);
@@ -159,10 +160,6 @@ export default function HomePage() {
 
   const handlePrevSlide = () => {
     setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length);
-  };
-
-  const toggleWishlist = (id) => {
-    setWishlist((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
   const handleSearchSubmit = (e) => {
@@ -368,14 +365,14 @@ export default function HomePage() {
                       <SafeImage src={prod.image || placeholderSvg} alt={prod.name} className="product-img" />
                     </Link>
                     <button
-                      className={`wishlist-icon-btn ${wishlist[prod.id] ? 'active' : ''}`}
+                      className={`wishlist-icon-btn ${isWishlisted(prod.id) ? 'active' : ''}`}
                       onClick={(e) => {
                         e.stopPropagation();
-                        toggleWishlist(prod.id);
+                        toggleWishlist(prod);
                       }}
                       aria-label="Add to Wishlist"
                     >
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill={wishlist[prod.id] ? '#0a305d' : 'none'} stroke={wishlist[prod.id] ? '#0a305d' : '#555'} strokeWidth="1.8">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill={isWishlisted(prod.id) ? '#E11D48' : 'none'} stroke={isWishlisted(prod.id) ? '#E11D48' : '#555'} strokeWidth="1.8">
                         <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                       </svg>
                     </button>
@@ -392,9 +389,8 @@ export default function HomePage() {
                       )}
                     </div>
                     <button
-                      className="home-add-to-cart-btn disabled-action-btn"
-                      disabled
-                      title="Coming Soon"
+                      className="home-add-to-cart-btn"
+                      onClick={() => addToCart(prod, 1)}
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />

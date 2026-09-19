@@ -1,0 +1,228 @@
+/* Customer Authentication Modal Styling */
+
+.cust-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(6px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: custFadeIn 0.25s ease-out;
+}
+
+.cust-modal-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 18px;
+  width: 100%;
+  max-width: 480px;
+  padding: 32px 36px 36px;
+  position: relative;
+  box-shadow: 0 20px 50px rgba(10, 48, 93, 0.25);
+  animation: custSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cust-modal-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  background: #F1F5F9;
+  border: 1px solid #CBD5E1;
+  color: #64748B;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cust-modal-close:hover {
+  background: #0A305D;
+  color: #FFFFFF;
+  border-color: #0A305D;
+}
+
+.cust-modal-brand-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.brand-crest {
+  color: #0A305D;
+  font-size: 16px;
+}
+
+.cust-brand-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 4px 0 2px;
+  letter-spacing: -0.01em;
+}
+
+.cust-brand-sub {
+  font-size: 12px;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0;
+}
+
+.cust-auth-notice-bar {
+  background: #EFF6FF;
+  border: 1px solid rgba(10, 48, 93, 0.2);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 12.5px;
+  color: #0A305D;
+  font-weight: 600;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cust-modal-tabs {
+  display: flex;
+  border-bottom: 2px solid #E2E8F0;
+  margin-bottom: 24px;
+}
+
+.cust-tab-btn {
+  flex: 1;
+  padding: 12px 0;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #64748B;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cust-tab-btn:hover {
+  color: #0F172A;
+}
+
+.cust-tab-btn.active {
+  color: #0A305D;
+  border-bottom-color: #0A305D;
+}
+
+.cust-auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cust-error-banner {
+  background: #FEE2E2;
+  border: 1px solid #FCA5A5;
+  color: #991B1B;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.cust-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cust-input-group label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #334155;
+}
+
+.cust-input-group .req {
+  color: #E11D48;
+}
+
+.cust-input {
+  width: 100%;
+  background: #F8FAFC;
+  border: 1px solid #CBD5E1;
+  border-radius: 8px;
+  padding: 11px 14px;
+  font-size: 13.5px;
+  color: #0F172A;
+  outline: none;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.cust-input:focus {
+  border-color: #0A305D;
+  background: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(10, 48, 93, 0.12);
+}
+
+.cust-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.cust-submit-btn {
+  background: #0A305D;
+  color: #FFFFFF;
+  border: 1px solid #0A305D;
+  padding: 13px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 8px;
+  box-shadow: 0 4px 14px rgba(10, 48, 93, 0.25);
+}
+
+.cust-submit-btn:hover {
+  background: #1F3A68;
+  border-color: #1F3A68;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(10, 48, 93, 0.35);
+}
+
+.cust-form-footer {
+  text-align: center;
+  font-size: 12.5px;
+  color: #64748B;
+  margin-top: 6px;
+}
+
+.switch-link-btn {
+  background: none;
+  border: none;
+  color: #0A305D;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+  font-size: 12.5px;
+}
+
+@keyframes custFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes custSlideUp {
+  from { transform: translateY(16px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}

@@ -6,6 +6,7 @@ import Loader from '../components/Loader';
 import SafeImage from '../components/SafeImage';
 import placeholderSvg from '../assets/placeholder.svg';
 import { API_BASE_URL } from '../config';
+import { useShop } from '../context/ShopContext';
 import './StoreProductListPage.css';
 
 
@@ -128,15 +129,14 @@ const STORE_PRODUCTS = [
 export default function StoreProductListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { addToCart, toggleWishlist, isWishlisted } = useShop();
 
   const searchVal = searchParams.get('search') || '';
-  const categoryVal = searchParams.get('category') || '';
+  const categoryVal = searchParams.get('category') || 'All';
   const genderParam = searchParams.get('gender') || 'All';
 
   const [headerSearch, setHeaderSearch] = useState(searchVal);
   const [selectedGender, setSelectedGender] = useState(genderParam);
-  const [wishlist, setWishlist] = useState({});
-  const [cartCount, setCartCount] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [sortBy, setSortBy] = useState('relevance');
 
@@ -237,10 +237,6 @@ export default function StoreProductListPage() {
     } else {
       setSearchParams({});
     }
-  };
-
-  const toggleWishlist = (id) => {
-    setWishlist(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
   const handleCategoryToggle = (cat) => {
@@ -462,14 +458,14 @@ export default function StoreProductListPage() {
                     <div className="card-image-box">
                       {prod.isNew && <span className="badge-new">NEW</span>}
                       <button
-                        className={`card-wishlist-btn ${wishlist[prod.id] ? 'active' : ''}`}
+                        className={`card-wishlist-btn ${isWishlisted(prod.id) ? 'active' : ''}`}
                         onClick={(e) => {
                           e.stopPropagation();
-                          toggleWishlist(prod.id);
+                          toggleWishlist(prod);
                         }}
                         aria-label="Add to Wishlist"
                       >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill={wishlist[prod.id] ? '#0a305d' : 'none'} stroke={wishlist[prod.id] ? '#0a305d' : '#555'} strokeWidth="1.8">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill={isWishlisted(prod.id) ? '#E11D48' : 'none'} stroke={isWishlisted(prod.id) ? '#E11D48' : '#555'} strokeWidth="1.8">
                           <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                         </svg>
                       </button>
@@ -495,9 +491,8 @@ export default function StoreProductListPage() {
                       </div>
 
                       <button
-                        className="add-to-collection-btn disabled-action-btn"
-                        disabled
-                        title="Coming Soon"
+                        className="add-to-collection-btn"
+                        onClick={() => addToCart(prod, 1)}
                       >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />

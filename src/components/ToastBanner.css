@@ -1,0 +1,40 @@
+.toast-banner-wrapper {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 3000;
+  min-width: 280px;
+  max-width: 420px;
+  padding: 14px 20px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 700;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: toastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.toast-banner-wrapper.success {
+  background: #0A305D;
+  color: #FFFFFF;
+  border: 1px solid #1F3A68;
+}
+
+.toast-banner-wrapper.info {
+  background: #0F172A;
+  color: #FFFFFF;
+  border: 1px solid #334155;
+}
+
+@keyframes toastSlideIn {
+  from {
+    transform: translateY(-20px) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}

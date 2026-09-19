@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import logoSvg from '../assets/hero_logo.svg';
 import { API_BASE_URL } from '../config';
+import { useShop } from '../context/ShopContext';
 import './Header.css';
 
 const NAV_LINKS = [
@@ -18,9 +19,21 @@ export default function Header({ initialSearchQuery = '', onSearchSubmit }) {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   
+  const {
+    customerUser,
+    isCustomerLoggedIn,
+    openAuthModal,
+    customerLogout,
+    cartCount,
+    openCartDrawer,
+    wishlistCount,
+    openWishlistDrawer
+  } = useShop();
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState(initialSearchQuery || searchParams.get('search') || '');
   const [storePhone, setStorePhone] = useState('03 33727272');
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
   useEffect(() => {
     const fetchStoreInfo = async () => {
@@ -113,32 +126,89 @@ export default function Header({ initialSearchQuery = '', onSearchSubmit }) {
 
           {/* Header Action Icons */}
           <div className="header-actions">
-            <Link to="/" className="action-btn" aria-label="Wishlist">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-              </svg>
+            {/* Wishlist Button */}
+            <button
+              className="action-btn"
+              onClick={openWishlistDrawer}
+              aria-label="Wishlist"
+            >
+              <div className="cart-icon-wrapper">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill={wishlistCount > 0 ? '#0A305D' : 'none'} stroke="currentColor" strokeWidth="1.6">
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                </svg>
+                {wishlistCount > 0 && <span className="cart-badge">{wishlistCount}</span>}
+              </div>
               <span>Wishlist</span>
-            </Link>
+            </button>
 
-            <Link to="/" className="action-btn" aria-label="My Account">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-              <span>My Account</span>
-            </Link>
+            {/* Account / Login Button */}
+            {isCustomerLoggedIn ? (
+              <div className="account-dropdown-wrapper" style={{ position: 'relative' }}>
+                <button
+                  className="action-btn logged-in-btn"
+                  onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                  aria-label="My Account"
+                >
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                  <span>{customerUser.name ? customerUser.name.split(' ')[0] : 'Account'}</span>
+                </button>
+                {userDropdownOpen && (
+                  <div className="cust-user-dropdown" style={{
+                    position: 'absolute', top: '100%', right: 0, marginTop: '8px',
+                    background: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '10px',
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.15)', padding: '12px', minWidth: '180px', zIndex: 100
+                  }}>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#0F172A', marginBottom: '4px' }}>
+                      {customerUser.name}
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#64748B', marginBottom: '10px', wordBreak: 'break-all' }}>
+                      {customerUser.email || customerUser.mobile}
+                    </div>
+                    <button
+                      onClick={() => { customerLogout(); setUserDropdownOpen(false); }}
+                      style={{
+                        width: '100%', background: '#FEE2E2', color: '#991B1B', border: '1px solid #FCA5A5',
+                        padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 700, cursor: 'pointer'
+                      }}
+                    >
+                      Logout 🚪
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button
+                className="action-btn"
+                onClick={() => openAuthModal()}
+                aria-label="My Account"
+              >
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+                <span>Sign In</span>
+              </button>
+            )}
 
-            <Link to="/products" className="action-btn cart-btn" aria-label="Cart">
+            {/* Cart Button */}
+            <button
+              className="action-btn cart-btn"
+              onClick={openCartDrawer}
+              aria-label="Cart"
+            >
               <div className="cart-icon-wrapper">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
                   <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
                   <line x1="3" y1="6" x2="21" y2="6" />
                   <path d="M16 10a4 4 0 0 1-8 0" />
                 </svg>
-                <span className="cart-badge">0</span>
+                <span className="cart-badge">{cartCount}</span>
               </div>
               <span>Cart</span>
-            </Link>
+            </button>
 
             {/* Mobile Hamburger Toggle */}
             <button

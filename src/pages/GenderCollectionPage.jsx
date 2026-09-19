@@ -6,6 +6,7 @@ import Loader from '../components/Loader';
 import SafeImage from '../components/SafeImage';
 import placeholderSvg from '../assets/placeholder.svg';
 import { API_BASE_URL } from '../config';
+import { useShop } from '../context/ShopContext';
 import './GenderCollectionPage.css';
 
 const GENDER_HERO_DATA = {
@@ -35,22 +36,17 @@ const GENDER_HERO_DATA = {
 
 export default function GenderCollectionPage() {
   const { genderType } = useParams();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { addToCart, toggleWishlist, isWishlisted } = useShop();
 
-  // Normalize active gender tab
-  const activeGenderFromParam = (genderType || searchParams.get('gender') || 'all').toLowerCase();
-  const [selectedGender, setSelectedGender] = useState(
-    ['women', 'men'].includes(activeGenderFromParam) ? activeGenderFromParam : 'all'
-  );
-
+  const [selectedGender, setSelectedGender] = useState('all');
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [priceSort, setPriceSort] = useState('newest');
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
-  const [wishlist, setWishlist] = useState({});
 
   useEffect(() => {
     if (genderType) {
@@ -123,10 +119,6 @@ export default function GenderCollectionPage() {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     fetchProducts();
-  };
-
-  const toggleWishlist = (id) => {
-    setWishlist(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
   const heroInfo = GENDER_HERO_DATA[selectedGender] || GENDER_HERO_DATA.all;
@@ -236,11 +228,13 @@ export default function GenderCollectionPage() {
                   {product.isNewProduct && <div className="gp-new-tag">NEW</div>}
 
                   <button
-                    className={`gp-wishlist-btn ${wishlist[product._id || product.id] ? 'active' : ''}`}
-                    onClick={() => toggleWishlist(product._id || product.id)}
+                    className={`gp-wishlist-btn ${isWishlisted(product._id || product.id) ? 'active' : ''}`}
+                    onClick={() => toggleWishlist(product)}
                     title="Add to wishlist"
                   >
-                    ♥
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill={isWishlisted(product._id || product.id) ? '#E11D48' : 'none'} stroke={isWishlisted(product._id || product.id) ? '#E11D48' : '#555'} strokeWidth="1.8">
+                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                    </svg>
                   </button>
                 </div>
 
@@ -262,6 +256,15 @@ export default function GenderCollectionPage() {
                   </div>
 
                   <div className="gp-card-actions">
+                    <button
+                      className="gp-btn-cart"
+                      onClick={() => addToCart(product, 1)}
+                      style={{
+                        background: '#0A305D', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '6px', fontSize: '12.5px', fontWeight: 700, cursor: 'pointer'
+                      }}
+                    >
+                      Add to Cart 🛒
+                    </button>
                     <Link to={`/product/${product._id || product.id}`} className="gp-btn-view">
                       View Details
                     </Link>
