@@ -14,9 +14,12 @@ export default function ProductDetailPage() {
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const [shareFeedback, setShareFeedback] = useState('');
   const [apiProduct, setApiProduct] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isZoomOpen, setIsZoomOpen] = useState(false);
+  const [zoomScale, setZoomScale] = useState(1);
 
   // Scroll to top on load or ID change and fetch product & related products from backend
   useEffect(() => {
@@ -76,6 +79,38 @@ export default function ProductDetailPage() {
     fetchProductData();
   }, [id]);
 
+  // Handle escape key and arrow navigation when zoom modal is active
+  useEffect(() => {
+    if (!isZoomOpen) {
+      setZoomScale(1);
+      return;
+    }
+
+    const imagesCount = (apiProduct?.images && apiProduct.images.length > 0)
+      ? apiProduct.images.length
+      : 1;
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setIsZoomOpen(false);
+      } else if (e.key === 'ArrowRight' && imagesCount > 1) {
+        setSelectedImage((prev) => (prev + 1) % imagesCount);
+        setZoomScale(1);
+      } else if (e.key === 'ArrowLeft' && imagesCount > 1) {
+        setSelectedImage((prev) => (prev - 1 + imagesCount) % imagesCount);
+        setZoomScale(1);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = '';
+    };
+  }, [isZoomOpen, apiProduct?.images?.length]);
+
   if (loading) {
     return (
       <div className="product-detail-container">
@@ -132,6 +167,49 @@ export default function ProductDetailPage() {
     tags: apiProduct.tags || []
   };
 
+  const handleShare = async () => {
+    const shareTitle = product.title || 'Product';
+    const shareText = `Check out ${shareTitle} at Chennai Silk Palace!`;
+    const shareUrl = window.location.href;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: shareTitle,
+          text: shareText,
+          url: shareUrl,
+        });
+        return;
+      } catch (err) {
+        if (err.name === 'AbortError') return;
+        console.warn('Navigator share error, falling back to copy:', err);
+      }
+    }
+
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(shareUrl);
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = shareUrl;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        textArea.remove();
+      }
+      setShareFeedback('Link copied to clipboard!');
+      setTimeout(() => setShareFeedback(''), 3000);
+    } catch (copyErr) {
+      console.warn('Failed to copy link:', copyErr);
+      setShareFeedback('Failed to copy link');
+      setTimeout(() => setShareFeedback(''), 3000);
+    }
+  };
+
   return (
     <div className="product-detail-container">
       {/* Common Header */}
@@ -169,13 +247,26 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-            <div className="pd-main-image-wrapper">
+            <div
+              className="pd-main-image-wrapper"
+              onClick={() => setIsZoomOpen(true)}
+              title="Click to zoom image"
+            >
               <SafeImage
                 src={product.images?.[selectedImage] || product.images?.[0] || placeholderSvg}
                 alt={product.title}
                 className="pd-main-image"
               />
-              <button className="pd-zoom-btn" aria-label="Zoom Image">
+              <button
+                type="button"
+                className="pd-zoom-btn"
+                aria-label="Zoom Image"
+                title="Click to zoom image"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsZoomOpen(true);
+                }}
+              >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <circle cx="11" cy="11" r="7" />
                   <line x1="21" y1="21" x2="16.5" y2="16.5" />
@@ -211,9 +302,18 @@ export default function ProductDetailPage() {
             {/* Price */}
             <div className="pd-price-box">
               <div className="pd-price-amount">
-                MYR {product.price.toFixed(2)}
-                {product.salePrice && (
-                  <span className="pd-sale-price-strike"> MYR {product.salePrice.toFixed(2)}</span>
+                {product.salePrice && product.salePrice > 0 ? (
+                  <>
+                    <span className="pd-sale-price">MYR {product.salePrice.toFixed(2)}</span>
+                    <span className="pd-regular-strike">MYR {product.price.toFixed(2)}</span>
+                    {product.price > product.salePrice && (
+                      <span className="pd-discount-badge">
+                        {Math.round(((product.price - product.salePrice) / product.price) * 100)}% OFF
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <span className="pd-normal-price">MYR {product.price.toFixed(2)}</span>
                 )}
               </div>
               <div className="pd-tax-note">Inclusive of all taxes</div>
@@ -269,23 +369,7 @@ export default function ProductDetailPage() {
               )}
             </div>
 
-            {/* Delivery Info Banner */}
-            <div className="pd-delivery-card">
-              <div className="delivery-col">
-                <span className="del-icon">🚚</span>
-                <div>
-                  <div className="del-title">Delivery</div>
-                  <div className="del-sub">2 - 4 Working Days</div>
-                </div>
-              </div>
-              <div className="delivery-col">
-                <span className="del-icon">📦</span>
-                <div>
-                  <div className="del-title">Free Shipping</div>
-                  <div className="del-sub">On orders above MYR 100</div>
-                </div>
-              </div>
-            </div>
+
 
             {/* Quantity Stepper */}
             <div className="pd-quantity-row">
@@ -316,6 +400,31 @@ export default function ProductDetailPage() {
                   <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                 </svg>
                 WISHLIST
+              </button>
+              <button
+                className={`pd-share-btn ${shareFeedback ? 'copied' : ''}`}
+                onClick={handleShare}
+                title="Share this product"
+              >
+                {shareFeedback ? (
+                  <>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    COPIED!
+                  </>
+                ) : (
+                  <>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="18" cy="5" r="3"></circle>
+                      <circle cx="6" cy="12" r="3"></circle>
+                      <circle cx="18" cy="19" r="3"></circle>
+                      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                    </svg>
+                    SHARE
+                  </>
+                )}
               </button>
             </div>
 
@@ -356,6 +465,9 @@ export default function ProductDetailPage() {
                 const relPrice = typeof rel.price === 'number'
                   ? rel.price
                   : (parseFloat(String(rel.price).replace(/[^0-9.]/g, '')) || 0);
+                const relSalePrice = (rel.salePrice !== undefined && rel.salePrice !== null && rel.salePrice !== '')
+                  ? (typeof rel.salePrice === 'number' ? rel.salePrice : parseFloat(String(rel.salePrice).replace(/[^0-9.]/g, '')) || null)
+                  : null;
                 const relImg = rel.image || (Array.isArray(rel.images) && rel.images.length > 0 ? rel.images[0] : placeholderSvg);
 
                 return (
@@ -366,7 +478,16 @@ export default function ProductDetailPage() {
                       </div>
                       <div className="rel-info">
                         <div className="rel-name">{rel.name || rel.title}</div>
-                        <div className="rel-price">MYR {relPrice.toFixed(2)}</div>
+                        <div className="rel-price">
+                          {relSalePrice && relSalePrice > 0 ? (
+                            <>
+                              <span className="rel-sale-price">MYR {relSalePrice.toFixed(2)}</span>
+                              <span className="rel-regular-strike">MYR {relPrice.toFixed(2)}</span>
+                            </>
+                          ) : (
+                            <span>MYR {relPrice.toFixed(2)}</span>
+                          )}
+                        </div>
                       </div>
                     </Link>
                   </div>
@@ -379,6 +500,117 @@ export default function ProductDetailPage() {
 
       {/* Footer */}
       <Footer />
+
+      {/* Share Toast Notification */}
+      {shareFeedback && (
+        <div className="pd-share-toast">
+          <span>✓</span> {shareFeedback}
+        </div>
+      )}
+
+      {/* Image Zoom Lightbox Modal */}
+      {isZoomOpen && (
+        <div
+          className="pd-zoom-modal-backdrop"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsZoomOpen(false);
+          }}
+        >
+          {/* Header Controls */}
+          <div className="pd-zoom-header">
+            <div className="pd-zoom-counter">
+              {product.images.length > 1
+                ? `${selectedImage + 1} / ${product.images.length}`
+                : product.title}
+            </div>
+            <div className="pd-zoom-controls">
+              <button
+                type="button"
+                className="pd-zoom-scale-btn"
+                onClick={() => setZoomScale((s) => (s === 1 ? 2 : 1))}
+                title={zoomScale === 1 ? 'Zoom In (2x)' : 'Reset Zoom'}
+              >
+                {zoomScale === 1 ? '🔍+ 2x' : '🔍− 1x'}
+              </button>
+              <button
+                type="button"
+                className="pd-zoom-close-btn"
+                onClick={() => setIsZoomOpen(false)}
+                title="Close (Esc)"
+                aria-label="Close Zoom"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+
+          {/* Main Zoomed Image Stage */}
+          <div
+            className="pd-zoom-stage"
+            onClick={() => setZoomScale((s) => (s === 1 ? 2 : 1))}
+          >
+            {product.images.length > 1 && (
+              <button
+                type="button"
+                className="pd-zoom-nav-btn prev"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedImage((prev) => (prev - 1 + product.images.length) % product.images.length);
+                  setZoomScale(1);
+                }}
+                aria-label="Previous Image"
+              >
+                ‹
+              </button>
+            )}
+
+            <div className={`pd-zoom-image-container ${zoomScale > 1 ? 'zoomed-in' : ''}`}>
+              <SafeImage
+                src={product.images?.[selectedImage] || product.images?.[0] || placeholderSvg}
+                alt={product.title}
+                className="pd-zoom-image"
+                style={{
+                  transform: `scale(${zoomScale})`,
+                  cursor: zoomScale === 1 ? 'zoom-in' : 'zoom-out'
+                }}
+              />
+            </div>
+
+            {product.images.length > 1 && (
+              <button
+                type="button"
+                className="pd-zoom-nav-btn next"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedImage((prev) => (prev + 1) % product.images.length);
+                  setZoomScale(1);
+                }}
+                aria-label="Next Image"
+              >
+                ›
+              </button>
+            )}
+          </div>
+
+          {/* Bottom Thumbnails */}
+          {product.images.length > 1 && (
+            <div className="pd-zoom-thumbs">
+              {product.images.map((img, idx) => (
+                <div
+                  key={idx}
+                  className={`pd-zoom-thumb-item ${selectedImage === idx ? 'active' : ''}`}
+                  onClick={() => {
+                    setSelectedImage(idx);
+                    setZoomScale(1);
+                  }}
+                >
+                  <SafeImage src={img} alt={`Thumb ${idx + 1}`} />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

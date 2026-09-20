@@ -107,9 +107,11 @@ input[type=checkbox]{width:16px; height:16px; accent-color:var(--teal); cursor:p
 
 .pager{display:flex; align-items:center; justify-content:space-between; padding:18px 6px; font-size:13px; color:var(--ink-soft);}
 .pager .pages{display:flex; gap:6px;}
-.pager button{width:32px; height:32px; border:1px solid #CBD5E1; background:var(--surface); border-radius:4px; font-size:13px; font-weight:700; color:var(--ink-soft); transition:all 0.2s ease;}
-.pager button.active{background:var(--teal); color:#fff; border-color:var(--teal);}
-.pager button:hover:not(.active){border-color:var(--teal); color:var(--teal);}
+.pager button{width:32px; height:32px; border:1px solid #CBD5E1; background:var(--surface); border-radius:4px; font-size:13px; font-weight:700; color:var(--ink-soft); transition:all 0.2s ease; cursor:pointer;}
+.pager button.active{background:var(--teal); color:#fff; border-color:var(--teal); cursor:default;}
+.pager button:hover:not(.active):not(:disabled){border-color:var(--teal); color:var(--teal);}
+.pager button:disabled{opacity:0.35; cursor:not-allowed; border-color:#E2E8F0; color:#94A3B8;}
+.pager-dots{display:inline-flex; align-items:center; justify-content:center; width:24px; font-weight:700; color:var(--ink-soft);}
 
 .modal-backdrop{position:fixed; inset:0; background:rgba(6,21,39,0.6); display:none; align-items:center; justify-content:center; z-index:100;}
 .modal-backdrop.show{display:flex;}

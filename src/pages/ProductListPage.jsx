@@ -15,6 +15,8 @@ export default function ProductListPage() {
   const [catFilter, setCatFilter] = useState('All Categories');
   const [genderFilter, setGenderFilter] = useState('All Genders');
   const [statusFilter, setStatusFilter] = useState('All Status');
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   const fetchProducts = async () => {
     try {
@@ -52,6 +54,10 @@ export default function ProductListPage() {
     fetchProducts();
   }, []);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, catFilter, genderFilter, statusFilter]);
+
   const filteredProducts = products.filter(p => {
     const matchesSearch = !searchQuery.trim() || 
       p.name.toLowerCase().includes(searchQuery.toLowerCase().trim()) ||
@@ -68,8 +74,35 @@ export default function ProductListPage() {
     return matchesSearch && matchesCat && matchesGender && matchesStatus;
   });
 
-  const allChecked = filteredProducts.length > 0 && selected.size === filteredProducts.length;
-  const toggleAll = () => setSelected(allChecked ? new Set() : new Set(filteredProducts.map(p => p.id)));
+  const totalPages = Math.ceil(filteredProducts.length / PAGE_SIZE);
+  const validCurrentPage = totalPages > 0 ? Math.min(currentPage, totalPages) : 1;
+  const startIndex = (validCurrentPage - 1) * PAGE_SIZE;
+  const endIndex = startIndex + PAGE_SIZE;
+  const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
+
+  const allChecked = paginatedProducts.length > 0 && paginatedProducts.every(p => selected.has(p.id));
+  const toggleAll = () => {
+    const next = new Set(selected);
+    if (allChecked) {
+      paginatedProducts.forEach(p => next.delete(p.id));
+    } else {
+      paginatedProducts.forEach(p => next.add(p.id));
+    }
+    setSelected(next);
+  };
+
+  const getPageNumbers = () => {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    if (validCurrentPage <= 4) {
+      return [1, 2, 3, 4, 5, '...', totalPages];
+    }
+    if (validCurrentPage >= totalPages - 3) {
+      return [1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+    }
+    return [1, '...', validCurrentPage - 1, validCurrentPage, validCurrentPage + 1, '...', totalPages];
+  };
   const toggleRow = (id) => {
     const next = new Set(selected);
     next.has(id) ? next.delete(id) : next.add(id);
@@ -203,7 +236,7 @@ export default function ProductListPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="8" style={{ textAlign: 'center', padding: '40px 0', color: 'var(--ink-soft)' }}>
+                  <td colSpan="9" style={{ textAlign: 'center', padding: '40px 0', color: 'var(--ink-soft)' }}>
                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', fontWeight: 600 }}>
                       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" strokeWidth="2.5" style={{ animation: 'spin 1s linear infinite' }}>
                         <circle cx="12" cy="12" r="10" strokeDasharray="32" strokeDashoffset="10"/>
@@ -214,7 +247,7 @@ export default function ProductListPage() {
                 </tr>
               ) : filteredProducts.length === 0 ? (
                 <tr>
-                  <td colSpan="8" style={{ textAlign: 'center', padding: '48px 0', color: 'var(--ink-soft)' }}>
+                  <td colSpan="9" style={{ textAlign: 'center', padding: '48px 0', color: 'var(--ink-soft)' }}>
                     <div style={{ fontSize: '15px', fontWeight: 700, color: '#1E293B', marginBottom: '6px' }}>No products found</div>
                     <div style={{ fontSize: '13px', marginBottom: '16px' }}>There are no products matching your search or filters.</div>
                     <Link to="/admin/products/add" className="btn-gold" style={{ display: 'inline-flex', padding: '8px 16px', fontSize: '12px' }}>
@@ -223,7 +256,7 @@ export default function ProductListPage() {
                   </td>
                 </tr>
               ) : (
-                filteredProducts.map(p => (
+                paginatedProducts.map(p => (
                   <tr key={p.id}>
                     <td><input type="checkbox" checked={selected.has(p.id)} onChange={() => toggleRow(p.id)}/></td>
                     <td>
@@ -261,15 +294,44 @@ export default function ProductListPage() {
               )}
             </tbody>
           </table>
-          <div className="pager">
-            <span>Showing {filteredProducts.length} of {products.length} products</span>
-            <div className="pages">
-              <button aria-label="Previous">‹</button>
-              <button className="active">1</button>
-              <button>2</button><button>3</button>
-              <button aria-label="Next">›</button>
+          {filteredProducts.length > PAGE_SIZE && (
+            <div className="pager">
+              <span>
+                Showing {startIndex + 1}–{Math.min(endIndex, filteredProducts.length)} of {filteredProducts.length} products
+              </span>
+              <div className="pages">
+                <button
+                  aria-label="Previous"
+                  disabled={validCurrentPage === 1}
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                >
+                  ‹
+                </button>
+                {getPageNumbers().map((item, idx) =>
+                  item === '...' ? (
+                    <span key={`dots-${idx}`} className="pager-dots">
+                      …
+                    </span>
+                  ) : (
+                    <button
+                      key={item}
+                      className={validCurrentPage === item ? 'active' : ''}
+                      onClick={() => setCurrentPage(item)}
+                    >
+                      {item}
+                    </button>
+                  )
+                )}
+                <button
+                  aria-label="Next"
+                  disabled={validCurrentPage === totalPages}
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                >
+                  ›
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </main>
 

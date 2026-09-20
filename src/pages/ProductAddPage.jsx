@@ -4,12 +4,6 @@ import AdminSidebar from '../components/AdminSidebar';
 import { API_BASE_URL } from '../config';
 import './ProductAddPage.css';
 
-const INITIAL_THUMBS = [
-  { id: 1, bg: 'linear-gradient(160deg,#1c6d63,#0c3d3f 60%,#062526)', primary: true },
-  { id: 2, bg: 'linear-gradient(160deg,#2a8f7e,#155048 60%,#062526)', primary: false },
-  { id: 3, bg: 'linear-gradient(160deg,#c9b25a,#8f7127 60%,#40320f)', primary: false },
-];
-
 const CATEGORIES = ['Soft Silk','Kanchipuram Silk','Banarasi Silk','Tussar Silk','Ethnic Sarees','Lehengas','Blouse Collection',"Women's Wear"];
 
 let nextId = 10;
@@ -22,7 +16,7 @@ export default function ProductAddPage() {
   const replaceFileInputRef = useRef(null);
 
   const [isDragging, setIsDragging] = useState(false);
-  const [thumbs, setThumbs] = useState(INITIAL_THUMBS);
+  const [thumbs, setThumbs] = useState([]);
   const [tags, setTags] = useState(['New Collection']);
   const [tagInput, setTagInput] = useState('');
   const [status, setStatus] = useState('published');
@@ -391,52 +385,54 @@ export default function ProductAddPage() {
                 onChange={handleReplaceFileChange}
               />
 
-              <div className="thumb-grid">
-                {thumbs.map(t => (
-                  <div key={t.id} className="thumb" data-primary={t.primary}>
-                    {t.src
-                      ? <img src={t.src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}/>
-                      : <div className="swatch-fill" style={{ background: t.bg }}></div>
-                    }
+              {thumbs.length > 0 && (
+                <div className="thumb-grid">
+                  {thumbs.map(t => (
+                    <div key={t.id} className="thumb" data-primary={t.primary}>
+                      {t.src
+                        ? <img src={t.src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}/>
+                        : <div className="swatch-fill" style={{ background: t.bg }}></div>
+                      }
 
-                    {t.uploading && (
-                      <div className="thumb-loading-overlay">
-                        <div className="spinner"></div>
-                        <span>Uploading...</span>
-                      </div>
-                    )}
-
-                    {t.primary && <span className="primary-badge">Primary</span>}
-
-                    <div className="thumb-actions-overlay">
-                      {!t.primary && (
-                        <div className="set-primary" onClick={() => makePrimary(t.id)}>Set primary</div>
+                      {t.uploading && (
+                        <div className="thumb-loading-overlay">
+                          <div className="spinner"></div>
+                          <span>Uploading...</span>
+                        </div>
                       )}
+
+                      {t.primary && <span className="primary-badge">Primary</span>}
+
+                      <div className="thumb-actions-overlay">
+                        {!t.primary && (
+                          <div className="set-primary" onClick={() => makePrimary(t.id)}>Set primary</div>
+                        )}
+                        <button
+                          type="button"
+                          className="edit-image-btn"
+                          title="Edit / Replace Image"
+                          onClick={(e) => { e.stopPropagation(); triggerReplaceThumb(t.id); }}
+                        >
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+                          </svg>
+                          Edit
+                        </button>
+                      </div>
+
                       <button
                         type="button"
-                        className="edit-image-btn"
-                        title="Edit / Replace Image"
-                        onClick={(e) => { e.stopPropagation(); triggerReplaceThumb(t.id); }}
+                        className="remove-btn"
+                        aria-label="Remove image"
+                        title="Delete Image"
+                        onClick={(e) => { e.stopPropagation(); removeThumb(t.id); }}
                       >
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                          <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
-                        </svg>
-                        Edit
+                        ×
                       </button>
                     </div>
-
-                    <button
-                      type="button"
-                      className="remove-btn"
-                      aria-label="Remove image"
-                      title="Delete Image"
-                      onClick={(e) => { e.stopPropagation(); removeThumb(t.id); }}
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="panel">
