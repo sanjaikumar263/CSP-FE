@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import AdminSidebar from '../components/AdminSidebar';
 import { API_BASE_URL } from '../config';
+import { compressImage } from '../utils/imageCompressor';
 import './ProductAddPage.css';
 
 const CATEGORIES = ['Soft Silk','Kanchipuram Silk','Banarasi Silk','Tussar Silk','Ethnic Sarees','Lehengas','Blouse Collection',"Women's Wear"];
@@ -128,8 +129,9 @@ export default function ProductAddPage() {
         });
 
         try {
+          const compressedFile = await compressImage(file);
           const formData = new FormData();
-          formData.append('image', file);
+          formData.append('image', compressedFile);
 
           const res = await fetch(`${API_BASE_URL}/upload`, {
             method: 'POST',
@@ -177,8 +179,9 @@ export default function ProductAddPage() {
     setThumbs(ts => ts.map(t => t.id === editingThumbId ? { ...t, uploading: true } : t));
 
     try {
+      const compressedFile = await compressImage(file);
       const formData = new FormData();
-      formData.append('image', file);
+      formData.append('image', compressedFile);
       if (targetThumb.public_id || targetThumb.src) {
         formData.append('old_public_id', targetThumb.public_id || targetThumb.src);
       }

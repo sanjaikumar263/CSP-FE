@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import AdminSidebar from '../components/AdminSidebar';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL, BACKEND_URL } from '../config';
+import { compressImage } from '../utils/imageCompressor';
 import './StoreInfoManagementPage.css';
 
 export default function StoreInfoManagementPage() {
@@ -98,11 +99,12 @@ export default function StoreInfoManagementPage() {
     const file = e.target.files[0];
     if (!file) return;
 
-    const bodyData = new FormData();
-    bodyData.append('image', file);
-
     try {
       setUploadingImage(true);
+      const compressedFile = await compressImage(file);
+      const bodyData = new FormData();
+      bodyData.append('image', compressedFile);
+
       const res = await fetch(`${API_BASE_URL}/upload`, {
         method: 'POST',
         headers: {
