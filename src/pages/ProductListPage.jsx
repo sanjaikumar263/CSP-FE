@@ -2,7 +2,10 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import AdminSidebar from '../components/AdminSidebar';
 import { API_BASE_URL } from '../config';
+import { getGroupedCategoriesForAdmin } from '../data/categoriesData';
 import './ProductListPage.css';
+
+const ADMIN_GROUPED_CATEGORIES = getGroupedCategoriesForAdmin();
 
 const STATUS_LABEL = { published: 'Published', draft: 'Draft', outofstock: 'Out of Stock' };
 
@@ -32,6 +35,7 @@ export default function ProductListPage() {
           name: item.name,
           sku: item.sku || `CSP${item._id?.slice(-6) || '100'}`,
           cat: item.category || 'Soft Silk',
+          categories: item.categories || [],
           gender: item.gender || 'Women',
           price: item.currency ? `${item.currency} ${item.price?.toFixed(2)}` : `MYR ${item.price}`,
           stock: item.stockQuantity ?? 10,
@@ -63,7 +67,9 @@ export default function ProductListPage() {
       p.name.toLowerCase().includes(searchQuery.toLowerCase().trim()) ||
       p.sku.toLowerCase().includes(searchQuery.toLowerCase().trim());
 
-    const matchesCat = catFilter === 'All Categories' || p.cat === catFilter;
+    const matchesCat = catFilter === 'All Categories' ||
+      p.cat?.toLowerCase() === catFilter.toLowerCase() ||
+      (Array.isArray(p.categories) && p.categories.some(c => c?.toLowerCase() === catFilter.toLowerCase()));
     const matchesGender = genderFilter === 'All Genders' || p.gender.toLowerCase() === genderFilter.toLowerCase();
 
     let matchesStatus = true;
@@ -197,16 +203,19 @@ export default function ProductListPage() {
           </div>
           <select className="filter-select" value={catFilter} onChange={(e) => setCatFilter(e.target.value)}>
             <option>All Categories</option>
-            <option>Soft Silk</option><option>Kanchipuram Silk</option>
-            <option>Banarasi Silk</option><option>Tussar Silk</option>
-            <option>Ethnic Sarees</option><option>Fancy Saree</option>
-            <option>Silk Cotton</option><option>Kanchi Cotton</option>
-            <option>Men's Wear</option><option>Accessories</option>
+            {ADMIN_GROUPED_CATEGORIES.map(grp => (
+              <optgroup key={grp.group} label={grp.group}>
+                {grp.items.map(item => (
+                  <option key={item} value={item}>{item}</option>
+                ))}
+              </optgroup>
+            ))}
           </select>
           <select className="filter-select" value={genderFilter} onChange={(e) => setGenderFilter(e.target.value)}>
             <option>All Genders</option>
             <option>Women</option>
             <option>Men</option>
+            <option>Kids</option>
           </select>
           <select className="filter-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
             <option>All Status</option>

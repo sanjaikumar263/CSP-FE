@@ -3,6 +3,7 @@ import AdminSidebar from '../components/AdminSidebar';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../config';
 import { compressImage } from '../utils/imageCompressor';
+import ImageCropperModal from '../components/ImageCropperModal';
 import './BannerManagementPage.css';
 
 export default function BannerManagementPage() {
@@ -16,6 +17,11 @@ export default function BannerManagementPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBanner, setEditingBanner] = useState(null);
   const [uploadingImage, setUploadingImage] = useState(false);
+
+  // Cropper State
+  const [cropperOpen, setCropperOpen] = useState(false);
+  const [cropperImageSrc, setCropperImageSrc] = useState('');
+  const [cropperUploading, setCropperUploading] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -142,13 +148,34 @@ export default function BannerManagementPage() {
     setIsModalOpen(true);
   };
 
-  const handleImageFileUpload = async (e) => {
-    const file = e.target.files[0];
+  // When a file is selected from disk, open Image Cropper modal
+  const handleImageFileSelect = (e) => {
+    const file = e.target.files?.[0];
     if (!file) return;
 
+    // Reset value so user can select the same file again if desired
+    e.target.value = '';
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setCropperImageSrc(reader.result);
+      setCropperOpen(true);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Open cropper with existing image URL
+  const handleCropCurrentImage = () => {
+    if (!formData.image) return;
+    setCropperImageSrc(formData.image);
+    setCropperOpen(true);
+  };
+
+  // Upload cropped image to server
+  const handleCropSave = async (croppedBlob, croppedFile) => {
     try {
-      setUploadingImage(true);
-      const compressedFile = await compressImage(file);
+      setCropperUploading(true);
+      const compressedFile = await compressImage(croppedFile);
       const bodyData = new FormData();
       bodyData.append('image', compressedFile);
 
@@ -162,14 +189,17 @@ export default function BannerManagementPage() {
       const data = await res.json();
       if (res.ok && data.url) {
         setFormData(prev => ({ ...prev, image: data.url }));
+        setCropperOpen(false);
+        setSuccessMsg('Banner image cropped and saved successfully!');
+        setTimeout(() => setSuccessMsg(''), 3000);
       } else {
-        alert(data.message || 'Failed to upload image');
+        alert(data.message || 'Failed to upload cropped image');
       }
     } catch (err) {
       console.error('Image upload error:', err);
-      alert('Error uploading image to server');
+      alert('Error uploading cropped image to server');
     } finally {
-      setUploadingImage(false);
+      setCropperUploading(false);
     }
   };
 
@@ -455,21 +485,51 @@ export default function BannerManagementPage() {
                       cursor: 'pointer',
                       fontSize: '0.85rem',
                       fontWeight: 600,
-                      whiteSpace: 'nowrap'
+                      whiteSpace: 'nowrap',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px'
                     }}>
-                      {uploadingImage ? 'Uploading...' : 'Upload File'}
+                      <span>📷</span>
+                      <span>{cropperUploading ? 'Processing...' : 'Upload & Crop'}</span>
                       <input
                         type="file"
                         accept="image/*"
-                        onChange={handleImageFileUpload}
+                        onChange={handleImageFileSelect}
                         style={{ display: 'none' }}
                       />
                     </label>
                   </div>
 
                   {formData.image && (
-                    <div className="image-preview-container">
+                    <div className="image-preview-container" style={{ position: 'relative' }}>
                       <img src={formData.image} alt="Preview" className="image-preview-img" />
+                      <button
+                        type="button"
+                        onClick={handleCropCurrentImage}
+                        style={{
+                          position: 'absolute',
+                          top: '12px',
+                          right: '12px',
+                          background: 'rgba(15, 23, 42, 0.88)',
+                          backdropFilter: 'blur(8px)',
+                          color: '#d4af37',
+                          border: '1px solid rgba(212, 175, 55, 0.45)',
+                          borderRadius: '8px',
+                          padding: '6px 14px',
+                          fontSize: '0.82rem',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          boxShadow: '0 4px 15px rgba(0,0,0,0.5)',
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        <span>✂</span>
+                        <span>Crop & Fit Image</span>
+                      </button>
                     </div>
                   )}
                 </div>
@@ -534,6 +594,15 @@ export default function BannerManagementPage() {
             </div>
           </div>
         )}
+
+        {/* Interactive Image Cropper Modal */}
+        <ImageCropperModal
+          isOpen={cropperOpen}
+          imageSrc={cropperImageSrc}
+          onClose={() => setCropperOpen(false)}
+          onCropComplete={handleCropSave}
+          isProcessing={cropperUploading}
+        />
       </main>
     </div>
   );

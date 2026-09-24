@@ -3,6 +3,8 @@ import AdminSidebar from '../components/AdminSidebar';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL, BACKEND_URL } from '../config';
 import { compressImage } from '../utils/imageCompressor';
+import defaultOwnerImg from '../assets/owner_image_full.jpg';
+import ImageCropperModal from '../components/ImageCropperModal';
 import './StoreInfoManagementPage.css';
 
 export default function StoreInfoManagementPage() {
@@ -13,6 +15,11 @@ export default function StoreInfoManagementPage() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+
+  // Cropper State for Director Image
+  const [cropperOpen, setCropperOpen] = useState(false);
+  const [cropperImageSrc, setCropperImageSrc] = useState('');
+  const [cropperUploading, setCropperUploading] = useState(false);
 
   const [formData, setFormData] = useState({
     // Contact & Address Details
@@ -430,6 +437,18 @@ export default function StoreInfoManagementPage() {
                         style={{ fontSize: '12px', color: '#cbd5e1' }}
                       />
                       {uploadingImage && <span style={{ fontSize: '11px', color: '#60a5fa', marginLeft: '8px' }}>Uploading...</span>}
+                    </div>
+                    <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 12px', background: '#1e293b', borderRadius: '8px', border: '1px solid #334155' }}>
+                      <img 
+                        src={formData.directorImage || defaultOwnerImg} 
+                        alt="Director Preview" 
+                        style={{ width: '56px', height: '56px', borderRadius: '6px', objectFit: 'cover', border: '1px solid #475569' }} 
+                        onError={(e) => { e.target.onerror = null; e.target.src = defaultOwnerImg; }}
+                      />
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontSize: '12px', color: '#f8fafc', fontWeight: 600 }}>Active Owner Portrait</span>
+                        <span style={{ fontSize: '11px', color: '#94a3b8' }}>Preview of image displayed on the About Us page</span>
+                      </div>
                     </div>
                   </div>
                 </div>

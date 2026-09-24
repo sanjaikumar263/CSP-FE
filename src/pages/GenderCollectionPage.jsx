@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link, useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -6,30 +6,37 @@ import Loader from '../components/Loader';
 import SafeImage from '../components/SafeImage';
 import placeholderSvg from '../assets/placeholder.svg';
 import { API_BASE_URL } from '../config';
+import { getTopLevelCategoryTabs, isProductInCategory } from '../data/categoriesData';
 import './GenderCollectionPage.css';
 
 const GENDER_HERO_DATA = {
   women: {
     title: "Women's Collection",
-    subtitle: "Discover opulent Kanchipuram silks, Banarasi weaves, and artisanal ethnic wear crafted for royalty.",
+    subtitle: "Discover opulent Kanchipuram silks, Banarasi weaves, Designer Lehengas, and Punjabi suits crafted for royalty.",
     eyebrow: "HERITAGE ELEGANCE",
     bgImage: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1200&q=80",
-    badge: "100% Pure Silk Sarees"
+    badge: "100% Pure Silk & Artisanal Weaves"
   },
   men: {
     title: "Men's Collection",
-    subtitle: "Regal silk shirts, traditional dhotis, and royal handcrafted kurta sets tailored for every celebratory occasion.",
+    subtitle: "Regal silk shirts, traditional pattu dhotis, wedding sherwanis, and royal handcrafted kurta sets tailored for every celebratory occasion.",
     eyebrow: "TRADITIONAL SPLENDOR",
     bgImage: "https://images.unsplash.com/photo-1583391733956-6c78276477e2?auto=format&fit=crop&w=1200&q=80",
-    badge: "Authentic Zari Weaves"
+    badge: "Authentic Zari Weaves & Sherwanis"
   },
-
+  kids: {
+    title: "Kids' Collection",
+    subtitle: "Adorable Pattu Pavadais, royal Boys Sherwanis, traditional dhoti combos, and celebratory lehengas crafted with pure comfort.",
+    eyebrow: "FESTIVE INNOCENCE & CHARM",
+    bgImage: "https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?auto=format&fit=crop&w=1200&q=80",
+    badge: "100% Child-Friendly Pure Fabrics"
+  },
   all: {
-    title: "Shop By Gender",
-    subtitle: "Explore our complete curated collections tailored for Men and Women.",
+    title: "Shop By Collection",
+    subtitle: "Explore our complete curated collections tailored for Women, Men, and Kids.",
     eyebrow: "FULL CATALOGUE",
     bgImage: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=1200&q=80",
-    badge: "Generations of Trust"
+    badge: "Generations of Heritage & Trust"
   }
 };
 
@@ -41,78 +48,105 @@ export default function GenderCollectionPage() {
   // Normalize active gender tab
   const activeGenderFromParam = (genderType || searchParams.get('gender') || 'all').toLowerCase();
   const [selectedGender, setSelectedGender] = useState(
-    ['women', 'men'].includes(activeGenderFromParam) ? activeGenderFromParam : 'all'
+    ['women', 'men', 'kids'].includes(activeGenderFromParam) ? activeGenderFromParam : 'all'
   );
 
-  const [products, setProducts] = useState([]);
+  const [allProducts, setAllProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'All');
   const [priceSort, setPriceSort] = useState('newest');
-  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [wishlist, setWishlist] = useState({});
 
   useEffect(() => {
     if (genderType) {
       const g = genderType.toLowerCase();
-      if (['women', 'men'].includes(g)) {
+      if (['women', 'men', 'kids'].includes(g)) {
         setSelectedGender(g);
       }
     }
   }, [genderType]);
 
-  const fetchProducts = async () => {
-    try {
-      setLoading(true);
-      let url = `${API_BASE_URL}/products`;
-      const params = new URLSearchParams();
-
-      if (selectedGender !== 'all') {
-        const genderQueryVal = selectedGender === 'women' ? 'Women' : 'Men';
-        params.append('gender', genderQueryVal);
-      }
-
-      if (selectedCategory !== 'All') {
-        params.append('category', selectedCategory);
-      }
-
-      if (searchQuery.trim()) {
-        params.append('search', searchQuery.trim());
-      }
-
-      if (priceSort === 'price-low-high') {
-        params.append('sort', 'price-low-high');
-      } else if (priceSort === 'price-high-low') {
-        params.append('sort', 'price-high-low');
-      }
-
-      if (params.toString()) {
-        url += `?${params.toString()}`;
-      }
-
-      const res = await fetch(url);
-      const data = await res.json();
-
-      if (res.ok && data.success && Array.isArray(data.data)) {
-        setProducts(data.data);
-      } else {
-        setProducts([]);
-      }
-    } catch (err) {
-      console.warn('API error fetching gender products:', err);
-      setProducts([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchProducts();
-  }, [selectedGender, selectedCategory, priceSort]);
+    const cat = searchParams.get('category');
+    setSelectedCategory(cat || 'All');
+  }, [searchParams]);
+
+  // Fetch full catalog once on mount
+  useEffect(() => {
+    const fetchCatalog = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(`${API_BASE_URL}/products`);
+        const data = await res.json();
+        if (res.ok && data.success && Array.isArray(data.data)) {
+          setAllProducts(data.data);
+        } else {
+          setAllProducts([]);
+        }
+      } catch (err) {
+        console.warn('API error fetching gender products:', err);
+        setAllProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCatalog();
+  }, []);
+
+  // Products belonging to the selected collection/gender
+  const genderProducts = useMemo(() => {
+    if (selectedGender === 'all') return allProducts;
+    const target = selectedGender.toLowerCase();
+    return allProducts.filter(item => {
+      const g = (item.gender || '').toLowerCase().trim();
+      if (target === 'women') return g === 'women' || g === 'female';
+      if (target === 'men') return g === 'men' || g === 'male';
+      if (target === 'kids') return g.includes('kid') || g.includes('boy') || g.includes('girl');
+      return true;
+    });
+  }, [allProducts, selectedGender]);
+
+  // Filtered by category, search query, and sorted by price
+  const displayedProducts = useMemo(() => {
+    let list = genderProducts.filter(item => {
+      // 1. Category Filter using intelligent hierarchy matcher
+      if (selectedCategory && selectedCategory !== 'All') {
+        if (!isProductInCategory(item, selectedCategory)) {
+          return false;
+        }
+      }
+
+      // 2. Search Query Filter
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const matchName = (item.name || '').toLowerCase().includes(q);
+        const matchCat = (item.category || '').toLowerCase().includes(q);
+        const matchDesc = (item.description || '').toLowerCase().includes(q);
+        if (!matchName && !matchCat && !matchDesc) return false;
+      }
+
+      return true;
+    });
+
+    // 3. Sorting
+    list = [...list].sort((a, b) => {
+      const priceA = typeof a.price === 'number' ? a.price : parseFloat(a.price) || 0;
+      const priceB = typeof b.price === 'number' ? b.price : parseFloat(b.price) || 0;
+      if (priceSort === 'price-low-high') return priceA - priceB;
+      if (priceSort === 'price-high-low') return priceB - priceA;
+      return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+    });
+
+    return list;
+  }, [genderProducts, selectedCategory, searchQuery, priceSort]);
 
   const handleGenderTabChange = (g) => {
     setSelectedGender(g);
     setSelectedCategory('All');
+    const newParams = new URLSearchParams(searchParams);
+    newParams.delete('category');
+    setSearchParams(newParams);
     if (g === 'all') {
       navigate('/gender');
     } else {
@@ -120,9 +154,15 @@ export default function GenderCollectionPage() {
     }
   };
 
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    fetchProducts();
+  const handleCategoryClick = (cat) => {
+    setSelectedCategory(cat);
+    const newParams = new URLSearchParams(searchParams);
+    if (cat === 'All') {
+      newParams.delete('category');
+    } else {
+      newParams.set('category', cat);
+    }
+    setSearchParams(newParams);
   };
 
   const toggleWishlist = (id) => {
@@ -131,12 +171,25 @@ export default function GenderCollectionPage() {
 
   const heroInfo = GENDER_HERO_DATA[selectedGender] || GENDER_HERO_DATA.all;
 
-  // Categories list per gender
-  const categoriesList = selectedGender === 'men'
-    ? ['All', "Men's Wear", 'Kurta Sets', 'Dhoti Sets', 'Traditional Wear']
-    : (selectedGender === 'women'
-      ? ['All', 'Soft Silk', 'Kanchipuram Silk', 'Banarasi Silk', 'Tussar Silk', "Women's Wear"]
-      : ['All', 'Accessories', 'Silk Sarees', "Men's Wear"]);
+  // Dynamic category tabs for the active gender
+  const categoriesList = useMemo(() => {
+    const list = getTopLevelCategoryTabs(selectedGender);
+    if (selectedCategory && selectedCategory !== 'All' && !list.includes(selectedCategory)) {
+      list.splice(1, 0, selectedCategory);
+    }
+    return list;
+  }, [selectedGender, selectedCategory]);
+
+  // Compute live product counts for each category pill
+  const categoryCounts = useMemo(() => {
+    const counts = {};
+    counts['All'] = genderProducts.length;
+    categoriesList.forEach(cat => {
+      if (cat === 'All') return;
+      counts[cat] = genderProducts.filter(item => isProductInCategory(item, cat)).length;
+    });
+    return counts;
+  }, [genderProducts, categoriesList]);
 
   return (
     <div className="gender-page-container">
@@ -177,6 +230,13 @@ export default function GenderCollectionPage() {
             <span className="tab-icon">👔</span>
             Men's Collection
           </button>
+          <button
+            className={`gp-gender-tab ${selectedGender === 'kids' ? 'active' : ''}`}
+            onClick={() => handleGenderTabChange('kids')}
+          >
+            <span className="tab-icon">🧒</span>
+            Kids' Collection
+          </button>
         </div>
       </div>
 
@@ -185,15 +245,20 @@ export default function GenderCollectionPage() {
         {/* Controls bar: Sub-category chips & Sort */}
         <div className="gp-controls-bar">
           <div className="gp-category-chips">
-            {categoriesList.map(cat => (
-              <button
-                key={cat}
-                className={`gp-chip ${selectedCategory === cat ? 'active' : ''}`}
-                onClick={() => setSelectedCategory(cat)}
-              >
-                {cat}
-              </button>
-            ))}
+            {categoriesList.map(cat => {
+              const count = categoryCounts[cat] ?? 0;
+              const isActive = (selectedCategory || 'All').toLowerCase() === cat.toLowerCase();
+              return (
+                <button
+                  key={cat}
+                  className={`gp-chip ${isActive ? 'active' : ''}`}
+                  onClick={() => handleCategoryClick(cat)}
+                >
+                  <span>{cat}</span>
+                  <span className="gp-chip-count">{count}</span>
+                </button>
+              );
+            })}
           </div>
 
           <div className="gp-sort-box">
@@ -213,18 +278,18 @@ export default function GenderCollectionPage() {
         {/* Product Grid */}
         {loading ? (
           <Loader message={`Loading ${heroInfo.title}...`} />
-        ) : products.length === 0 ? (
+        ) : displayedProducts.length === 0 ? (
           <div className="gp-empty-state">
             <div className="empty-icon">🛍️</div>
             <h3>No products found</h3>
-            <p>We couldn't find any products in this gender category matching your criteria.</p>
-            <button className="gp-btn-reset" onClick={() => { setSelectedCategory('All'); setSearchQuery(''); }}>
+            <p>We couldn't find any products in this collection matching your criteria.</p>
+            <button className="gp-btn-reset" onClick={() => handleCategoryClick('All')}>
               Reset Filters
             </button>
           </div>
         ) : (
           <div className="gp-product-grid">
-            {products.map(product => (
+            {displayedProducts.map(product => (
               <div key={product._id || product.id} className="gp-product-card">
                 <div className="gp-card-image-wrap">
                   <SafeImage

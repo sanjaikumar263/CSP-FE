@@ -1114,9 +1114,15 @@ button {
 
 .gender-cards-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 28px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
   margin-top: 36px;
+}
+
+@media (max-width: 992px) {
+  .gender-cards-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .gender-card {
@@ -1152,6 +1158,10 @@ button {
 
 .men-card .gender-card-bg {
   background-image: url('https://images.unsplash.com/photo-1583391733956-6c78276477e2?auto=format&fit=crop&w=1200&q=80');
+}
+
+.kids-card .gender-card-bg {
+  background-image: url('https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?auto=format&fit=crop&w=1200&q=80');
 }
 
 .gender-card:hover .gender-card-bg {

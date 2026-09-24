@@ -6,6 +6,7 @@ import Loader from '../components/Loader';
 import SafeImage from '../components/SafeImage';
 import placeholderSvg from '../assets/placeholder.svg';
 import { API_BASE_URL } from '../config';
+import { CATEGORY_TREE, getCategoriesByGender, isProductInCategory } from '../data/categoriesData';
 import './StoreProductListPage.css';
 
 
@@ -138,41 +139,109 @@ export default function StoreProductListPage() {
   const [wishlist, setWishlist] = useState({});
   const [cartCount, setCartCount] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [sortBy, setSortBy] = useState('relevance');
 
   // Products & Loading state from API
   const [catalogItems, setCatalogItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Default categories base list
-  const BASE_CATEGORIES = [
-    'Banarasi Silk',
-    'Kanchipuram Silk',
-    "Men's Wear",
-    'Lehengas',
-    'Soft Silk',
-    'Accessories',
-    'Tussar Silk'
-  ];
+  const [expandedGroups, setExpandedGroups] = useState({});
+  const [categorySearchQuery, setCategorySearchQuery] = useState('');
 
-  // Dynamic Category Counts computed from API product dataset
-  const dynamicCategories = useMemo(() => {
-    const countsMap = {};
-    BASE_CATEGORIES.forEach(cat => {
-      countsMap[cat] = 0;
+  // Structured category hierarchy with dynamic counts
+  const categoryHierarchy = useMemo(() => {
+    let groups = [];
+    const g = (selectedGender || 'All').toLowerCase();
+
+    if (g === 'women') {
+      groups = CATEGORY_TREE.women.groups;
+    } else if (g === 'men') {
+      groups = CATEGORY_TREE.men.groups;
+    } else if (g === 'kids') {
+      groups = CATEGORY_TREE.kids.groups;
+    } else {
+      groups = [
+        ...CATEGORY_TREE.women.groups.map(grp => ({ ...grp, department: "Women" })),
+        ...CATEGORY_TREE.men.groups.map(grp => ({ ...grp, department: "Men" })),
+        ...CATEGORY_TREE.kids.groups.map(grp => ({ ...grp, department: "Kids" }))
+      ];
+    }
+
+    const baseItems = catalogItems.length > 0 ? catalogItems : STORE_PRODUCTS;
+
+    return groups.map(grp => {
+      const subItemsWithCount = grp.items.map(itemName => {
+        const count = baseItems.filter(item => {
+          if (selectedGender !== 'All' && item.gender?.toLowerCase() !== selectedGender.toLowerCase()) {
+            return false;
+          }
+          return isProductInCategory(item, itemName);
+        }).length;
+
+        return {
+          name: itemName,
+          count
+        };
+      });
+
+      const totalCount = baseItems.filter(item => {
+        if (selectedGender !== 'All' && item.gender?.toLowerCase() !== selectedGender.toLowerCase()) {
+          return false;
+        }
+        return isProductInCategory(item, grp.name);
+      }).length;
+
+      return {
+        id: grp.id,
+        name: grp.name,
+        department: grp.department,
+        totalCount,
+        items: subItemsWithCount
+      };
     });
+  }, [catalogItems, selectedGender]);
 
-    catalogItems.forEach(item => {
-      if (item.category) {
-        countsMap[item.category] = (countsMap[item.category] || 0) + 1;
-      }
+  // Filtered by search query if user searches inside the category box
+  const filteredCategoryHierarchy = useMemo(() => {
+    if (!categorySearchQuery.trim()) {
+      return categoryHierarchy;
+    }
+    const q = categorySearchQuery.toLowerCase().trim();
+    return categoryHierarchy
+      .map(grp => {
+        const groupMatches = grp.name.toLowerCase().includes(q);
+        const matchingItems = grp.items.filter(item => item.name.toLowerCase().includes(q));
+        if (groupMatches) return grp;
+        if (matchingItems.length > 0) {
+          return {
+            ...grp,
+            items: matchingItems
+          };
+        }
+        return null;
+      })
+      .filter(Boolean);
+  }, [categoryHierarchy, categorySearchQuery]);
+
+  // Auto-expand all groups by default when gender changes
+  useEffect(() => {
+    const next = {};
+    categoryHierarchy.forEach((grp) => {
+      next[grp.id] = true;
     });
+    setExpandedGroups(next);
+  }, [selectedGender]);
 
-    return Object.keys(countsMap).map(name => ({
-      name,
-      count: countsMap[name]
-    }));
-  }, [catalogItems]);
+  // Toggle expand / collapse all groups
+  const handleToggleExpandAll = () => {
+    const allExpanded = filteredCategoryHierarchy.every(grp => Boolean(expandedGroups[grp.id] ?? true));
+    const next = {};
+    categoryHierarchy.forEach(grp => {
+      next[grp.id] = !allExpanded;
+    });
+    setExpandedGroups(next);
+  };
 
   // Filter States
   const [selectedCategories, setSelectedCategories] = useState([]);
@@ -181,6 +250,15 @@ export default function StoreProductListPage() {
   const [selectedOccasions, setSelectedOccasions] = useState([]);
   const [availability, setAvailability] = useState({ inStock: false, outOfStock: false });
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Active filters count for badges
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    if (selectedGender && selectedGender !== 'All') count++;
+    count += selectedCategories.length;
+    if (maxPrice < 1600) count++;
+    return count;
+  }, [selectedGender, selectedCategories, maxPrice]);
 
   useEffect(() => {
     const fetchCatalog = async () => {
@@ -201,6 +279,7 @@ export default function StoreProductListPage() {
             color: item.color || 'Pink',
             occasion: item.occasion || 'Wedding',
             gender: item.gender || 'Women',
+            categories: item.categories || (item.category ? [item.category] : []),
             inStock: item.inStock ?? true
           }));
           setCatalogItems(mapped);
@@ -262,6 +341,7 @@ export default function StoreProductListPage() {
     setSelectedColor('');
     setSelectedOccasions([]);
     setAvailability({ inStock: false, outOfStock: false });
+    setCategorySearchQuery('');
     setSearchParams({});
     setHeaderSearch('');
   };
@@ -278,7 +358,8 @@ export default function StoreProductListPage() {
 
     // Category filter
     if (selectedCategories.length > 0) {
-      if (!selectedCategories.includes(item.category)) return false;
+      const matchesCategory = selectedCategories.some(cat => isProductInCategory(item, cat));
+      if (!matchesCategory) return false;
     }
 
     // Gender filter
@@ -382,49 +463,271 @@ export default function StoreProductListPage() {
           </div>
         </div>
 
+        {/* Mobile / Tablet Filter & Sort Bar (Visible on tablets and phones) */}
+        <div className="mobile-catalog-toolbar">
+          <button
+            type="button"
+            className="mobile-filter-open-btn"
+            onClick={() => setMobileFilterOpen(true)}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="4" y1="21" x2="4" y2="14" />
+              <line x1="4" y1="10" x2="4" y2="3" />
+              <line x1="12" y1="21" x2="12" y2="12" />
+              <line x1="12" y1="8" x2="12" y2="3" />
+              <line x1="20" y1="21" x2="20" y2="16" />
+              <line x1="20" y1="12" x2="20" y2="3" />
+              <line x1="1" y1="14" x2="7" y2="14" />
+              <line x1="9" y1="8" x2="15" y2="8" />
+              <line x1="17" y1="16" x2="23" y2="16" />
+            </svg>
+            <span>Filters</span>
+            {activeFiltersCount > 0 && (
+              <span className="mobile-toolbar-badge">{activeFiltersCount}</span>
+            )}
+          </button>
+
+          <div className="mobile-toolbar-count">
+            <span>{filteredList.length} items</span>
+          </div>
+
+          <div className="mobile-sort-box">
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="mobile-sort-dropdown"
+              aria-label="Sort products"
+            >
+              <option value="relevance">Featured</option>
+              <option value="low-to-high">Price: Low to High</option>
+              <option value="high-to-low">Price: High to Low</option>
+              <option value="newest">New Arrivals</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Backdrop for Mobile Filter Drawer */}
+        <div
+          className={`mobile-filter-backdrop ${mobileFilterOpen ? 'active' : ''}`}
+          onClick={() => setMobileFilterOpen(false)}
+          aria-hidden={!mobileFilterOpen}
+        />
+
         {/* Content Layout: Left Sidebar Filters + Right Product Grid */}
         <div className="catalog-body-grid">
-          {/* Left Sidebar Filters */}
-          <aside className="filters-sidebar">
+          {/* Left Sidebar Filters (Responsive Drawer on Mobile/Tablet) */}
+          <aside className={`filters-sidebar ${mobileFilterOpen ? 'mobile-open' : ''}`}>
             <div className="sidebar-header">
-              <h3 className="filter-title">FILTERS</h3>
-              <button className="clear-all-btn" onClick={handleClearAllFilters}>
-                Clear All
-              </button>
-            </div>
-
-            {/* Gender Filter */}
-            <div className="filter-group">
-              <h4 className="group-title">GENDER</h4>
-              <div className="radio-list">
-                {['All', 'Women', 'Men'].map(g => (
-                  <label key={g} className="checkbox-item">
-                    <input
-                      type="radio"
-                      name="genderFilter"
-                      checked={selectedGender.toLowerCase() === g.toLowerCase()}
-                      onChange={() => setSelectedGender(g)}
-                    />
-                    <span className="cb-label">{g === 'All' ? 'All Genders' : `${g}'s Collection`}</span>
-                  </label>
-                ))}
+              <div className="sidebar-header-left">
+                <h3 className="filter-title">FILTERS</h3>
+                {activeFiltersCount > 0 && (
+                  <span className="sidebar-count-badge">{activeFiltersCount}</span>
+                )}
+              </div>
+              <div className="sidebar-header-right">
+                {activeFiltersCount > 0 && (
+                  <button type="button" className="clear-all-btn" onClick={handleClearAllFilters}>
+                    Clear All
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="mobile-sidebar-close-btn"
+                  onClick={() => setMobileFilterOpen(false)}
+                  aria-label="Close filters drawer"
+                >
+                  ✕
+                </button>
               </div>
             </div>
 
-            {/* Category Filter */}
-            <div className="filter-group">
-              <h4 className="group-title">CATEGORY</h4>
-              <div className="checkbox-list">
-                {dynamicCategories.map(c => (
-                  <label key={c.name} className="checkbox-item">
-                    <input
-                      type="checkbox"
-                      checked={selectedCategories.includes(c.name)}
-                      onChange={() => handleCategoryToggle(c.name)}
-                    />
-                    <span className="cb-label">{c.name} ({c.count})</span>
-                  </label>
-                ))}
+            {/* Gender / Collection Filter */}
+            <div className="filter-group gender-filter-group">
+              <div className="group-title-row">
+                <h4 className="group-title">COLLECTION / GENDER</h4>
+              </div>
+              <div className="gender-pill-grid">
+                {[
+                  { key: 'All', label: 'All', badge: '✨' },
+                  { key: 'Women', label: "Women's", badge: '👗' },
+                  { key: 'Men', label: "Men's", badge: '👔' },
+                  { key: 'Kids', label: "Kids'", badge: '🧒' }
+                ].map(item => {
+                  const isActive = selectedGender.toLowerCase() === item.key.toLowerCase();
+                  return (
+                    <button
+                      key={item.key}
+                      type="button"
+                      className={`gender-pill-card ${isActive ? 'active' : ''}`}
+                      onClick={() => {
+                        setSelectedGender(item.key);
+                        setSelectedCategories([]);
+                      }}
+                      title={`${item.label} Collection`}
+                    >
+                      <span className="gender-pill-badge">{item.badge}</span>
+                      <span className="gender-pill-name">{item.label}</span>
+                      {isActive && <span className="gender-pill-check">✓</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Category Filter - Hierarchical Grouped Cards */}
+            <div className="filter-group category-filter-group">
+              <div className="group-title-row">
+                <div className="group-title-left">
+                  <h4 className="group-title">CATEGORIES</h4>
+                  {selectedCategories.length > 0 && (
+                    <span className="cat-active-total-pill">
+                      {selectedCategories.length} selected
+                    </span>
+                  )}
+                </div>
+                <div className="group-title-actions">
+                  <button
+                    type="button"
+                    className="toggle-all-groups-btn"
+                    onClick={handleToggleExpandAll}
+                    title="Expand or collapse all category groups"
+                  >
+                    {filteredCategoryHierarchy.every(grp => Boolean(expandedGroups[grp.id] ?? true)) ? 'Collapse All' : 'Expand All'}
+                  </button>
+                  {selectedCategories.length > 0 && (
+                    <button
+                      type="button"
+                      className="clear-cat-link"
+                      onClick={() => setSelectedCategories([])}
+                    >
+                      Reset
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Quick Search */}
+              <div className="cat-filter-search-box">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2">
+                  <circle cx="11" cy="11" r="7" />
+                  <line x1="21" y1="21" x2="16.5" y2="16.5" />
+                </svg>
+                <input
+                  type="text"
+                  placeholder="Search categories (e.g. Silk, Saree)..."
+                  value={categorySearchQuery}
+                  onChange={(e) => setCategorySearchQuery(e.target.value)}
+                  className="cat-filter-search-input"
+                />
+                {categorySearchQuery && (
+                  <button
+                    type="button"
+                    className="clear-search-btn"
+                    onClick={() => setCategorySearchQuery('')}
+                    aria-label="Clear category search"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+
+              {/* Active category pill tags */}
+              {selectedCategories.length > 0 && (
+                <div className="active-cat-pills">
+                  {selectedCategories.map(cat => (
+                    <span key={cat} className="active-cat-pill">
+                      <span className="pill-text">{cat}</span>
+                      <button
+                        type="button"
+                        className="pill-remove"
+                        onClick={() => handleCategoryToggle(cat)}
+                        aria-label={`Remove ${cat}`}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Hierarchical Accordion List */}
+              <div className="cat-accordion-list">
+                {filteredCategoryHierarchy.map(grp => {
+                  const isExpanded = Boolean(expandedGroups[grp.id] ?? true);
+                  const isGroupSelected = selectedCategories.includes(grp.name);
+                  const activeSubCount = grp.items.filter(sub => selectedCategories.includes(sub.name)).length;
+
+                  return (
+                    <div
+                      key={grp.id}
+                      className={`cat-accordion-item ${isExpanded ? 'open' : ''} ${isGroupSelected || activeSubCount > 0 ? 'has-active' : ''}`}
+                    >
+                      <div
+                        className="cat-group-header"
+                        onClick={() => {
+                          setExpandedGroups(prev => ({
+                            ...prev,
+                            [grp.id]: !Boolean(prev[grp.id] ?? true)
+                          }));
+                        }}
+                      >
+                        <div className="cat-group-header-left">
+                          <span className={`cat-chevron-icon ${isExpanded ? 'open' : ''}`}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                          </span>
+                          <div className="cat-group-name-box">
+                            {grp.department && selectedGender === 'All' && (
+                              <span className="cat-dept-subpill">{grp.department}</span>
+                            )}
+                            <span className="cat-group-title-text">{grp.name}</span>
+                          </div>
+                        </div>
+
+                        <div className="cat-group-header-right" onClick={(e) => e.stopPropagation()}>
+                          {activeSubCount > 0 ? (
+                            <span className="cat-group-active-tag">
+                              {activeSubCount} selected
+                            </span>
+                          ) : (
+                            <span className="cat-group-count">({grp.totalCount})</span>
+                          )}
+
+                          <button
+                            type="button"
+                            className={`cat-select-all-btn ${isGroupSelected ? 'active' : ''}`}
+                            title={`Filter all products in ${grp.name}`}
+                            onClick={() => handleCategoryToggle(grp.name)}
+                          >
+                            {isGroupSelected ? '✓ All' : 'All'}
+                          </button>
+                        </div>
+                      </div>
+
+                      {isExpanded && (
+                        <div className="cat-sub-list">
+                          {grp.items.map(sub => {
+                            const isChecked = selectedCategories.includes(sub.name);
+                            return (
+                              <label key={sub.name} className={`cat-sub-item ${isChecked ? 'checked' : ''}`}>
+                                <input
+                                  type="checkbox"
+                                  checked={isChecked}
+                                  onChange={() => handleCategoryToggle(sub.name)}
+                                />
+                                <span className="cat-sub-name">{sub.name}</span>
+                                <span className={`cat-sub-count ${sub.count > 0 ? 'has-products' : ''}`}>
+                                  ({sub.count})
+                                </span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
@@ -447,8 +750,23 @@ export default function StoreProductListPage() {
               </div>
             </div>
 
-            
-
+            {/* Mobile Drawer Bottom Action Bar */}
+            <div className="mobile-sidebar-actions">
+              <button
+                type="button"
+                className="mobile-drawer-clear-btn"
+                onClick={handleClearAllFilters}
+              >
+                Clear All
+              </button>
+              <button
+                type="button"
+                className="mobile-drawer-apply-btn"
+                onClick={() => setMobileFilterOpen(false)}
+              >
+                Show {filteredList.length} Products
+              </button>
+            </div>
           </aside>
 
           {/* Right Product Grid (4 Columns matching screenshot) */}

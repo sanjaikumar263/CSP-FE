@@ -3,9 +3,8 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import AdminSidebar from '../components/AdminSidebar';
 import { API_BASE_URL } from '../config';
 import { compressImage } from '../utils/imageCompressor';
+import { getDepartmentHierarchy, findCategoryHierarchy } from '../data/categoriesData';
 import './ProductAddPage.css';
-
-const CATEGORIES = ['Soft Silk','Kanchipuram Silk','Banarasi Silk','Tussar Silk','Ethnic Sarees','Lehengas','Blouse Collection',"Women's Wear"];
 
 let nextId = 10;
 
@@ -31,8 +30,11 @@ export default function ProductAddPage() {
   const [salePrice, setSalePrice] = useState('');
   const [sku, setSku] = useState('');
   const [stockQuantity, setStockQuantity] = useState(24);
-  const [selectedCategories, setSelectedCategories] = useState(['Soft Silk']);
   const [gender, setGender] = useState('Women');
+  const [selectedMainCat, setSelectedMainCat] = useState('Sarees');
+  const [primaryCategory, setPrimaryCategory] = useState('Soft Silk & Pure Silks Sarees');
+  const [selectedCategories, setSelectedCategories] = useState(['Soft Silk & Pure Silks Sarees']);
+  const [showExtraTags, setShowExtraTags] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Fetch product by ID if in Edit Mode
@@ -50,8 +52,11 @@ export default function ProductAddPage() {
             setSalePrice(p.salePrice !== undefined && p.salePrice !== null ? p.salePrice.toString() : '');
             setSku(p.sku || '');
             setStockQuantity(p.stockQuantity ?? 10);
-            setSelectedCategories(p.categories && p.categories.length > 0 ? p.categories : (p.category ? [p.category] : ['Soft Silk']));
-            setGender(p.gender || 'Women');
+            const resolved = findCategoryHierarchy(p.category || (p.categories && p.categories[0]), p.gender || 'Women');
+            setGender(resolved.gender);
+            setSelectedMainCat(resolved.mainCategory);
+            setPrimaryCategory(resolved.subCategory);
+            setSelectedCategories(p.categories && p.categories.length > 0 ? p.categories : [resolved.subCategory]);
             setTags(p.tags || []);
             setStatus(p.status || 'published');
 
@@ -69,10 +74,44 @@ export default function ProductAddPage() {
     }
   }, [id]);
 
+  const currentGroups = getDepartmentHierarchy(gender);
+  const activeGroup = currentGroups.find(g => g.name === selectedMainCat) || currentGroups[0];
+  const availableSubCategories = activeGroup?.items || [];
+
+  const handleGenderChange = (newGender) => {
+    setGender(newGender);
+    const groups = getDepartmentHierarchy(newGender);
+    const firstGroup = groups[0];
+    const firstSub = firstGroup ? firstGroup.items[0] : '';
+    setSelectedMainCat(firstGroup?.name || '');
+    setPrimaryCategory(firstSub);
+    setSelectedCategories([firstSub]);
+  };
+
+  const handleMainCatChange = (mainCatName) => {
+    setSelectedMainCat(mainCatName);
+    const group = currentGroups.find(g => g.name === mainCatName);
+    const firstSub = group ? group.items[0] : '';
+    setPrimaryCategory(firstSub);
+    setSelectedCategories([firstSub]);
+  };
+
+  const handleSubCatChange = (subCatName) => {
+    setPrimaryCategory(subCatName);
+    setSelectedCategories(prev => {
+      if (prev.includes(subCatName)) return prev;
+      return [subCatName, ...prev.filter(c => c !== primaryCategory)];
+    });
+  };
+
   const toggleCategory = (cat) => {
-    setSelectedCategories(prev =>
-      prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
-    );
+    setSelectedCategories(prev => {
+      if (prev.includes(cat)) {
+        if (cat === primaryCategory) return prev;
+        return prev.filter(c => c !== cat);
+      }
+      return [...prev, cat];
+    });
   };
 
   const makePrimary = (id) => {
@@ -245,6 +284,7 @@ export default function ProductAddPage() {
     setStatus(targetStatus);
 
     const imageUrls = thumbs.map(t => t.src).filter(Boolean);
+    const mainCat = primaryCategory || selectedCategories[0] || 'Soft Silk & Pure Silks Sarees';
 
     const productPayload = {
       name: name.trim() || (targetStatus === 'draft' ? 'Untitled Draft Product' : 'New Product'),
@@ -253,8 +293,8 @@ export default function ProductAddPage() {
       salePrice: salePrice ? parseFloat(salePrice) : null,
       sku: sku.trim() || `CSP-${Date.now().toString().slice(-6)}`,
       stockQuantity: parseInt(stockQuantity, 10) || 0,
-      category: selectedCategories[0] || 'Soft Silk',
-      categories: selectedCategories.length > 0 ? selectedCategories : ['Soft Silk'],
+      category: mainCat,
+      categories: selectedCategories.length > 0 ? selectedCategories : [mainCat],
       gender: gender || 'Women',
       images: imageUrls,
       tags: tags,
@@ -492,37 +532,116 @@ export default function ProductAddPage() {
 
           {/* Sidebar Column */}
           <div>
-            <div className="panel">
-              <h3>Target Gender</h3>
-              <div className="phint">Specify which gender collection this product belongs to.</div>
-              <div className="status-toggle">
-                {['Women', 'Men'].map(g => (
-                  <button
-                    key={g}
-                    type="button"
-                    className={gender === g ? 'active' : ''}
-                    onClick={() => setGender(g)}
-                  >
-                    {g}
-                  </button>
-                ))}
+            {/* Unified Clear Cascading Category Selector */}
+            <div className="panel organize-panel">
+              <div className="panel-header-row">
+                <h3>Product Category</h3>
+                <span className="step-badge">Step-by-Step</span>
               </div>
-            </div>
+              <div className="phint">Choose the department and category this product belongs to.</div>
 
-            <div className="panel">
-              <h3>Organize</h3>
-              <div className="phint">Select every category this product belongs to.</div>
-              <div className="check-list">
-                {CATEGORIES.map(cat => (
-                  <label key={cat} className="check-row">
-                    <input
-                      type="checkbox"
-                      checked={selectedCategories.includes(cat)}
-                      onChange={() => toggleCategory(cat)}
-                    />
-                    {cat}
-                  </label>
-                ))}
+              {/* 1. Target Department */}
+              <div className="cat-step-block">
+                <label className="cat-step-label">1. Department (Gender)</label>
+                <div className="gender-pill-group">
+                  {[
+                    { id: 'Women', label: 'Women', icon: '👗' },
+                    { id: 'Men', label: 'Men', icon: '👔' },
+                    { id: 'Kids', label: 'Kids', icon: '🧒' }
+                  ].map(g => (
+                    <button
+                      key={g.id}
+                      type="button"
+                      className={`gender-pill-btn ${gender === g.id ? 'active' : ''}`}
+                      onClick={() => handleGenderChange(g.id)}
+                    >
+                      <span className="pill-icon">{g.icon}</span>
+                      <span className="pill-name">{g.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 2. Main Category */}
+              <div className="cat-step-block">
+                <label className="cat-step-label" htmlFor="mainCatSelect">2. Main Category</label>
+                <select
+                  id="mainCatSelect"
+                  className="cat-select"
+                  value={selectedMainCat}
+                  onChange={(e) => handleMainCatChange(e.target.value)}
+                >
+                  {currentGroups.map(grp => (
+                    <option key={grp.id || grp.name} value={grp.name}>
+                      {grp.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* 3. Sub-Category / Style */}
+              <div className="cat-step-block">
+                <label className="cat-step-label" htmlFor="subCatSelect">3. Sub-Category / Style</label>
+                <select
+                  id="subCatSelect"
+                  className="cat-select"
+                  value={primaryCategory}
+                  onChange={(e) => handleSubCatChange(e.target.value)}
+                >
+                  {availableSubCategories.map(item => (
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Category Path Breadcrumb Preview */}
+              <div className="selected-category-summary">
+                <div className="summary-eyebrow">Assigned Category Path:</div>
+                <div className="summary-path">
+                  <span className="path-node path-gender">{gender}</span>
+                  <span className="path-sep">›</span>
+                  <span className="path-node path-main">{selectedMainCat}</span>
+                  <span className="path-sep">›</span>
+                  <span className="path-node path-sub">{primaryCategory}</span>
+                </div>
+              </div>
+
+              {/* Optional: Extra Collections / Tags */}
+              <div className="extra-tags-section">
+                <button
+                  type="button"
+                  className="extra-tags-toggle"
+                  onClick={() => setShowExtraTags(!showExtraTags)}
+                >
+                  <span>Additional Collections / Tags ({selectedCategories.length})</span>
+                  <span>{showExtraTags ? '▲ Hide' : '▼ Expand'}</span>
+                </button>
+
+                {showExtraTags && (
+                  <div className="extra-tags-body">
+                    <div className="extra-tags-hint">
+                      Click to tag this product with any additional collections:
+                    </div>
+                    <div className="tag-chips-picker">
+                      {availableSubCategories.map(item => {
+                        const isChecked = selectedCategories.includes(item);
+                        return (
+                          <button
+                            key={item}
+                            type="button"
+                            className={`tag-chip-choice ${isChecked ? 'selected' : ''}`}
+                            onClick={() => toggleCategory(item)}
+                          >
+                            {isChecked ? '✓ ' : '+ '}
+                            {item}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

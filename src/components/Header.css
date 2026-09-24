@@ -189,6 +189,7 @@
   background-color: var(--primary-navy, #0a305d);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   padding: 0;
+  position: relative;
 }
 
 .nav-inner {
@@ -203,14 +204,26 @@
 .nav-menu {
   display: flex;
   align-items: center;
-  gap: 32px;
+  gap: 28px;
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
+.nav-item {
+  position: relative;
+}
+
+.nav-link-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
 .nav-menu li a {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 5px;
   padding: 14px 0;
   color: rgba(255, 255, 255, 0.88);
   font-size: 13px;
@@ -221,12 +234,24 @@
   transition: color 0.2s ease;
 }
 
-.nav-menu li.active a,
+.dropdown-chevron {
+  transition: transform 0.25s ease;
+  margin-top: 1px;
+}
+
+.nav-item:hover .dropdown-chevron,
+.nav-item.dropdown-open .dropdown-chevron {
+  transform: rotate(180deg);
+}
+
+.nav-menu li.active > .nav-link-row > a,
+.nav-menu li.active > a,
 .nav-menu li a:hover {
   color: var(--gold-light, #ffc73a);
 }
 
-.nav-menu li.active a::after {
+.nav-menu li.active > .nav-link-row > a::after,
+.nav-menu li.active > a::after {
   content: '';
   position: absolute;
   bottom: 0;
@@ -235,6 +260,178 @@
   height: 3px;
   background-color: var(--gold-light, #ffc73a);
   border-radius: 2px 2px 0 0;
+}
+
+.mobile-dropdown-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+/* ========================================================
+   MEGA MENU DROPDOWN STYLES
+   ======================================================== */
+.mega-menu-wrapper {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 680px;
+  max-width: 860px;
+  background: #ffffff;
+  border-radius: 0 0 14px 14px;
+  box-shadow: 0 24px 50px rgba(10, 48, 93, 0.2), 0 4px 12px rgba(0, 0, 0, 0.06);
+  border-top: 3px solid var(--gold-accent, #D4AF37);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(12px);
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.25s;
+  z-index: 1200;
+  padding: 24px 28px 18px;
+}
+
+/* Align kids / men appropriately if close to edges */
+.nav-item:nth-child(2) .mega-menu-wrapper {
+  left: 0;
+}
+.nav-item:nth-child(3) .mega-menu-wrapper {
+  left: -80px;
+}
+.nav-item:nth-child(4) .mega-menu-wrapper {
+  left: -140px;
+}
+
+.nav-item:hover .mega-menu-wrapper,
+.nav-item.dropdown-open .mega-menu-wrapper,
+.mega-menu-wrapper.visible {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.mega-columns-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+}
+
+.kids-grid {
+  grid-template-columns: repeat(2, 1fr);
+  gap: 36px;
+}
+
+.mega-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.mega-col-heading {
+  font-size: 12.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--primary-navy, #0a305d);
+  padding-bottom: 8px;
+  border-bottom: 2px solid #FAF6F0;
+  margin: 0 0 12px 0;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.mega-col-heading:hover {
+  color: #b38600;
+  border-bottom-color: var(--gold-accent, #D4AF37);
+}
+
+.mega-sub-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.mega-item-link {
+  background: none;
+  border: none;
+  padding: 3px 0;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 500;
+  color: #475569;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: color 0.18s ease, transform 0.18s ease;
+  width: 100%;
+  display: block;
+}
+
+.mega-item-link:hover {
+  color: var(--primary-navy, #0a305d);
+  transform: translateX(4px);
+  font-weight: 600;
+}
+
+.mega-inner-subsection {
+  margin-top: 10px;
+  margin-bottom: 8px;
+  padding-left: 2px;
+}
+
+.mega-inner-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  color: #94a3b8;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  border-bottom: 1px dashed #e2e8f0;
+  padding-bottom: 3px;
+}
+
+.kids-subdept-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  background: #FAF6F0;
+  color: var(--primary-navy, #0a305d);
+  padding: 4px 10px;
+  border-radius: 20px;
+  margin-bottom: 14px;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+}
+
+.kids-group-block {
+  margin-bottom: 16px;
+}
+
+.mega-menu-footer {
+  border-top: 1px solid #f1f5f9;
+  margin-top: 20px;
+  padding-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.mega-footer-link {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--primary-navy, #0a305d);
+  text-decoration: none;
+  letter-spacing: 0.04em;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.mega-footer-link:hover {
+  color: #b38600;
+  transform: translateX(3px);
 }
 
 .nav-contact-phone {
@@ -248,9 +445,22 @@
 }
 
 /* Responsive Styling */
+@media (max-width: 992px) {
+  .nav-menu {
+    gap: 18px;
+  }
+  .mega-menu-wrapper {
+    min-width: 580px;
+    padding: 18px;
+  }
+}
+
 @media (max-width: 868px) {
   .mobile-toggle-btn {
     display: flex;
+  }
+  .mobile-dropdown-toggle {
+    display: block;
   }
   .secondary-nav {
     display: none;
@@ -260,17 +470,72 @@
   }
   .nav-inner {
     flex-direction: column;
-    padding: 16px 24px;
+    padding: 16px 20px;
     gap: 16px;
     align-items: flex-start;
   }
   .nav-menu {
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
+    width: 100%;
+  }
+  .nav-item {
+    width: 100%;
+  }
+  .nav-link-row {
+    justify-content: space-between;
     width: 100%;
   }
   .nav-menu li a {
-    padding: 8px 0;
+    padding: 10px 0;
+    width: 100%;
+  }
+  .mega-menu-wrapper {
+    position: static;
+    transform: none !important;
+    min-width: 100%;
+    max-width: 100%;
+    box-shadow: none;
+    border-radius: 8px;
+    border-top: none;
+    background: rgba(255, 255, 255, 0.06);
+    padding: 14px;
+    margin: 6px 0 10px;
+    display: none;
+    opacity: 1;
+    visibility: visible;
+  }
+  .mega-menu-wrapper.visible {
+    display: block;
+  }
+  .mega-columns-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .mega-col-heading {
+    color: var(--gold-light, #ffc73a);
+    border-bottom-color: rgba(255, 255, 255, 0.15);
+  }
+  .mega-item-link {
+    color: #e2e8f0;
+  }
+  .mega-item-link:hover {
+    color: #ffffff;
+  }
+  .mega-inner-title {
+    color: #cbd5e1;
+    border-bottom-color: rgba(255, 255, 255, 0.15);
+  }
+  .kids-subdept-badge {
+    background: rgba(212, 175, 55, 0.2);
+    color: var(--gold-light, #ffc73a);
+    border-color: rgba(212, 175, 55, 0.4);
+  }
+  .mega-menu-footer {
+    border-top-color: rgba(255, 255, 255, 0.15);
+  }
+  .mega-footer-link {
+    color: var(--gold-light, #ffc73a);
   }
   .header-search-container {
     max-width: 260px;

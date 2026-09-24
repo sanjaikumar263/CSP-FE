@@ -25,7 +25,8 @@ export default function HomePage() {
   const [offers, setOffers] = useState([]);
   const [genderImages, setGenderImages] = useState({
     women: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1200&q=80',
-    men: 'https://images.unsplash.com/photo-1583391733956-6c78276477e2?auto=format&fit=crop&w=1200&q=80'
+    men: 'https://images.unsplash.com/photo-1583391733956-6c78276477e2?auto=format&fit=crop&w=1200&q=80',
+    kids: 'https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?auto=format&fit=crop&w=1200&q=80'
   });
 
   useEffect(() => {
@@ -328,6 +329,19 @@ export default function HomePage() {
                 <h3 className="gender-title">Men's Collection</h3>
                 <p className="gender-desc">Pure Silk Shirts, Gold Zari Dhotis &amp; Handcrafted Kurta Sets for regal style.</p>
                 <Link to="/gender/men" className="gender-cta-btn">EXPLORE MEN →</Link>
+              </div>
+            </div>
+
+            <div className="gender-card kids-card">
+              <div
+                className="gender-card-bg"
+                style={{ backgroundImage: `url(${genderImages.kids})` }}
+              ></div>
+              <div className="gender-card-content">
+                <span className="gender-tag">FESTIVE BOYS &amp; GIRLS</span>
+                <h3 className="gender-title">Kids' Collection</h3>
+                <p className="gender-desc">Pattu Pavadais, Royal Sherwanis, Boys Dhotis &amp; Lehengas crafted for kids.</p>
+                <Link to="/gender/kids" className="gender-cta-btn">EXPLORE KIDS →</Link>
               </div>
             </div>
           </div>

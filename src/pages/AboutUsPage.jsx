@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import shopImg from '../assets/Shop Image.png';
+import ownerImg from '../assets/owner_image_full.jpg';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { API_BASE_URL } from '../config';
@@ -16,7 +17,7 @@ export default function AboutUsPage() {
     directorQuote: '"Behind every great brand is a visionary whose passion transforms dreams into reality. For over four decades, Mr. Thanasekaran Vellaikkoothan has been a respected pioneer in Malaysia’s textile industry, building Chennai Silk Palace into one of the country’s most trusted and admired destinations for authentic Indian textiles and traditional attire."',
     directorBody: 'Driven by a commitment to quality, integrity, authenticity, and exceptional customer service, he has earned the confidence of generations of customers. Today, Chennai Silk Palace is more than a textile retailer — it is a household name synonymous with elegance, heritage, and timeless craftsmanship.',
     directorYears: '40+',
-    directorImage: '',
+    directorImage: ownerImg,
     visionText: 'To preserve the timeless beauty of Indian textiles while continuously delivering quality, authenticity, innovation, and exceptional customer experiences for generations to come.',
     missionText: 'To be Malaysia’s most trusted destination for premium Indian textiles by offering authentic products, outstanding value, personalised service, and an unforgettable shopping experience, while preserving cultural heritage and making a meaningful contribution to the community.'
   });
@@ -29,7 +30,8 @@ export default function AboutUsPage() {
         if (res.ok && data.success && data.data) {
           setStoreInfo(prev => ({
             ...prev,
-            ...data.data
+            ...data.data,
+            directorImage: data.data.directorImage || ownerImg
           }));
         }
       } catch (err) {
@@ -77,7 +79,15 @@ export default function AboutUsPage() {
             </div>
 
             <div className="director-image-side">
-              <img src={storeInfo.directorImage || shopImg} alt="Chennai Silk Palace Storefront & Director Legacy" className="director-img" />
+              <img 
+                src={storeInfo.directorImage || ownerImg} 
+                alt={`${storeInfo.directorName} - Director & Founder`} 
+                className="director-img"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = ownerImg;
+                }}
+              />
               <div className="director-experience-badge">
                 <span className="years-num">{storeInfo.directorYears}</span>
                 <span className="years-lbl">Years of Visionary Leadership</span>
@@ -120,6 +130,16 @@ export default function AboutUsPage() {
             <div className="ornament-eyebrow">FLAGSHIP SHOWROOM</div>
             <h2 className="section-main-title">An Extensive World of Indian Fashion</h2>
             <p className="section-sub-title">Every collection is thoughtfully curated to celebrate culture, elegance, and exceptional craftsmanship.</p>
+          </div>
+
+          <div className="flagship-landmark-banner">
+            <div className="flagship-image-box">
+              <img src={shopImg} alt="Chennai Silk Palace Flagship Landmark Showroom" className="flagship-img" />
+              <div className="flagship-overlay-tag">
+                <span className="flagship-tag-title">Chennai Silk Palace Flagship Showroom</span>
+                <span className="flagship-tag-loc">Historic Standard Chartered Building • Klang, Malaysia</span>
+              </div>
+            </div>
           </div>
 
           <div className="collections-bullet-grid">
