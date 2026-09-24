@@ -102,13 +102,33 @@ export default function StoreInfoManagementPage() {
     fetchStoreInfo();
   }, []);
 
-  const handleImageFileUpload = async (e) => {
-    const file = e.target.files[0];
+  // When selecting an image file for Director, open the cropper
+  const handleImageFileSelect = (e) => {
+    const file = e.target.files?.[0];
     if (!file) return;
 
+    e.target.value = '';
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setCropperImageSrc(reader.result);
+      setCropperOpen(true);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Open cropper with existing director image
+  const handleCropCurrentImage = () => {
+    const src = formData.directorImage || defaultOwnerImg;
+    setCropperImageSrc(src);
+    setCropperOpen(true);
+  };
+
+  // Upload cropped director image to server
+  const handleCropSave = async (croppedBlob, croppedFile) => {
     try {
-      setUploadingImage(true);
-      const compressedFile = await compressImage(file);
+      setCropperUploading(true);
+      const compressedFile = await compressImage(croppedFile);
       const bodyData = new FormData();
       bodyData.append('image', compressedFile);
 
@@ -123,16 +143,17 @@ export default function StoreInfoManagementPage() {
       if (res.ok && (data.url || data.filePath)) {
         const imageUrl = data.url || (data.filePath ? (data.filePath.startsWith('http') ? data.filePath : `${BACKEND_URL}${data.filePath}`) : '');
         setFormData(prev => ({ ...prev, directorImage: imageUrl }));
-        setSuccessMsg('Director image uploaded successfully!');
+        setCropperOpen(false);
+        setSuccessMsg('Director image cropped and saved successfully!');
         setTimeout(() => setSuccessMsg(''), 3000);
       } else {
         setError(data.message || 'Image upload failed.');
       }
     } catch (err) {
-      console.error('Error uploading image:', err);
+      console.error('Error uploading cropped image:', err);
       setError('Image upload failed.');
     } finally {
-      setUploadingImage(false);
+      setCropperUploading(false);
     }
   };
 
@@ -428,17 +449,50 @@ export default function StoreInfoManagementPage() {
                       onChange={(e) => setFormData({ ...formData, directorImage: e.target.value })}
                       placeholder="https://..."
                     />
-                    <div style={{ marginTop: '6px' }}>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageFileUpload}
-                        disabled={uploadingImage}
-                        style={{ fontSize: '12px', color: '#cbd5e1' }}
-                      />
-                      {uploadingImage && <span style={{ fontSize: '11px', color: '#60a5fa', marginLeft: '8px' }}>Uploading...</span>}
+                    <div style={{ marginTop: '8px', display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                      <label style={{
+                        background: 'rgba(212, 175, 55, 0.2)',
+                        color: '#d4af37',
+                        padding: '8px 14px',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        fontSize: '0.82rem',
+                        fontWeight: 600,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}>
+                        <span>📷</span>
+                        <span>{cropperUploading ? 'Processing...' : 'Upload & Crop Image'}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageFileSelect}
+                          style={{ display: 'none' }}
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        onClick={handleCropCurrentImage}
+                        style={{
+                          background: '#1e293b',
+                          border: '1px solid #334155',
+                          color: '#cbd5e1',
+                          padding: '8px 14px',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          fontSize: '0.82rem',
+                          fontWeight: 500,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px'
+                        }}
+                      >
+                        <span>✂</span>
+                        <span>Crop / Refit</span>
+                      </button>
                     </div>
-                    <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 12px', background: '#1e293b', borderRadius: '8px', border: '1px solid #334155' }}>
+                    <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px', background: '#1e293b', borderRadius: '10px', border: '1px solid #334155' }}>
                       <img 
                         src={formData.directorImage || defaultOwnerImg} 
                         alt="Director Preview" 
@@ -580,6 +634,15 @@ export default function StoreInfoManagementPage() {
             </div>
           </form>
         )}
+
+        {/* Interactive Image Cropper Modal for Director Portrait */}
+        <ImageCropperModal
+          isOpen={cropperOpen}
+          imageSrc={cropperImageSrc}
+          onClose={() => setCropperOpen(false)}
+          onCropComplete={handleCropSave}
+          isProcessing={cropperUploading}
+        />
       </main>
     </div>
   );
