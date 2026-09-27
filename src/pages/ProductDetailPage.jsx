@@ -6,6 +6,7 @@ import Loader from '../components/Loader';
 import SafeImage from '../components/SafeImage';
 import placeholderSvg from '../assets/placeholder.svg';
 import { API_BASE_URL } from '../config';
+import { useWishlist } from '../context/WishlistContext';
 import './ProductDetailPage.css';
 
 export default function ProductDetailPage() {
@@ -13,13 +14,24 @@ export default function ProductDetailPage() {
   const navigate = useNavigate();
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const [shareFeedback, setShareFeedback] = useState('');
+  const { isWishlisted, toggleWishlist } = useWishlist();
   const [apiProduct, setApiProduct] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isZoomOpen, setIsZoomOpen] = useState(false);
   const [zoomScale, setZoomScale] = useState(1);
+  const [cartFeedback, setCartFeedback] = useState(false);
+
+  const handleAddToCart = () => {
+    setCartFeedback(true);
+    setTimeout(() => setCartFeedback(false), 2500);
+  };
+
+  const handleBuyNow = () => {
+    setCartFeedback(true);
+    setTimeout(() => setCartFeedback(false), 2500);
+  };
 
   // Scroll to top on load or ID change and fetch product & related products from backend
   useEffect(() => {
@@ -257,6 +269,22 @@ export default function ProductDetailPage() {
                 alt={product.title}
                 className="pd-main-image"
               />
+              {/* Floating Wishlist Button on Top-Right of Main Product Image */}
+              <button
+                type="button"
+                className={`pd-floating-wishlist-btn ${isWishlisted(product._id || product.id) ? 'active' : ''}`}
+                aria-label={isWishlisted(product._id || product.id) ? "Remove from Wishlist" : "Add to Wishlist"}
+                title={isWishlisted(product._id || product.id) ? "In Wishlist" : "Add to Wishlist"}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleWishlist(product);
+                }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill={isWishlisted(product._id || product.id) ? "#b91c1c" : "none"} stroke={isWishlisted(product._id || product.id) ? "#b91c1c" : "#1e293b"} strokeWidth="2">
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                </svg>
+              </button>
+
               <button
                 type="button"
                 className="pd-zoom-btn"
@@ -279,25 +307,31 @@ export default function ProductDetailPage() {
 
           {/* Info Side */}
           <div className="pd-info-section">
-            {/* Category Badges / Tags */}
-            {(product.tags.length > 0 ? product.tags : (product.category ? [product.category] : [])).length > 0 && (
-              <div className="pd-badge-row">
-                {(product.tags.length > 0 ? product.tags : [product.category]).map((tag, i) => (
+            {/* Category Badges / Tags & Top Wishlist Button */}
+            <div className="pd-badge-row">
+              <div className="pd-badge-tags-group">
+                {(product.tags.length > 0 ? product.tags : (product.category ? [product.category] : ['New Collection'])).map((tag, i) => (
                   <span key={i} className="pd-tag-pill">{tag}</span>
                 ))}
               </div>
-            )}
+
+              {/* Wishlist Button on Top of Product Info */}
+              <button
+                type="button"
+                className={`pd-top-wishlist-btn ${isWishlisted(product._id || product.id) ? 'active' : ''}`}
+                onClick={() => toggleWishlist(product)}
+                title={isWishlisted(product._id || product.id) ? "Saved in Wishlist" : "Save to Wishlist"}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill={isWishlisted(product._id || product.id) ? "#b91c1c" : "none"} stroke={isWishlisted(product._id || product.id) ? "#b91c1c" : "currentColor"} strokeWidth="2">
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                </svg>
+                <span>{isWishlisted(product._id || product.id) ? 'Wishlisted' : 'Wishlist'}</span>
+              </button>
+            </div>
 
             {/* Product Title */}
+            {product.sku && <div className="pd-sku-header">SKU: {product.sku}</div>}
             <h1 className="pd-title">{product.title}</h1>
-
-            {/* Stock Status */}
-            <div className="pd-rating-stock-row">
-              <div className="pd-stock-status">
-                <span className={`green-dot ${product.inStock && product.stockQuantity > 0 ? '' : 'red-dot'}`}></span>
-                {product.inStock && product.stockQuantity > 0 ? 'In Stock' : 'Out of Stock'}
-              </div>
-            </div>
 
             {/* Price */}
             <div className="pd-price-box">
@@ -316,7 +350,46 @@ export default function ProductDetailPage() {
                   <span className="pd-normal-price">MYR {product.price.toFixed(2)}</span>
                 )}
               </div>
-              <div className="pd-tax-note">Inclusive of all taxes</div>
+              <div className="pd-tax-note">Tax included. <Link to="/about" className="tax-shipping-link">Shipping</Link> calculated at checkout.</div>
+            </div>
+
+            {/* Wishlist & Share Inline Row (Matching Reference Screenshot) */}
+            <div className="pd-wishlist-inline-row">
+              <button
+                type="button"
+                className={`pd-kalyan-wishlist-btn ${isWishlisted(product._id || product.id) ? 'active' : ''}`}
+                onClick={() => toggleWishlist(product)}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill={isWishlisted(product._id || product.id) ? '#dc2626' : 'none'} stroke={isWishlisted(product._id || product.id) ? '#dc2626' : '#dc2626'} strokeWidth="1.8">
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                </svg>
+                <span>{isWishlisted(product._id || product.id) ? 'Added to wishlist' : 'Add to wishlist'}</span>
+              </button>
+
+              <button
+                type="button"
+                className={`pd-kalyan-share-btn ${shareFeedback ? 'copied' : ''}`}
+                onClick={handleShare}
+                title="Share this product"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="18" cy="5" r="3"></circle>
+                  <circle cx="6" cy="12" r="3"></circle>
+                  <circle cx="18" cy="19" r="3"></circle>
+                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                </svg>
+                <span>{shareFeedback ? 'Copied Link' : 'Share'}</span>
+              </button>
+            </div>
+
+            {/* In Stock Highlight (Matching Reference Screenshot: "7 Items In Stock") */}
+            <div className="pd-stock-kalyan-box">
+              {product.inStock && product.stockQuantity > 0 ? (
+                <span className="pd-kalyan-stock-count">{product.stockQuantity} Items In Stock</span>
+              ) : (
+                <span className="pd-kalyan-stock-out">Out of Stock</span>
+              )}
             </div>
 
             {/* Dynamic Specifications Grid */}
@@ -369,8 +442,6 @@ export default function ProductDetailPage() {
               )}
             </div>
 
-
-
             {/* Quantity Stepper */}
             <div className="pd-quantity-row">
               <span className="qty-title">Quantity</span>
@@ -381,51 +452,60 @@ export default function ProductDetailPage() {
               </div>
             </div>
 
-            {/* Action Buttons */}
+            {/* Action Buttons: Add to Cart (Top) & Buy It Now (Bottom in Website Navy Color) */}
             <div className="pd-actions-row">
-              <button className="pd-buy-now-btn disabled-action-btn" disabled title="Coming Soon">⚡ BUY NOW</button>
-              <button className="pd-add-to-cart-btn disabled-action-btn" disabled title="Coming Soon">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-                  <line x1="3" y1="6" x2="21" y2="6" />
-                  <path d="M16 10a4 4 0 0 1-8 0" />
-                </svg>
-                ADD TO CART
-              </button>
               <button
-                className={`pd-wishlist-btn ${isWishlisted ? 'active' : ''}`}
-                onClick={() => setIsWishlisted(!isWishlisted)}
+                type="button"
+                className={`pd-add-to-cart-btn ${cartFeedback ? 'added-success' : ''}`}
+                onClick={handleAddToCart}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill={isWishlisted ? '#0a305d' : 'none'} stroke={isWishlisted ? '#0a305d' : '#555'} strokeWidth="1.8">
-                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                </svg>
-                WISHLIST
-              </button>
-              <button
-                className={`pd-share-btn ${shareFeedback ? 'copied' : ''}`}
-                onClick={handleShare}
-                title="Share this product"
-              >
-                {shareFeedback ? (
+                {cartFeedback ? (
                   <>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                       <polyline points="20 6 9 17 4 12"></polyline>
                     </svg>
-                    COPIED!
+                    Added to Cart!
                   </>
                 ) : (
-                  <>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="18" cy="5" r="3"></circle>
-                      <circle cx="6" cy="12" r="3"></circle>
-                      <circle cx="18" cy="19" r="3"></circle>
-                      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                    </svg>
-                    SHARE
-                  </>
+                  'Add to Cart'
                 )}
               </button>
+
+              <button
+                type="button"
+                className="pd-buy-now-btn"
+                onClick={handleBuyNow}
+              >
+                Buy It Now
+              </button>
+            </div>
+
+            {/* Shipping & Delivery Perks (Matching Reference Screenshot) */}
+            <div className="pd-shipping-perks-list">
+              <div className="shipping-perk-item">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="1" y="3" width="15" height="13"></rect>
+                  <polygon points="16 8 20 8 23 11 23 16 16 16 8"></polygon>
+                  <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                  <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                </svg>
+                <span>Free Shipping on Orders above MYR 150</span>
+              </div>
+              <div className="shipping-perk-item">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                  <line x1="3" y1="6" x2="21" y2="6"></line>
+                  <path d="M16 10a4 4 0 0 1-8 0"></path>
+                </svg>
+                <span>Shipped within 48 business hours</span>
+              </div>
+              <div className="shipping-perk-item">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                </svg>
+                <span>Delivery within 7 business days after dispatch. <Link to="/about" className="shipping-policy-link">View Shipping Policy</Link></span>
+              </div>
             </div>
 
             {/* Guarantees */}

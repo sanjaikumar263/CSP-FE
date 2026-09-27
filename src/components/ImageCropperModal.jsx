@@ -2,7 +2,8 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import './ImageCropperModal.css';
 
 const ASPECT_RATIOS = [
-  { label: 'Hero Slide', ratio: 4 / 3, desc: '4:3 (Split Grid)' },
+  { label: 'Hero Full Screen', ratio: 16 / 7, desc: '16:7 (Desktop Banner)' },
+  { label: 'Hero Mobile', ratio: 4 / 5, desc: '4:5 (Mobile Banner)' },
   { label: 'Widescreen', ratio: 16 / 9, desc: '16:9 (Standard)' },
   { label: 'Ultra-Wide', ratio: 21 / 9, desc: '21:9 (Panorama)' },
   { label: 'Square', ratio: 1 / 1, desc: '1:1 (Card)' },
@@ -14,9 +15,16 @@ export default function ImageCropperModal({
   imageSrc,
   onClose,
   onCropComplete,
-  isProcessing = false
+  isProcessing = false,
+  defaultRatioIndex = 0
 }) {
-  const [activeRatioIndex, setActiveRatioIndex] = useState(0); // Default 4:3 Hero Slide
+  const [activeRatioIndex, setActiveRatioIndex] = useState(defaultRatioIndex);
+
+  useEffect(() => {
+    if (isOpen) {
+      setActiveRatioIndex(defaultRatioIndex);
+    }
+  }, [isOpen, defaultRatioIndex]);
   const [imgNaturalSize, setImgNaturalSize] = useState({ width: 0, height: 0 });
   const [displaySize, setDisplaySize] = useState({ width: 0, height: 0 });
   

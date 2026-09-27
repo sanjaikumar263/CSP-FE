@@ -7,6 +7,7 @@ import SafeImage from '../components/SafeImage';
 import placeholderSvg from '../assets/placeholder.svg';
 import { API_BASE_URL } from '../config';
 import { getTopLevelCategoryTabs, isProductInCategory } from '../data/categoriesData';
+import { useWishlist } from '../context/WishlistContext';
 import './GenderCollectionPage.css';
 
 const GENDER_HERO_DATA = {
@@ -56,7 +57,7 @@ export default function GenderCollectionPage() {
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'All');
   const [priceSort, setPriceSort] = useState('newest');
-  const [wishlist, setWishlist] = useState({});
+  const { isWishlisted, toggleWishlist } = useWishlist();
 
   useEffect(() => {
     if (genderType) {
@@ -165,9 +166,6 @@ export default function GenderCollectionPage() {
     setSearchParams(newParams);
   };
 
-  const toggleWishlist = (id) => {
-    setWishlist(prev => ({ ...prev, [id]: !prev[id] }));
-  };
 
   const heroInfo = GENDER_HERO_DATA[selectedGender] || GENDER_HERO_DATA.all;
 
@@ -301,9 +299,9 @@ export default function GenderCollectionPage() {
                   {product.isNewProduct && <div className="gp-new-tag">NEW</div>}
 
                   <button
-                    className={`gp-wishlist-btn ${wishlist[product._id || product.id] ? 'active' : ''}`}
-                    onClick={() => toggleWishlist(product._id || product.id)}
-                    title="Add to wishlist"
+                    className={`gp-wishlist-btn ${isWishlisted(product._id || product.id) ? 'active' : ''}`}
+                    onClick={() => toggleWishlist(product)}
+                    title={isWishlisted(product._id || product.id) ? "Remove from wishlist" : "Add to wishlist"}
                   >
                     ♥
                   </button>

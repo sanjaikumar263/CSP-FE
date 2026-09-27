@@ -7,6 +7,7 @@ import SafeImage from '../components/SafeImage';
 import placeholderSvg from '../assets/placeholder.svg';
 import { API_BASE_URL } from '../config';
 import { CATEGORY_TREE, getCategoriesByGender, isProductInCategory } from '../data/categoriesData';
+import { useWishlist } from '../context/WishlistContext';
 import './StoreProductListPage.css';
 
 
@@ -136,7 +137,7 @@ export default function StoreProductListPage() {
 
   const [headerSearch, setHeaderSearch] = useState(searchVal);
   const [selectedGender, setSelectedGender] = useState(genderParam);
-  const [wishlist, setWishlist] = useState({});
+  const { isWishlisted, toggleWishlist } = useWishlist();
   const [cartCount, setCartCount] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
@@ -318,9 +319,6 @@ export default function StoreProductListPage() {
     }
   };
 
-  const toggleWishlist = (id) => {
-    setWishlist(prev => ({ ...prev, [id]: !prev[id] }));
-  };
 
   const handleCategoryToggle = (cat) => {
     setSelectedCategories(prev =>
@@ -780,14 +778,14 @@ export default function StoreProductListPage() {
                     <div className="card-image-box">
                       {prod.isNew && <span className="badge-new">NEW</span>}
                       <button
-                        className={`card-wishlist-btn ${wishlist[prod.id] ? 'active' : ''}`}
+                        className={`card-wishlist-btn ${isWishlisted(prod.id) ? 'active' : ''}`}
                         onClick={(e) => {
                           e.stopPropagation();
-                          toggleWishlist(prod.id);
+                          toggleWishlist(prod);
                         }}
                         aria-label="Add to Wishlist"
                       >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill={wishlist[prod.id] ? '#0a305d' : 'none'} stroke={wishlist[prod.id] ? '#0a305d' : '#555'} strokeWidth="1.8">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill={isWishlisted(prod.id) ? '#b91c1c' : 'none'} stroke={isWishlisted(prod.id) ? '#b91c1c' : '#555'} strokeWidth="1.8">
                           <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                         </svg>
                       </button>

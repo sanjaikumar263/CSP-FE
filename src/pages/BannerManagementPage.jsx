@@ -22,16 +22,19 @@ export default function BannerManagementPage() {
   const [cropperOpen, setCropperOpen] = useState(false);
   const [cropperImageSrc, setCropperImageSrc] = useState('');
   const [cropperUploading, setCropperUploading] = useState(false);
+  const [croppingTargetField, setCroppingTargetField] = useState('image'); // 'image' or 'mobileImage'
+  const [cropperRatioIndex, setCropperRatioIndex] = useState(0); // 0 = Desktop 16:7, 1 = Mobile 4:5
 
   // Form State
   const [formData, setFormData] = useState({
-    eyebrow: 'AUTUMN WEAVES · 2026',
+    eyebrow: '',
     title: '',
     titleHighlight: '',
     subtitle: '',
     image: '',
+    mobileImage: '',
     ctaText: 'SHOP NOW',
-    ctaLink: '#trending',
+    ctaLink: '/products',
     isActive: true,
     order: 0
   });
@@ -40,6 +43,7 @@ export default function BannerManagementPage() {
     {
       label: "👗 Women's Collection",
       image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1200&q=80",
+      mobileImage: "",
       eyebrow: "HERITAGE SAREES & LEHENGAS",
       title: "Women's Collection",
       titleHighlight: "Exquisite Silk Sarees",
@@ -50,6 +54,7 @@ export default function BannerManagementPage() {
     {
       label: "👔 Men's Collection",
       image: "https://images.unsplash.com/photo-1583391733956-6c78276477e2?auto=format&fit=crop&w=1200&q=80",
+      mobileImage: "",
       eyebrow: "ROYAL TRADITIONAL WEAR",
       title: "Men's Collection",
       titleHighlight: "Pure Zari & Silk Outfits",
@@ -60,6 +65,7 @@ export default function BannerManagementPage() {
     {
       label: "🌸 Kanchipuram Silk",
       image: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=1200&q=80",
+      mobileImage: "",
       eyebrow: "ROYAL HERITAGE 2026",
       title: "Kanchipuram Silk Splendor",
       titleHighlight: "Woven with Pure Zari",
@@ -70,6 +76,7 @@ export default function BannerManagementPage() {
     {
       label: "👑 Royal Kurta & Dhoti",
       image: "https://images.unsplash.com/photo-1607345366928-199ea26cfe3e?auto=format&fit=crop&w=1200&q=80",
+      mobileImage: "",
       eyebrow: "FESTIVE ESSENTIALS",
       title: "Royal Kurta & Dhoti Sets",
       titleHighlight: "Crafted for Celebrations",
@@ -80,6 +87,7 @@ export default function BannerManagementPage() {
     {
       label: "💃 Bridal Silk Lehenga",
       image: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&w=1200&q=80",
+      mobileImage: "",
       eyebrow: "BRIDAL EDITIONS",
       title: "Grand Wedding Collection",
       titleHighlight: "Memories Woven in Gold",
@@ -119,13 +127,14 @@ export default function BannerManagementPage() {
   const handleOpenAddModal = () => {
     setEditingBanner(null);
     setFormData({
-      eyebrow: 'AUTUMN WEAVES · 2026',
+      eyebrow: '',
       title: '',
       titleHighlight: '',
       subtitle: '',
       image: '',
+      mobileImage: '',
       ctaText: 'SHOP NOW',
-      ctaLink: '#trending',
+      ctaLink: '/products',
       isActive: true,
       order: banners.length
     });
@@ -135,13 +144,14 @@ export default function BannerManagementPage() {
   const handleOpenEditModal = (banner) => {
     setEditingBanner(banner);
     setFormData({
-      eyebrow: banner.eyebrow || 'AUTUMN WEAVES · 2026',
+      eyebrow: banner.eyebrow || '',
       title: banner.title || '',
       titleHighlight: banner.titleHighlight || '',
       subtitle: banner.subtitle || '',
       image: banner.image || '',
+      mobileImage: banner.mobileImage || '',
       ctaText: banner.ctaText || 'SHOP NOW',
-      ctaLink: banner.ctaLink || '#trending',
+      ctaLink: banner.ctaLink || '/products',
       isActive: banner.isActive !== undefined ? banner.isActive : true,
       order: banner.order !== undefined ? banner.order : 0
     });
@@ -149,12 +159,13 @@ export default function BannerManagementPage() {
   };
 
   // When a file is selected from disk, open Image Cropper modal
-  const handleImageFileSelect = (e) => {
+  const handleImageFileSelect = (e, targetField = 'image') => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Reset value so user can select the same file again if desired
     e.target.value = '';
+    setCroppingTargetField(targetField);
+    setCropperRatioIndex(targetField === 'mobileImage' ? 1 : 0);
 
     const reader = new FileReader();
     reader.onload = () => {
@@ -165,9 +176,12 @@ export default function BannerManagementPage() {
   };
 
   // Open cropper with existing image URL
-  const handleCropCurrentImage = () => {
-    if (!formData.image) return;
-    setCropperImageSrc(formData.image);
+  const handleCropCurrentImage = (targetField = 'image') => {
+    const src = targetField === 'mobileImage' ? formData.mobileImage : formData.image;
+    if (!src) return;
+    setCroppingTargetField(targetField);
+    setCropperRatioIndex(targetField === 'mobileImage' ? 1 : 0);
+    setCropperImageSrc(src);
     setCropperOpen(true);
   };
 
@@ -188,9 +202,13 @@ export default function BannerManagementPage() {
       });
       const data = await res.json();
       if (res.ok && data.url) {
-        setFormData(prev => ({ ...prev, image: data.url }));
+        setFormData(prev => ({ ...prev, [croppingTargetField]: data.url }));
         setCropperOpen(false);
-        setSuccessMsg('Banner image cropped and saved successfully!');
+        setSuccessMsg(
+          croppingTargetField === 'mobileImage'
+            ? 'Mobile banner image cropped and uploaded successfully!'
+            : 'Desktop banner image cropped and uploaded successfully!'
+        );
         setTimeout(() => setSuccessMsg(''), 3000);
       } else {
         alert(data.message || 'Failed to upload cropped image');
@@ -205,8 +223,8 @@ export default function BannerManagementPage() {
 
   const handleSaveBanner = async (e) => {
     e.preventDefault();
-    if (!formData.title.trim() || !formData.image.trim()) {
-      alert('Please fill in the banner Title and Image URL');
+    if (!formData.image.trim()) {
+      alert('Please provide at least a Desktop Banner Image (or click Upload & Crop)');
       return;
     }
 
@@ -216,13 +234,26 @@ export default function BannerManagementPage() {
         : `${API_BASE_URL}/banners`;
       const method = editingBanner ? 'PUT' : 'POST';
 
+      // Send user's fields as entered - do not automatically add 'Hero Banner Slide' when title is empty
+      const payload = {
+        ...formData,
+        title: formData.title.trim(),
+        titleHighlight: formData.titleHighlight.trim(),
+        subtitle: formData.subtitle.trim(),
+        eyebrow: formData.eyebrow.trim(),
+        image: formData.image.trim(),
+        mobileImage: formData.mobileImage.trim(),
+        ctaText: 'SHOP NOW',
+        ctaLink: formData.ctaLink.trim() || '/products'
+      };
+
       const res = await fetch(url, {
         method,
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
 
       const data = await res.json();
@@ -351,24 +382,47 @@ export default function BannerManagementPage() {
           <div className="banners-grid">
             {banners.map((banner) => (
               <div key={banner._id} className="banner-card">
-                <div className="banner-card-img-wrapper">
-                  <img src={banner.image} alt={banner.title} className="banner-card-img" />
+                <div className="banner-card-img-wrapper" style={{ position: 'relative' }}>
+                  <img src={banner.image} alt={banner.title || 'Banner'} className="banner-card-img" />
                   <span className={`banner-badge-status ${banner.isActive ? 'active' : 'inactive'}`}>
                     {banner.isActive ? 'Active' : 'Hidden'}
                   </span>
+                  {banner.mobileImage && (
+                    <span style={{
+                      position: 'absolute',
+                      bottom: '8px',
+                      left: '8px',
+                      background: 'rgba(10, 48, 93, 0.9)',
+                      color: '#ffc73a',
+                      fontSize: '10.5px',
+                      fontWeight: '700',
+                      padding: '3px 8px',
+                      borderRadius: '6px',
+                      border: '1px solid rgba(255, 199, 58, 0.4)',
+                      backdropFilter: 'blur(4px)'
+                    }}>
+                      📱 Mobile Image
+                    </span>
+                  )}
                 </div>
 
                 <div className="banner-card-body">
-                  <div className="banner-eyebrow">{banner.eyebrow || 'PROMOTION'}</div>
-                  <h3 className="banner-title">{banner.title}</h3>
+                  {banner.eyebrow && <div className="banner-eyebrow">{banner.eyebrow}</div>}
+                  {banner.title ? (
+                    <h3 className="banner-title">{banner.title}</h3>
+                  ) : (
+                    <div style={{ fontSize: '13px', color: '#94a3b8', fontStyle: 'italic', marginBottom: '8px' }}>
+                      [Clean Image Banner · No Title]
+                    </div>
+                  )}
                   {banner.titleHighlight && (
                     <div className="banner-title-highlight">{banner.titleHighlight}</div>
                   )}
-                  <p className="banner-subtitle">{banner.subtitle}</p>
+                  {banner.subtitle && <p className="banner-subtitle">{banner.subtitle}</p>}
 
                   <div className="banner-meta-bar">
                     <span className="banner-cta-chip">
-                      CTA: {banner.ctaText} → {banner.ctaLink}
+                      🔗 Link: {banner.ctaLink || '/products'}
                     </span>
                     <span>Order: #{banner.order}</span>
                   </div>
@@ -420,59 +474,17 @@ export default function BannerManagementPage() {
               </div>
 
               <form onSubmit={handleSaveBanner}>
-                <div className="form-group">
-                  <label>Eyebrow Tag / Header Badge</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="AUTUMN WEAVES · 2026"
-                    value={formData.eyebrow}
-                    onChange={(e) => setFormData({ ...formData, eyebrow: e.target.value })}
-                  />
-                </div>
-
-                <div className="form-grid-2">
-                  <div className="form-group">
-                    <label>Main Title *</label>
-                    <input
-                      type="text"
-                      className="form-input"
-                      placeholder="Timeless Silks."
-                      value={formData.title}
-                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                      required
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label>Title Highlight (Gold Accent)</label>
-                    <input
-                      type="text"
-                      className="form-input"
-                      placeholder="Tradition in Every Weave."
-                      value={formData.titleHighlight}
-                      onChange={(e) => setFormData({ ...formData, titleHighlight: e.target.value })}
-                    />
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label>Subtitle Description</label>
-                  <textarea
-                    className="form-textarea"
-                    placeholder="Discover our exquisite collection of pure silk sarees..."
-                    value={formData.subtitle}
-                    onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Banner Image URL *</label>
-                  <div style={{ display: 'flex', gap: '8px' }}>
+                {/* Desktop Banner Image Upload */}
+                <div className="form-group" style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)' }}>
+                  <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontWeight: 700, color: '#f8fafc' }}>🖥️ Desktop Banner Image (Full Screen / Landscape) *</span>
+                    <span style={{ fontSize: '11px', color: '#94a3b8' }}>Ratio: 16:7 or 16:9</span>
+                  </label>
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
                     <input
                       type="url"
                       className="form-input"
-                      placeholder="https://example.com/banner-image.jpg"
+                      placeholder="https://example.com/desktop-banner.jpg"
                       value={formData.image}
                       onChange={(e) => setFormData({ ...formData, image: e.target.value })}
                       required
@@ -488,77 +500,195 @@ export default function BannerManagementPage() {
                       whiteSpace: 'nowrap',
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: '6px'
+                      gap: '6px',
+                      border: '1px solid rgba(212, 175, 55, 0.4)'
                     }}>
                       <span>📷</span>
-                      <span>{cropperUploading ? 'Processing...' : 'Upload & Crop'}</span>
+                      <span>{cropperUploading && croppingTargetField === 'image' ? 'Processing...' : 'Upload & Crop'}</span>
                       <input
                         type="file"
                         accept="image/*"
-                        onChange={handleImageFileSelect}
+                        onChange={(e) => handleImageFileSelect(e, 'image')}
                         style={{ display: 'none' }}
                       />
                     </label>
                   </div>
 
                   {formData.image && (
-                    <div className="image-preview-container" style={{ position: 'relative' }}>
-                      <img src={formData.image} alt="Preview" className="image-preview-img" />
+                    <div className="image-preview-container" style={{ position: 'relative', marginTop: '10px' }}>
+                      <img src={formData.image} alt="Desktop Preview" className="image-preview-img" style={{ maxHeight: '180px', width: '100%', objectFit: 'cover' }} />
                       <button
                         type="button"
-                        onClick={handleCropCurrentImage}
+                        onClick={() => handleCropCurrentImage('image')}
                         style={{
                           position: 'absolute',
-                          top: '12px',
-                          right: '12px',
-                          background: 'rgba(15, 23, 42, 0.88)',
+                          top: '10px',
+                          right: '10px',
+                          background: 'rgba(15, 23, 42, 0.9)',
                           backdropFilter: 'blur(8px)',
                           color: '#d4af37',
                           border: '1px solid rgba(212, 175, 55, 0.45)',
                           borderRadius: '8px',
-                          padding: '6px 14px',
-                          fontSize: '0.82rem',
+                          padding: '6px 12px',
+                          fontSize: '0.8rem',
                           fontWeight: 600,
                           cursor: 'pointer',
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '6px',
-                          boxShadow: '0 4px 15px rgba(0,0,0,0.5)',
-                          transition: 'all 0.2s'
+                          gap: '6px'
                         }}
                       >
                         <span>✂</span>
-                        <span>Crop & Fit Image</span>
+                        <span>Crop Desktop Image</span>
                       </button>
                     </div>
                   )}
                 </div>
 
-                <div className="form-grid-2">
-                  <div className="form-group">
-                    <label>CTA Button Text</label>
+                {/* Mobile Banner Image Upload (Dedicated for Mobile Responses) */}
+                <div className="form-group" style={{ background: 'rgba(255,255,255,0.03)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(212, 175, 55, 0.25)', marginTop: '14px' }}>
+                  <label style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontWeight: 700, color: '#ffc73a' }}>📱 Mobile Banner Image (Optimized for Mobile Responses)</span>
+                    <span style={{ fontSize: '11px', color: '#94a3b8' }}>Ratio: 4:5 Portrait / Vertical</span>
+                  </label>
+                  <p style={{ fontSize: '12px', color: '#94a3b8', margin: '4px 0 8px' }}>
+                    Uploaded specifically for mobile phones. If left empty, the desktop image will be automatically used.
+                  </p>
+                  <div style={{ display: 'flex', gap: '8px' }}>
                     <input
-                      type="text"
+                      type="url"
                       className="form-input"
-                      placeholder="SHOP NOW"
-                      value={formData.ctaText}
-                      onChange={(e) => setFormData({ ...formData, ctaText: e.target.value })}
+                      placeholder="https://example.com/mobile-banner.jpg"
+                      value={formData.mobileImage}
+                      onChange={(e) => setFormData({ ...formData, mobileImage: e.target.value })}
                     />
+                    <label style={{
+                      background: 'rgba(56, 189, 248, 0.2)',
+                      color: '#38bdf8',
+                      padding: '10px 14px',
+                      borderRadius: '10px',
+                      cursor: 'pointer',
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
+                      whiteSpace: 'nowrap',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      border: '1px solid rgba(56, 189, 248, 0.4)'
+                    }}>
+                      <span>📷</span>
+                      <span>{cropperUploading && croppingTargetField === 'mobileImage' ? 'Processing...' : 'Upload & Crop Mobile'}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleImageFileSelect(e, 'mobileImage')}
+                        style={{ display: 'none' }}
+                      />
+                    </label>
+                  </div>
+
+                  {formData.mobileImage && (
+                    <div className="image-preview-container" style={{ position: 'relative', marginTop: '10px' }}>
+                      <img src={formData.mobileImage} alt="Mobile Preview" className="image-preview-img" style={{ maxHeight: '180px', width: '100%', objectFit: 'contain', background: '#0a192f' }} />
+                      <button
+                        type="button"
+                        onClick={() => handleCropCurrentImage('mobileImage')}
+                        style={{
+                          position: 'absolute',
+                          top: '10px',
+                          right: '10px',
+                          background: 'rgba(15, 23, 42, 0.9)',
+                          backdropFilter: 'blur(8px)',
+                          color: '#38bdf8',
+                          border: '1px solid rgba(56, 189, 248, 0.45)',
+                          borderRadius: '8px',
+                          padding: '6px 12px',
+                          fontSize: '0.8rem',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px'
+                        }}
+                      >
+                        <span>✂</span>
+                        <span>Crop Mobile Image</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Banner Click Target Link */}
+                <div className="form-group" style={{ marginTop: '14px' }}>
+                  <label style={{ fontWeight: 600, color: '#f8fafc' }}>
+                    🔗 Banner Destination Link (Clicked Anywhere on Slide)
+                  </label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="/products or /gender/women or https://..."
+                    value={formData.ctaLink}
+                    onChange={(e) => setFormData({ ...formData, ctaLink: e.target.value })}
+                  />
+                  <small style={{ color: '#94a3b8', fontSize: '11.5px', marginTop: '4px', display: 'block' }}>
+                    Users can click anywhere on the full-screen banner to navigate to this page.
+                  </small>
+                </div>
+
+                {/* Optional Text Details Accordion/Section */}
+                <div style={{ marginTop: '16px', padding: '14px', borderRadius: '12px', background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.1)' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#e2e8f0', marginBottom: '10px' }}>
+                    Optional Slide Text & Overlays <span style={{ fontWeight: 400, color: '#94a3b8', fontSize: '12px' }}>(Leave empty if image already has text)</span>
                   </div>
 
                   <div className="form-group">
-                    <label>CTA Button Link</label>
+                    <label>Eyebrow Tag / Header Badge (Optional)</label>
                     <input
                       type="text"
                       className="form-input"
-                      placeholder="#trending or /products"
-                      value={formData.ctaLink}
-                      onChange={(e) => setFormData({ ...formData, ctaLink: e.target.value })}
+                      placeholder="AUTUMN WEAVES · 2026"
+                      value={formData.eyebrow}
+                      onChange={(e) => setFormData({ ...formData, eyebrow: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="form-grid-2">
+                    <div className="form-group">
+                      <label>Main Title (Optional)</label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Timeless Silks."
+                        value={formData.title}
+                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Title Highlight (Gold Accent - Optional)</label>
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Tradition in Every Weave."
+                        value={formData.titleHighlight}
+                        onChange={(e) => setFormData({ ...formData, titleHighlight: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Subtitle Description (Optional)</label>
+                    <textarea
+                      className="form-textarea"
+                      placeholder="Discover our exquisite collection of pure silk sarees..."
+                      value={formData.subtitle}
+                      onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
+                      rows={2}
                     />
                   </div>
                 </div>
 
-                <div className="form-grid-2">
+                <div className="form-grid-2" style={{ marginTop: '14px' }}>
                   <div className="form-group">
                     <label>Display Order Priority</label>
                     <input
@@ -602,6 +732,7 @@ export default function BannerManagementPage() {
           onClose={() => setCropperOpen(false)}
           onCropComplete={handleCropSave}
           isProcessing={cropperUploading}
+          defaultRatioIndex={cropperRatioIndex}
         />
       </main>
     </div>

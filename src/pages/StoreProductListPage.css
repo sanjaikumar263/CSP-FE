@@ -921,6 +921,15 @@
   transform: scale(1.1);
 }
 
+.card-wishlist-btn.active {
+  background: #FEF2F2;
+}
+
+.card-wishlist-btn.active svg {
+  fill: #B91C1C !important;
+  stroke: #B91C1C !important;
+}
+
 .card-content-box {
   padding: 14px;
   display: flex;
@@ -1313,6 +1322,50 @@
   }
 }
 
+/* Service Highlights Bar */
+.service-highlights-bar {
+  background-color: #FAF6F0;
+  border-top: 1px solid rgba(10, 48, 93, 0.12);
+  border-bottom: 1px solid rgba(10, 48, 93, 0.12);
+  padding: 32px 0;
+  margin: 40px 0 0;
+}
+
+.service-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+.service-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.service-icon {
+  color: #0a305d;
+}
+
+.service-text .title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1C1917;
+}
+
+.service-text .desc {
+  font-size: 12px;
+  color: #61779a;
+}
+
+@media (max-width: 1024px) {
+  .service-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+}
+
 /* Small Phones (<= 480px) */
 @media (max-width: 480px) {
   .filters-sidebar {
@@ -1331,5 +1384,42 @@
   .mobile-toolbar-count {
     display: none;
   }
+
+  .service-highlights-bar {
+    padding: 24px 0;
+    margin: 24px 0 0;
+  }
+
+  .service-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px 12px;
+  }
+
+  .service-item {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 4px 2px;
+  }
+
+  .service-icon svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .service-text .title {
+    font-size: 12.5px;
+    font-weight: 700;
+    line-height: 1.25;
+  }
+
+  .service-text .desc {
+    font-size: 11px;
+    color: #61779a;
+    line-height: 1.25;
+    margin-top: 2px;
+  }
 }
+
 

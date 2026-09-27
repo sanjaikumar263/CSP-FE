@@ -1,9 +1,11 @@
 import { Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { WishlistProvider } from './context/WishlistContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import HomePage from './pages/HomePage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import StoreProductListPage from './pages/StoreProductListPage';
+import WishlistPage from './pages/WishlistPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import ProductListPage from './pages/ProductListPage';
 import ProductAddPage from './pages/ProductAddPage';
@@ -17,14 +19,16 @@ import StoreInfoManagementPage from './pages/StoreInfoManagementPage';
 export default function App() {
   return (
     <AuthProvider>
-      <Routes>
-        {/* Public Storefront Routes */}
-        <Route path="/" element={<HomePage />} />
-        <Route path="/about" element={<AboutUsPage />} />
-        <Route path="/products" element={<StoreProductListPage />} />
-        <Route path="/gender" element={<GenderCollectionPage />} />
-        <Route path="/gender/:genderType" element={<GenderCollectionPage />} />
-        <Route path="/product/:id" element={<ProductDetailPage />} />
+      <WishlistProvider>
+        <Routes>
+          {/* Public Storefront Routes */}
+          <Route path="/" element={<HomePage />} />
+          <Route path="/about" element={<AboutUsPage />} />
+          <Route path="/products" element={<StoreProductListPage />} />
+          <Route path="/wishlist" element={<WishlistPage />} />
+          <Route path="/gender" element={<GenderCollectionPage />} />
+          <Route path="/gender/:genderType" element={<GenderCollectionPage />} />
+          <Route path="/product/:id" element={<ProductDetailPage />} />
 
         {/* Admin Login Route */}
         <Route path="/admin/login" element={<AdminLoginPage />} />
@@ -87,6 +91,7 @@ export default function App() {
           }
         />
       </Routes>
+      </WishlistProvider>
     </AuthProvider>
   );
 }

@@ -20,6 +20,8 @@ export default function StoreInfoManagementPage() {
   const [cropperOpen, setCropperOpen] = useState(false);
   const [cropperImageSrc, setCropperImageSrc] = useState('');
   const [cropperUploading, setCropperUploading] = useState(false);
+  const [achievementUploadingIdx, setAchievementUploadingIdx] = useState(null);
+  const [cardUploadingKey, setCardUploadingKey] = useState(null); // format: `${secIdx}-${cardIdx}`
 
   const [formData, setFormData] = useState({
     // Contact & Address Details
@@ -47,6 +49,15 @@ export default function StoreInfoManagementPage() {
     footerAboutText: 'Your ultimate destination for exquisite silk sarees and traditional Indian wear. Experience timeless elegance, handcrafted with passion.',
     visionText: 'To preserve the timeless beauty of Indian textiles while continuously delivering quality, authenticity, innovation, and exceptional customer experiences for generations to come.',
     missionText: 'To be Malaysia’s most trusted destination for premium Indian textiles by offering authentic products, outstanding value, personalised service, and an unforgettable shopping experience, while preserving cultural heritage and making a meaningful contribution to the community.',
+
+    // Dynamic Custom Showcase Sections (One after another)
+    customSections: [],
+
+    // Legacy Achievements (fallback)
+    achievementsHeading: 'Behind the Legacy of Chennai Silk Palace',
+    achievementsEyebrow: 'OUR LEADERSHIP & FAMILY',
+    achievementsSubtitle: 'Guided by Mr. Thanasekaran Vellaikkoothan, our dedicated team upholds decades of commitment to excellence and authentic craftsmanship.',
+    achievements: [],
 
     // Timeline Array
     timeline: [
@@ -179,6 +190,118 @@ export default function StoreInfoManagementPage() {
     setFormData(prev => ({ ...prev, timeline: updated }));
   };
 
+  // --- Dynamic Showcase Sections & Cards Handlers ---
+  const handleAddSection = () => {
+    const nextIdx = (formData.customSections ? formData.customSections.length : 0) + 1;
+    const newSection = {
+      eyebrow: 'NEW SHOWCASE SECTION',
+      title: `Showcase Section #${nextIdx}`,
+      subtitle: 'Add a descriptive subtitle highlighting this collection, milestone, or artisan craftsmanship.',
+      cards: [
+        {
+          title: 'Card Highlight #1',
+          tag: 'FEATURED',
+          image: '',
+          description: 'Enter description highlighting this achievement, collection, or milestone...'
+        }
+      ]
+    };
+    setFormData(prev => ({
+      ...prev,
+      customSections: [...(prev.customSections || []), newSection]
+    }));
+  };
+
+  const handleRemoveSection = (secIdx) => {
+    const sectionName = formData.customSections?.[secIdx]?.title || `Section #${secIdx + 1}`;
+    if (!window.confirm(`Are you sure you want to remove "${sectionName}"? All cards inside this section will also be deleted.`)) return;
+    const updated = [...(formData.customSections || [])];
+    updated.splice(secIdx, 1);
+    setFormData(prev => ({ ...prev, customSections: updated }));
+  };
+
+  const handleSectionFieldChange = (secIdx, field, value) => {
+    const updated = [...(formData.customSections || [])];
+    if (updated[secIdx]) {
+      updated[secIdx] = { ...updated[secIdx], [field]: value };
+      setFormData(prev => ({ ...prev, customSections: updated }));
+    }
+  };
+
+  const handleAddCardToSection = (secIdx) => {
+    const updated = [...(formData.customSections || [])];
+    if (updated[secIdx]) {
+      const currentCards = updated[secIdx].cards || [];
+      const newCard = {
+        title: `Highlight Card #${currentCards.length + 1}`,
+        tag: 'HIGHLIGHT',
+        image: '',
+        description: 'Enter description highlighting this achievement or collection detail...'
+      };
+      updated[secIdx] = {
+        ...updated[secIdx],
+        cards: [...currentCards, newCard]
+      };
+      setFormData(prev => ({ ...prev, customSections: updated }));
+    }
+  };
+
+  const handleRemoveCardFromSection = (secIdx, cardIdx) => {
+    if (!window.confirm('Remove this card from this section?')) return;
+    const updated = [...(formData.customSections || [])];
+    if (updated[secIdx] && updated[secIdx].cards) {
+      const cards = [...updated[secIdx].cards];
+      cards.splice(cardIdx, 1);
+      updated[secIdx] = { ...updated[secIdx], cards };
+      setFormData(prev => ({ ...prev, customSections: updated }));
+    }
+  };
+
+  const handleCardFieldChange = (secIdx, cardIdx, field, value) => {
+    const updated = [...(formData.customSections || [])];
+    if (updated[secIdx] && updated[secIdx].cards && updated[secIdx].cards[cardIdx]) {
+      const cards = [...updated[secIdx].cards];
+      cards[cardIdx] = { ...cards[cardIdx], [field]: value };
+      updated[secIdx] = { ...updated[secIdx], cards };
+      setFormData(prev => ({ ...prev, customSections: updated }));
+    }
+  };
+
+  const handleCardImageUpload = async (secIdx, cardIdx, file) => {
+    if (!file) return;
+    const uploadKey = `${secIdx}-${cardIdx}`;
+    try {
+      setCardUploadingKey(uploadKey);
+      setError('');
+      const compressed = await compressImage(file, { maxWidth: 1200, maxHeight: 900, quality: 0.85 });
+      const uploadFormData = new FormData();
+      uploadFormData.append('image', compressed);
+
+      const res = await fetch(`${API_BASE_URL}/upload`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: uploadFormData
+      });
+
+      const data = await res.json();
+      if (res.ok && (data.url || data.filePath || data.imageUrl)) {
+        const imageUrl = data.url || data.imageUrl || (data.filePath ? (data.filePath.startsWith('http') ? data.filePath : `${BACKEND_URL}${data.filePath}`) : '');
+        handleCardFieldChange(secIdx, cardIdx, 'image', imageUrl);
+        setSuccessMsg('Card image uploaded successfully!');
+        setTimeout(() => setSuccessMsg(''), 3000);
+      } else {
+        setError(data.message || 'Image upload failed');
+      }
+    } catch (err) {
+      console.error('Error uploading card image:', err);
+      setError('Failed to upload image');
+    } finally {
+      setCardUploadingKey(null);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -238,10 +361,18 @@ export default function StoreInfoManagementPage() {
             🏛️ About Us Hero & Leadership
           </button>
           <button
+            type="button"
             className={`tab-btn ${activeTab === 'timeline' ? 'active' : ''}`}
             onClick={() => setActiveTab('timeline')}
           >
             🚀 Entrepreneur Journey Timeline ({formData.timeline ? formData.timeline.length : 0})
+          </button>
+          <button
+            type="button"
+            className={`tab-btn ${activeTab === 'achievements' ? 'active' : ''}`}
+            onClick={() => setActiveTab('achievements')}
+          >
+            🏆 Showcase Sections ({formData.customSections ? formData.customSections.length : (formData.achievements ? 1 : 0)})
           </button>
         </div>
 
@@ -624,6 +755,248 @@ export default function StoreInfoManagementPage() {
                     ))
                   )}
                 </div>
+              </div>
+            )}
+
+            {activeTab === 'achievements' && (
+              <div>
+                <div className="section-form-title">
+                  <div>
+                    <span>Dynamic Showcase Sections (About Us Page)</span>
+                    <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#64748B', fontWeight: 500 }}>
+                      Add custom showcase sections one after another with their own headings and card grids.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn-add-section-top"
+                    onClick={handleAddSection}
+                  >
+                    <span>➕</span>
+                    <span>Add New Section</span>
+                  </button>
+                </div>
+
+                {(!formData.customSections || formData.customSections.length === 0) ? (
+                  <div style={{ textAlign: 'center', padding: '40px 20px', background: '#F8FAFC', borderRadius: '12px', border: '1.5px dashed #CBD5E1', marginBottom: '24px' }}>
+                    <div style={{ fontSize: '36px', marginBottom: '12px' }}>🏛️</div>
+                    <h4 style={{ margin: '0 0 8px 0', fontSize: '16px', color: '#0F172A', fontWeight: 700 }}>
+                      No Showcase Sections Created Yet
+                    </h4>
+                    <p style={{ margin: '0 0 20px 0', fontSize: '13.5px', color: '#64748B' }}>
+                      Click below to add your first showcase section (e.g. Behind the Legacy, Our Master Weavers, or Awards).
+                    </p>
+                    <button
+                      type="button"
+                      className="btn-add-section-top"
+                      onClick={handleAddSection}
+                    >
+                      ➕ Add Your First Section
+                    </button>
+                  </div>
+                ) : (
+                  <div className="dynamic-sections-container">
+                    {formData.customSections.map((sec, secIdx) => (
+                      <div key={secIdx} className="dynamic-section-block">
+                        <div className="dynamic-section-header-bar">
+                          <div className="dynamic-section-title-wrap">
+                            <span className="dynamic-section-badge">Section #{secIdx + 1}</span>
+                            <span className="dynamic-section-name">{sec.title || `Untitled Section #${secIdx + 1}`}</span>
+                          </div>
+                          <div className="dynamic-section-actions">
+                            <button
+                              type="button"
+                              className="btn-add-card-to-sec"
+                              onClick={() => handleAddCardToSection(secIdx)}
+                            >
+                              ➕ Add Card
+                            </button>
+                            <button
+                              type="button"
+                              className="btn-remove-section"
+                              onClick={() => handleRemoveSection(secIdx)}
+                            >
+                              🗑️ Remove Section
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Section Header Settings */}
+                        <div style={{ background: '#F8FAFC', padding: '18px 20px', borderRadius: '10px', border: '1px solid #CBD5E1', marginBottom: '20px' }}>
+                          <h4 style={{ margin: '0 0 14px 0', fontSize: '13.5px', color: '#0F172A', fontWeight: 700 }}>
+                            ⚙️ Section #{secIdx + 1} Header Settings (About Us Page)
+                          </h4>
+                          <div className="form-grid-2">
+                            <div className="form-field-wrapper">
+                              <label>Section Eyebrow Tag</label>
+                              <input
+                                type="text"
+                                className="form-input-text"
+                                value={sec.eyebrow || ''}
+                                onChange={(e) => handleSectionFieldChange(secIdx, 'eyebrow', e.target.value)}
+                                placeholder="e.g. OUR LEADERSHIP & FAMILY"
+                              />
+                            </div>
+                            <div className="form-field-wrapper">
+                              <label>Section Main Title</label>
+                              <input
+                                type="text"
+                                required
+                                className="form-input-text"
+                                value={sec.title || ''}
+                                onChange={(e) => handleSectionFieldChange(secIdx, 'title', e.target.value)}
+                                placeholder="e.g. Behind the Legacy of Chennai Silk Palace"
+                              />
+                            </div>
+                          </div>
+                          <div className="form-field-wrapper" style={{ marginBottom: 0 }}>
+                            <label>Section Subtitle</label>
+                            <textarea
+                              className="form-textarea"
+                              rows="2"
+                              value={sec.subtitle || ''}
+                              onChange={(e) => handleSectionFieldChange(secIdx, 'subtitle', e.target.value)}
+                              placeholder="e.g. Guided by Mr. Thanasekaran Vellaikkoothan..."
+                            ></textarea>
+                          </div>
+                        </div>
+
+                        {/* Cards in this Section */}
+                        <div className="section-cards-container">
+                          <div className="section-cards-subheading">
+                            <span>🎴 Cards in Section #{secIdx + 1} ({sec.cards?.length || 0})</span>
+                            <button
+                              type="button"
+                              className="btn-add-card-to-sec"
+                              onClick={() => handleAddCardToSection(secIdx)}
+                            >
+                              ➕ Add Card to this Section
+                            </button>
+                          </div>
+
+                          {(!sec.cards || sec.cards.length === 0) ? (
+                            <div style={{ textAlign: 'center', padding: '24px', color: '#94a3b8', fontSize: '13px' }}>
+                              No cards in this section yet. Click "+ Add Card to this Section" above.
+                            </div>
+                          ) : (
+                            <div className="timeline-admin-list">
+                              {sec.cards.map((card, cardIdx) => (
+                                <div key={cardIdx} className="timeline-admin-card">
+                                  <div className="timeline-card-header">
+                                    <span className="timeline-badge-year">Card #{cardIdx + 1}</span>
+                                    <button
+                                      type="button"
+                                      className="btn-remove-milestone"
+                                      onClick={() => handleRemoveCardFromSection(secIdx, cardIdx)}
+                                    >
+                                      🗑️ Remove Card
+                                    </button>
+                                  </div>
+
+                                  <div className="form-grid-2">
+                                    <div className="form-field-wrapper">
+                                      <label>Card Title</label>
+                                      <input
+                                        type="text"
+                                        required
+                                        className="form-input-text"
+                                        placeholder="e.g. Visionary Leadership / Award"
+                                        value={card.title || ''}
+                                        onChange={(e) => handleCardFieldChange(secIdx, cardIdx, 'title', e.target.value)}
+                                      />
+                                    </div>
+
+                                    <div className="form-field-wrapper">
+                                      <label>Card Badge / Category Tag (Optional)</label>
+                                      <input
+                                        type="text"
+                                        className="form-input-text"
+                                        placeholder="e.g. LEADERSHIP, TRADITION, 2023 AWARD"
+                                        value={card.tag || ''}
+                                        onChange={(e) => handleCardFieldChange(secIdx, cardIdx, 'tag', e.target.value)}
+                                      />
+                                    </div>
+                                  </div>
+
+                                  <div className="form-field-wrapper">
+                                    <label>Card Image URL or Upload</label>
+                                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                                      <input
+                                        type="text"
+                                        className="form-input-text"
+                                        style={{ flex: 1, minWidth: '220px' }}
+                                        placeholder="https://... or upload photo"
+                                        value={card.image || ''}
+                                        onChange={(e) => handleCardFieldChange(secIdx, cardIdx, 'image', e.target.value)}
+                                      />
+                                      <label style={{
+                                        background: 'rgba(212, 175, 55, 0.2)',
+                                        color: '#b48a1e',
+                                        padding: '9px 16px',
+                                        borderRadius: '6px',
+                                        cursor: 'pointer',
+                                        fontSize: '0.85rem',
+                                        fontWeight: 600,
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '6px',
+                                        border: '1px solid rgba(212, 175, 55, 0.4)'
+                                      }}>
+                                        <span>📷</span>
+                                        <span>{cardUploadingKey === `${secIdx}-${cardIdx}` ? 'Uploading...' : 'Upload Image'}</span>
+                                        <input
+                                          type="file"
+                                          accept="image/*"
+                                          onChange={(e) => {
+                                            if (e.target.files?.[0]) {
+                                              handleCardImageUpload(secIdx, cardIdx, e.target.files[0]);
+                                            }
+                                          }}
+                                          style={{ display: 'none' }}
+                                        />
+                                      </label>
+                                    </div>
+                                    {card.image && (
+                                      <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        <img
+                                          src={card.image}
+                                          alt="Preview"
+                                          style={{ width: '80px', height: '54px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #CBD5E1' }}
+                                          onError={(e) => { e.target.style.display = 'none'; }}
+                                        />
+                                        <span style={{ fontSize: '12px', color: '#64748B' }}>Card Image Preview</span>
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  <div className="form-field-wrapper" style={{ marginBottom: 0 }}>
+                                    <label>Card Description</label>
+                                    <textarea
+                                      className="form-textarea"
+                                      rows="3"
+                                      required
+                                      placeholder="Enter description highlighting this achievement or team legacy..."
+                                      value={card.description || ''}
+                                      onChange={(e) => handleCardFieldChange(secIdx, cardIdx, 'description', e.target.value)}
+                                    ></textarea>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+
+                    <button
+                      type="button"
+                      className="btn-add-section-bottom"
+                      onClick={handleAddSection}
+                    >
+                      ➕ Add Another New Section
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 

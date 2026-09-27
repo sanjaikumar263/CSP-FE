@@ -568,3 +568,24 @@
   }
 }
 
+@media (max-width: 480px) {
+  .gp-product-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .gp-card-details {
+    padding: 10px 8px;
+  }
+
+  .gp-card-title {
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+
+  .gp-card-price-current {
+    font-size: 13px;
+  }
+}
+
+

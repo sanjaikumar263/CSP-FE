@@ -395,6 +395,7 @@ tbody tr:last-child td {
   }
   main {
     padding: 20px;
+    padding-top: 68px;
   }
   .stat-grid {
     grid-template-columns: 1fr 1fr;

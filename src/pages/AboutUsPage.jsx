@@ -19,7 +19,30 @@ export default function AboutUsPage() {
     directorYears: '40+',
     directorImage: ownerImg,
     visionText: 'To preserve the timeless beauty of Indian textiles while continuously delivering quality, authenticity, innovation, and exceptional customer experiences for generations to come.',
-    missionText: 'To be Malaysia’s most trusted destination for premium Indian textiles by offering authentic products, outstanding value, personalised service, and an unforgettable shopping experience, while preserving cultural heritage and making a meaningful contribution to the community.'
+    missionText: 'To be Malaysia’s most trusted destination for premium Indian textiles by offering authentic products, outstanding value, personalised service, and an unforgettable shopping experience, while preserving cultural heritage and making a meaningful contribution to the community.',
+    achievementsHeading: 'Behind the Legacy of Chennai Silk Palace',
+    achievementsEyebrow: 'OUR LEADERSHIP & FAMILY',
+    achievementsSubtitle: 'Guided by Mr. Thanasekaran Vellaikkoothan, our dedicated team upholds decades of commitment to excellence and authentic craftsmanship.',
+    achievements: [
+      {
+        title: 'Visionary Leadership',
+        description: 'Director Mr. Thanasekaran Vellaikkoothan leading the dedicated team at Chennai Silk Palace.',
+        image: `${API_BASE_URL.replace('/api', '')}/uploads/prod-1790277100971-centered.webp`,
+        tag: 'LEADERSHIP'
+      },
+      {
+        title: 'Excellence & Tradition',
+        description: 'Preserving cultural authenticity and delivering warm personalized service to every customer.',
+        image: `${API_BASE_URL.replace('/api', '')}/uploads/achievement-excellence.webp`,
+        tag: 'TRADITION'
+      },
+      {
+        title: 'Generations of Trust',
+        description: 'Our experienced family of staff committed to 40+ years of high-quality Indian textile retailing.',
+        image: `${API_BASE_URL.replace('/api', '')}/uploads/achievement-generations.webp`,
+        tag: 'FAMILY & TEAM'
+      }
+    ]
   });
 
   useEffect(() => {
@@ -31,7 +54,10 @@ export default function AboutUsPage() {
           setStoreInfo(prev => ({
             ...prev,
             ...data.data,
-            directorImage: data.data.directorImage || ownerImg
+            directorImage: data.data.directorImage || ownerImg,
+            achievements: (Array.isArray(data.data.achievements) && data.data.achievements.length > 0)
+              ? data.data.achievements
+              : prev.achievements
           }));
         }
       } catch (err) {
@@ -96,6 +122,93 @@ export default function AboutUsPage() {
           </div>
         </div>
       </section>
+
+      {/* Behind the Legacy & Dynamic Showcase Sections (Rendered sequentially one after another) */}
+      {storeInfo.customSections && storeInfo.customSections.length > 0 ? (
+        storeInfo.customSections.map((sec, sIdx) => (
+          <section
+            key={sec._id || sIdx}
+            className={`about-achievements-section ${sIdx % 2 === 1 ? 'about-section-alt-bg' : ''}`}
+          >
+            <div className="about-container">
+              <div className="section-header-centered">
+                {sec.eyebrow && (
+                  <div className="ornament-eyebrow">{sec.eyebrow}</div>
+                )}
+                <h2 className="section-main-title">{sec.title}</h2>
+                {sec.subtitle && (
+                  <p className="section-sub-title">{sec.subtitle}</p>
+                )}
+              </div>
+
+              {sec.cards && sec.cards.length > 0 && (
+                <div className="achievements-cards-grid">
+                  {sec.cards.map((item, idx) => (
+                    <div key={item._id || idx} className="achievement-card">
+                      <div className="achievement-image-box">
+                        <img
+                          src={item.image || ownerImg}
+                          alt={item.title}
+                          className="achievement-card-img"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = ownerImg;
+                          }}
+                        />
+                        {item.tag && <span className="achievement-card-tag">{item.tag}</span>}
+                      </div>
+                      <div className="achievement-card-body">
+                        <h3 className="achievement-card-title">{item.title}</h3>
+                        <p className="achievement-card-desc">{item.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+        ))
+      ) : storeInfo.achievements && storeInfo.achievements.length > 0 ? (
+        <section className="about-achievements-section">
+          <div className="about-container">
+            <div className="section-header-centered">
+              <div className="ornament-eyebrow">
+                {storeInfo.achievementsEyebrow || 'OUR LEADERSHIP & FAMILY'}
+              </div>
+              <h2 className="section-main-title">
+                {storeInfo.achievementsHeading || 'Behind the Legacy of Chennai Silk Palace'}
+              </h2>
+              <p className="section-sub-title">
+                {storeInfo.achievementsSubtitle ||
+                  'Guided by Mr. Thanasekaran Vellaikkoothan, our dedicated team upholds decades of commitment to excellence and authentic craftsmanship.'}
+              </p>
+            </div>
+
+            <div className="achievements-cards-grid">
+              {storeInfo.achievements.map((item, idx) => (
+                <div key={item._id || idx} className="achievement-card">
+                  <div className="achievement-image-box">
+                    <img
+                      src={item.image || ownerImg}
+                      alt={item.title}
+                      className="achievement-card-img"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = ownerImg;
+                      }}
+                    />
+                    {item.tag && <span className="achievement-card-tag">{item.tag}</span>}
+                  </div>
+                  <div className="achievement-card-body">
+                    <h3 className="achievement-card-title">{item.title}</h3>
+                    <p className="achievement-card-desc">{item.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       {/* Entrepreneurial Journey Timeline */}
       <section className="about-journey-section">

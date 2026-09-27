@@ -8,6 +8,7 @@ import Loader from '../components/Loader';
 import SafeImage from '../components/SafeImage';
 import placeholderSvg from '../assets/placeholder.svg';
 import { API_BASE_URL } from '../config';
+import { useWishlist } from '../context/WishlistContext';
 import './HomePage.css';
 
 export default function HomePage() {
@@ -16,7 +17,7 @@ export default function HomePage() {
   const initialQuery = searchParams.get('search') || '';
   
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [wishlist, setWishlist] = useState({});
+  const { isWishlisted, toggleWishlist } = useWishlist();
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [trendingProducts, setTrendingProducts] = useState([]);
@@ -110,10 +111,10 @@ export default function HomePage() {
     const fetchLatestProducts = async () => {
       try {
         setLoadingProducts(true);
-        const res = await fetch(`${API_BASE_URL}/products/latest`);
+        const res = await fetch(`${API_BASE_URL}/products/latest?limit=6`);
         const data = await res.json();
         if (res.ok && data.success && Array.isArray(data.data) && data.data.length > 0) {
-          const mapped = data.data.map((item, idx) => {
+          const mapped = data.data.slice(0, 6).map((item, idx) => {
             const rawPrice = item.price;
             const numPrice = typeof rawPrice === 'number' ? rawPrice : (parseFloat(rawPrice) || 0);
             
@@ -162,9 +163,6 @@ export default function HomePage() {
     setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length);
   };
 
-  const toggleWishlist = (id) => {
-    setWishlist((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -190,83 +188,160 @@ export default function HomePage() {
   const activeSlide = heroSlides[currentSlide] || heroSlides[0] || {};
   const hasHeroContent = heroSlides.length > 0 && heroSlides.some(slide => (slide.image && slide.image.trim() !== '') || (slide.title && slide.title.trim() !== ''));
 
+  const handleBannerClick = () => {
+    const link = activeSlide.ctaLink || '/products';
+    if (link.startsWith('http')) {
+      window.location.href = link;
+    } else if (link.startsWith('#')) {
+      const el = document.querySelector(link);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        navigate('/products');
+      }
+    } else {
+      navigate(link);
+    }
+  };
+
   return (
     <div className="home-page-container">
       {/* Common Header */}
       <Header />
 
-      {/* Hero Banner Section (Hidden when no banner content exists) */}
+      {/* Hero Banner Section (Full Screen Edge-to-Edge) */}
       {hasHeroContent && (
         <section className="hero-banner-section">
           <div className="hero-slide-wrapper">
-            <button className="hero-arrow prev-arrow" onClick={handlePrevSlide} aria-label="Previous Slide">
-              ‹
-            </button>
-            <button className="hero-arrow next-arrow" onClick={handleNextSlide} aria-label="Next Slide">
-              ›
-            </button>
-
-            <div className="hero-content-grid">
-              <div className="hero-text-side">
-                <div className="hero-headline-group">
-                  <h2 className="hero-title-main">{activeSlide.title}</h2>
-                  <h2 className="hero-title-highlight">{activeSlide.titleHighlight}</h2>
-                </div>
-                <p className="hero-subtitle">{activeSlide.subtitle}</p>
-                <a href={activeSlide.ctaLink || '#trending'} className="hero-cta-btn">
-                  {activeSlide.ctaText || 'SHOP NOW'}
-                </a>
-
-                {/* Trust Badges */}
-                <div className="hero-trust-bar">
-                  {trustBadges.map((badge) => (
-                    <div key={badge.id} className="trust-item">
-                      <div className="trust-icon-box">
-                        {badge.icon === 'shield' && (
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                          </svg>
-                        )}
-                        {badge.icon === 'sparkles' && (
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                          </svg>
-                        )}
-                        {badge.icon === 'award' && (
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <circle cx="12" cy="8" r="7" />
-                            <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
-                          </svg>
-                        )}
-                      </div>
-                      <div className="trust-text-box">
-                        <div className="trust-title">{badge.title}</div>
-                        <div className="trust-sub">{badge.subtitle}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="hero-image-side">
-                <SafeImage
+            {/* Clickable Full Banner Slide */}
+            <div
+              className="hero-fullscreen-banner"
+              onClick={handleBannerClick}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleBannerClick();
+                }
+              }}
+              aria-label={`View ${activeSlide.title || 'Hero Banner'}`}
+            >
+              {/* Responsive Full-Screen Banner Image (Native HTML5 Picture) */}
+              <picture className="hero-fullscreen-picture">
+                {activeSlide.mobileImage && activeSlide.mobileImage.trim() !== '' && (
+                  <source media="(max-width: 768px)" srcSet={activeSlide.mobileImage} />
+                )}
+                <img
                   src={activeSlide.image || placeholderSvg}
-                  alt={activeSlide.title || 'Hero Banner Slide'}
-                  className="hero-main-img"
+                  alt={activeSlide.title || 'Chennai Silk Palace Hero Banner'}
+                  className="hero-banner-img"
+                  onError={(e) => {
+                    e.currentTarget.src = placeholderSvg;
+                  }}
+                  loading="eager"
                 />
-              </div>
+              </picture>
+
+              {/* Optional Text Overlay (Only rendered if title, subtitle or eyebrow exists) */}
+              {(activeSlide.title || activeSlide.subtitle || activeSlide.eyebrow) && (
+                <div className="hero-banner-overlay">
+                  <div className="hero-banner-text">
+                    {activeSlide.eyebrow && (
+                      <span className="hero-banner-badge">{activeSlide.eyebrow}</span>
+                    )}
+                    {activeSlide.title && (
+                      <h2 className="hero-title-main">{activeSlide.title}</h2>
+                    )}
+                    {activeSlide.titleHighlight && (
+                      <h2 className="hero-title-highlight">{activeSlide.titleHighlight}</h2>
+                    )}
+                    {activeSlide.subtitle && (
+                      <p className="hero-subtitle">{activeSlide.subtitle}</p>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Slider Indicator Dots */}
-            <div className="hero-dots">
-              {heroSlides.map((_, index) => (
+            {/* Slider Navigation Arrows */}
+            {heroSlides.length > 1 && (
+              <>
                 <button
-                  key={index}
-                  className={`dot ${index === currentSlide ? 'active' : ''}`}
-                  onClick={() => setCurrentSlide(index)}
-                  aria-label={`Go to slide ${index + 1}`}
-                />
-              ))}
+                  type="button"
+                  className="hero-arrow prev-arrow"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePrevSlide();
+                  }}
+                  aria-label="Previous Slide"
+                >
+                  ‹
+                </button>
+                <button
+                  type="button"
+                  className="hero-arrow next-arrow"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleNextSlide();
+                  }}
+                  aria-label="Next Slide"
+                >
+                  ›
+                </button>
+              </>
+            )}
+
+            {/* Slider Indicator Dots */}
+            {heroSlides.length > 1 && (
+              <div className="hero-dots" onClick={(e) => e.stopPropagation()}>
+                {heroSlides.map((_, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    className={`dot ${index === currentSlide ? 'active' : ''}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCurrentSlide(index);
+                    }}
+                    aria-label={`Go to slide ${index + 1}`}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Trust Badges Strip (Underneath Full Screen Banner) */}
+          <div className="hero-trust-strip">
+            <div className="container-inner">
+              <div className="hero-trust-bar">
+                {trustBadges.map((badge) => (
+                  <div key={badge.id} className="trust-item">
+                    <div className="trust-icon-box">
+                      {badge.icon === 'shield' && (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                        </svg>
+                      )}
+                      {badge.icon === 'sparkles' && (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                        </svg>
+                      )}
+                      {badge.icon === 'award' && (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <circle cx="12" cy="8" r="7" />
+                          <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
+                        </svg>
+                      )}
+                    </div>
+                    <div className="trust-text-box">
+                      <div className="trust-title">{badge.title}</div>
+                      <div className="trust-sub">{badge.subtitle}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>
@@ -361,7 +436,7 @@ export default function HomePage() {
                 Clear Search ✕
               </button>
             ) : (
-              <a href="#all" className="view-all-link">VIEW ALL →</a>
+              <Link to="/products" className="view-all-link">VIEW ALL →</Link>
             )}
           </div>
 
@@ -375,21 +450,21 @@ export default function HomePage() {
             <Loader message="Loading Latest Products..." />
           ) : filteredTrendingProducts.length > 0 ? (
             <div className="products-grid">
-              {filteredTrendingProducts.map((prod) => (
+              {(searchQuery ? filteredTrendingProducts : filteredTrendingProducts.slice(0, 6)).map((prod) => (
                 <div key={prod.id} className="product-card">
                   <div className="product-image-container">
                     <Link to={`/product/${prod.id}`}>
                       <SafeImage src={prod.image || placeholderSvg} alt={prod.name} className="product-img" />
                     </Link>
                     <button
-                      className={`wishlist-icon-btn ${wishlist[prod.id] ? 'active' : ''}`}
+                      className={`wishlist-icon-btn ${isWishlisted(prod.id) ? 'active' : ''}`}
                       onClick={(e) => {
                         e.stopPropagation();
-                        toggleWishlist(prod.id);
+                        toggleWishlist(prod);
                       }}
                       aria-label="Add to Wishlist"
                     >
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill={wishlist[prod.id] ? '#0a305d' : 'none'} stroke={wishlist[prod.id] ? '#0a305d' : '#555'} strokeWidth="1.8">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill={isWishlisted(prod.id) ? '#b91c1c' : 'none'} stroke={isWishlisted(prod.id) ? '#b91c1c' : '#555'} strokeWidth="1.8">
                         <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                       </svg>
                     </button>

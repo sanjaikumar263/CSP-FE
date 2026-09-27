@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-do
 import logoSvg from '../assets/hero_logo.svg';
 import { API_BASE_URL } from '../config';
 import { CATEGORY_TREE } from '../data/categoriesData';
+import { useWishlist } from '../context/WishlistContext';
 import './Header.css';
 
 const NAV_LINKS = [
@@ -19,6 +20,7 @@ export default function Header({ initialSearchQuery = '', onSearchSubmit }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
+  const { wishlistCount } = useWishlist();
   
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
@@ -164,14 +166,17 @@ export default function Header({ initialSearchQuery = '', onSearchSubmit }) {
 
           {/* Header Action Icons */}
           <div className="header-actions">
-            <Link to="/products" className="action-btn" aria-label="Wishlist">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-              </svg>
+            <Link to="/wishlist" className="action-btn desktop-only" aria-label="Wishlist">
+              <div className="cart-icon-wrapper">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill={wishlistCount > 0 ? "rgba(185, 28, 28, 0.15)" : "none"} stroke="currentColor" strokeWidth="1.6">
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                </svg>
+                {wishlistCount > 0 && <span className="cart-badge">{wishlistCount}</span>}
+              </div>
               <span>Wishlist</span>
             </Link>
 
-            <Link to="/admin/login" className="action-btn" aria-label="Admin Portal">
+            <Link to="/admin/login" className="action-btn desktop-only" aria-label="Admin Portal">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                 <circle cx="12" cy="7" r="4" />
@@ -179,7 +184,7 @@ export default function Header({ initialSearchQuery = '', onSearchSubmit }) {
               <span>Admin</span>
             </Link>
 
-            <Link to="/products" className="action-btn cart-btn" aria-label="Cart">
+            <Link to="/products" className="action-btn cart-btn desktop-only" aria-label="Cart">
               <div className="cart-icon-wrapper">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
                   <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
@@ -193,23 +198,92 @@ export default function Header({ initialSearchQuery = '', onSearchSubmit }) {
 
             {/* Mobile Hamburger Toggle */}
             <button
-              className="mobile-toggle-btn"
+              className={`mobile-toggle-btn ${mobileMenuOpen ? 'is-open' : ''}`}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label="Toggle navigation"
+              aria-label={mobileMenuOpen ? 'Close navigation' : 'Open navigation'}
+              aria-expanded={mobileMenuOpen}
             >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="3" y1="12" x2="21" y2="12" />
-                <line x1="3" y1="6" x2="21" y2="6" />
-                <line x1="3" y1="18" x2="21" y2="18" />
-              </svg>
+              {mobileMenuOpen ? (
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              ) : (
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="3" y1="12" x2="21" y2="12" />
+                  <line x1="3" y1="6" x2="21" y2="6" />
+                  <line x1="3" y1="18" x2="21" y2="18" />
+                </svg>
+              )}
             </button>
           </div>
         </div>
       </header>
 
+      {/* Backdrop overlay on mobile when navigation is open */}
+      {mobileMenuOpen && (
+        <div
+          className="mobile-nav-backdrop"
+          onClick={() => setMobileMenuOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
       {/* Secondary Navigation Bar */}
       <nav className={`secondary-nav ${mobileMenuOpen ? 'open' : ''}`}>
         <div className="nav-inner">
+          {/* Mobile Drawer Top: Search Form */}
+          <div className="mobile-drawer-search">
+            <form className="mobile-search-form" onSubmit={(e) => { handleSearch(e); setMobileMenuOpen(false); }}>
+              <input
+                type="text"
+                className="mobile-search-input"
+                placeholder="Search sarees, kurtas, lehengas..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <button type="submit" className="mobile-search-btn" aria-label="Search">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="11" cy="11" r="7" />
+                  <line x1="21" y1="21" x2="16.5" y2="16.5" />
+                </svg>
+              </button>
+            </form>
+          </div>
+
+          {/* Mobile Drawer Quick Links (Wishlist, Admin, Cart) */}
+          <div className="mobile-drawer-quick-row">
+            <Link to="/wishlist" className="mobile-quick-card" onClick={() => setMobileMenuOpen(false)}>
+              <div className="cart-icon-wrapper">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill={wishlistCount > 0 ? "rgba(185, 28, 28, 0.15)" : "none"} stroke="currentColor" strokeWidth="1.8">
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                </svg>
+                {wishlistCount > 0 && <span className="cart-badge">{wishlistCount}</span>}
+              </div>
+              <span>Wishlist</span>
+            </Link>
+
+            <Link to="/admin/login" className="mobile-quick-card" onClick={() => setMobileMenuOpen(false)}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+              <span>Admin</span>
+            </Link>
+
+            <Link to="/products" className="mobile-quick-card" onClick={() => setMobileMenuOpen(false)}>
+              <div className="cart-icon-wrapper">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                  <line x1="3" y1="6" x2="21" y2="6" />
+                  <path d="M16 10a4 4 0 0 1-8 0" />
+                </svg>
+                <span className="cart-badge">0</span>
+              </div>
+              <span>Cart</span>
+            </Link>
+          </div>
+
           <ul className="nav-menu">
             {NAV_LINKS.map((item) => {
               const active = isLinkActive(item.href);
@@ -238,14 +312,17 @@ export default function Header({ initialSearchQuery = '', onSearchSubmit }) {
                     {hasDropdown && (
                       <button
                         type="button"
-                        className="mobile-dropdown-toggle"
+                        className={`mobile-dropdown-toggle ${activeDropdown === item.key ? 'open' : ''}`}
                         onClick={(e) => {
                           e.stopPropagation();
                           setActiveDropdown(activeDropdown === item.key ? null : item.key);
                         }}
-                        aria-label="Toggle Submenu"
+                        aria-label={`Toggle ${item.label} submenu`}
+                        aria-expanded={activeDropdown === item.key}
                       >
-                        ▾
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="6 9 12 15 18 9" />
+                        </svg>
                       </button>
                     )}
                   </div>

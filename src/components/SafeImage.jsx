@@ -1,15 +1,20 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import placeholderSvg from '../assets/placeholder.svg';
 
 export default function SafeImage({ src, alt, className, style, ...props }) {
   const [imgSrc, setImgSrc] = useState(src || placeholderSvg);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
+  const imgRef = useRef(null);
 
   useEffect(() => {
     setImgSrc(src || placeholderSvg);
     setError(false);
-    setLoaded(false);
+    if (imgRef.current && imgRef.current.complete && imgRef.current.naturalWidth > 0) {
+      setLoaded(true);
+    } else {
+      setLoaded(false);
+    }
   }, [src]);
 
   const handleError = () => {
@@ -25,12 +30,12 @@ export default function SafeImage({ src, alt, className, style, ...props }) {
 
   return (
     <img
+      ref={imgRef}
       src={imgSrc || placeholderSvg}
       alt={alt || 'Product Image'}
       className={`${className || ''} ${!loaded ? 'img-loading' : 'img-loaded'}`}
       style={{
-        opacity: loaded ? 1 : 0.6,
-        transition: 'opacity 0.3s ease',
+        opacity: 1,
         ...style
       }}
       onError={handleError}

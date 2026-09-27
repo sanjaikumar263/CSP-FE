@@ -184,6 +184,12 @@
   padding: 4px;
 }
 
+/* Hidden by default on desktop; only shown inside mobile navigation drawer */
+.mobile-drawer-search,
+.mobile-drawer-quick-row {
+  display: none;
+}
+
 /* Secondary Navigation Bar */
 .secondary-nav {
   background-color: var(--primary-navy, #0a305d);
@@ -456,40 +462,275 @@
 }
 
 @media (max-width: 868px) {
+  .main-header {
+    padding: 12px 0;
+  }
+
+  .header-inner {
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: nowrap;
+  }
+
+  /* In mobile screen header: ONLY the Logo on the left */
+  .brand-text-logo {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .brand-logo-img {
+    height: 40px;
+    max-width: 220px;
+    width: auto;
+    object-fit: contain;
+  }
+
+  /* Completely hide Search and Action buttons (Wishlist, Admin, Cart) from top header on mobile */
+  .header-search-container,
+  .action-btn.desktop-only,
+  .header-actions .desktop-only {
+    display: none !important;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-left: auto;
+  }
+
+  /* Prominent Hamburger Button on the right */
   .mobile-toggle-btn {
     display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: var(--primary-navy, #0a305d) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+    box-shadow: 0 3px 10px rgba(10, 48, 93, 0.3);
   }
-  .mobile-dropdown-toggle {
+
+  .mobile-toggle-btn:hover {
+    background: var(--navy-hover, #1f3a68) !important;
+  }
+
+  .mobile-toggle-btn.is-open {
+    background: #dc2626 !important;
+    border-color: #ef4444 !important;
+  }
+
+  .mobile-toggle-btn svg,
+  .mobile-toggle-btn svg line {
+    stroke: #ffffff !important;
+    stroke-width: 2.5 !important;
     display: block;
   }
+
+  /* ========================================================
+     MOBILE NAVIGATION DRAWER CONTENT
+     ======================================================== */
+  .mobile-nav-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(6, 21, 39, 0.7);
+    backdrop-filter: blur(4px);
+    z-index: 9998;
+    animation: mobileNavFadeIn 0.2s ease;
+  }
+
   .secondary-nav {
     display: none;
+    position: fixed;
+    top: 68px;
+    left: 0;
+    right: 0;
+    background: #0a305d !important;
+    background-color: #0a305d !important;
+    color: #ffffff !important;
+    z-index: 9999;
+    max-height: calc(100vh - 80px);
+    overflow-y: auto;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5);
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+    animation: mobileNavSlideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   }
+
   .secondary-nav.open {
-    display: block;
+    display: block !important;
   }
+
   .nav-inner {
     flex-direction: column;
-    padding: 16px 20px;
-    gap: 16px;
+    padding: 18px 18px 24px;
+    gap: 12px;
     align-items: flex-start;
   }
-  .nav-menu {
-    flex-direction: column;
-    gap: 8px;
+
+  /* Search input inside mobile drawer */
+  .mobile-drawer-search {
+    display: block;
+    width: 100%;
+    margin-bottom: 14px;
+  }
+
+  .mobile-search-form {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 30px;
+    padding: 4px 6px 4px 16px;
     width: 100%;
   }
+
+  .mobile-search-input {
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    font-size: 13.5px;
+    width: 100%;
+    outline: none;
+  }
+
+  .mobile-search-input::placeholder {
+    color: rgba(255, 255, 255, 0.65);
+  }
+
+  .mobile-search-btn {
+    background: var(--gold-light, #ffc73a);
+    color: #0a305d;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .mobile-search-btn svg {
+    stroke: #0a305d;
+  }
+
+  /* Quick action cards inside mobile drawer (Wishlist, Admin, Cart) */
+  .mobile-drawer-quick-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    width: 100%;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .mobile-quick-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 10px;
+    padding: 10px 4px;
+    color: #ffffff;
+    font-size: 11.5px;
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .mobile-quick-card:hover {
+    background: rgba(212, 175, 55, 0.2);
+    border-color: var(--gold-accent, #D4AF37);
+  }
+
+  .mobile-quick-card .cart-badge {
+    top: -5px;
+    right: -6px;
+    background-color: var(--gold-light, #ffc73a);
+    color: #0a305d;
+  }
+
+  /* Navigation Links inside mobile drawer */
+  .nav-menu {
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+  }
+
   .nav-item {
     width: 100%;
   }
+
   .nav-link-row {
     justify-content: space-between;
     width: 100%;
+    align-items: center;
   }
+
+  /* Hide duplicate chevron inside Link on mobile */
+  .dropdown-chevron {
+    display: none !important;
+  }
+
   .nav-menu li a {
     padding: 10px 0;
     width: 100%;
+    font-size: 13.5px;
+    color: #ffffff !important;
   }
+
+  .nav-menu li.active > .nav-link-row > a,
+  .nav-menu li.active > a,
+  .nav-menu li a:hover {
+    color: var(--gold-light, #ffc73a) !important;
+  }
+
+  /* Hide the active bottom indicator line inside mobile drawer */
+  .nav-menu li.active > .nav-link-row > a::after,
+  .nav-menu li.active > a::after {
+    display: none !important;
+  }
+
+  .mobile-dropdown-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: var(--gold-light, #ffc73a);
+    cursor: pointer;
+    transition: transform 0.25s ease, background 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .mobile-dropdown-toggle.open {
+    transform: rotate(180deg);
+    background: rgba(212, 175, 55, 0.3);
+    border-color: var(--gold-accent, #D4AF37);
+  }
+
   .mega-menu-wrapper {
     position: static;
     transform: none !important;
@@ -505,39 +746,89 @@
     opacity: 1;
     visibility: visible;
   }
+
   .mega-menu-wrapper.visible {
     display: block;
   }
+
   .mega-columns-grid {
     grid-template-columns: 1fr;
     gap: 16px;
   }
+
   .mega-col-heading {
     color: var(--gold-light, #ffc73a);
     border-bottom-color: rgba(255, 255, 255, 0.15);
   }
+
   .mega-item-link {
     color: #e2e8f0;
+    padding: 6px 0;
   }
+
   .mega-item-link:hover {
     color: #ffffff;
   }
+
   .mega-inner-title {
     color: #cbd5e1;
     border-bottom-color: rgba(255, 255, 255, 0.15);
   }
+
   .kids-subdept-badge {
     background: rgba(212, 175, 55, 0.2);
     color: var(--gold-light, #ffc73a);
     border-color: rgba(212, 175, 55, 0.4);
   }
+
   .mega-menu-footer {
     border-top-color: rgba(255, 255, 255, 0.15);
   }
+
   .mega-footer-link {
     color: var(--gold-light, #ffc73a);
   }
-  .header-search-container {
-    max-width: 260px;
+
+  .nav-contact-phone {
+    width: 100%;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+  }
+}
+
+@media (max-width: 380px) {
+  .brand-logo-img {
+    height: 34px;
+    max-width: 180px;
+  }
+
+  .header-inner {
+    padding: 0 12px;
+  }
+
+  .mobile-toggle-btn {
+    width: 38px;
+    height: 38px;
+  }
+
+  .mobile-quick-card {
+    font-size: 10.5px;
+    padding: 8px 2px;
+  }
+}
+
+@keyframes mobileNavFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes mobileNavSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
