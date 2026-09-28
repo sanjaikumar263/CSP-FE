@@ -251,6 +251,9 @@ export default function StoreProductListPage() {
   const [selectedOccasions, setSelectedOccasions] = useState([]);
   const [availability, setAvailability] = useState({ inStock: false, outOfStock: false });
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(8);
+  const [totalCount, setTotalCount] = useState(0);
+  const [serverTotalPages, setServerTotalPages] = useState(1);
 
   // Active filters count for badges
   const activeFiltersCount = useMemo(() => {
@@ -261,12 +264,44 @@ export default function StoreProductListPage() {
     return count;
   }, [selectedGender, selectedCategories, maxPrice]);
 
+  // Fetch catalog from API sending page number and product count/limit in payload
   useEffect(() => {
+    let isCancelled = false;
+
     const fetchCatalog = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`${API_BASE_URL}/products`);
+
+        const queryParams = new URLSearchParams();
+        queryParams.set('page', currentPage);
+        queryParams.set('limit', pageSize);
+        queryParams.set('count', pageSize);
+
+        if (searchVal.trim()) {
+          queryParams.set('search', searchVal.trim());
+        }
+        if (selectedGender && selectedGender !== 'All') {
+          queryParams.set('gender', selectedGender);
+        }
+        if (selectedCategories.length === 1) {
+          queryParams.set('category', selectedCategories[0]);
+        }
+        if (sortBy === 'price-low') {
+          queryParams.set('sort', 'price-low-high');
+        } else if (sortBy === 'price-high') {
+          queryParams.set('sort', 'price-high-low');
+        } else if (sortBy === 'newest') {
+          queryParams.set('sort', 'newest');
+        }
+        if (maxPrice < 1600) {
+          queryParams.set('maxPrice', maxPrice);
+        }
+
+        const res = await fetch(`${API_BASE_URL}/products?${queryParams.toString()}`);
         const data = await res.json();
+
+        if (isCancelled) return;
+
         if (res.ok && data.success && Array.isArray(data.data)) {
           const mapped = data.data.map((item, idx) => ({
             id: item._id || item.id || idx + 1,
@@ -283,19 +318,60 @@ export default function StoreProductListPage() {
             categories: item.categories || (item.category ? [item.category] : []),
             inStock: item.inStock ?? true
           }));
-          setCatalogItems(mapped);
+
+          const hasServerPagination = data.totalCount !== undefined || data.totalProducts !== undefined || data.totalPages !== undefined;
+
+          if (hasServerPagination) {
+            const total = data.totalCount ?? data.totalProducts ?? mapped.length;
+            const pages = data.totalPages ?? Math.max(1, Math.ceil(total / pageSize));
+            setCatalogItems(mapped);
+            setTotalCount(total);
+            setServerTotalPages(pages);
+          } else {
+            // Fallback if backend returned full array
+            setTotalCount(mapped.length);
+            const pages = Math.max(1, Math.ceil(mapped.length / pageSize));
+            setServerTotalPages(pages);
+            if (mapped.length > pageSize) {
+              const start = (currentPage - 1) * pageSize;
+              setCatalogItems(mapped.slice(start, start + pageSize));
+            } else {
+              setCatalogItems(mapped);
+            }
+          }
         } else {
           setCatalogItems([]);
+          setTotalCount(0);
+          setServerTotalPages(1);
         }
       } catch (err) {
         console.warn('Backend API connection error:', err);
-        setCatalogItems([]);
+        if (!isCancelled) {
+          setCatalogItems([]);
+          setTotalCount(0);
+          setServerTotalPages(1);
+        }
       } finally {
-        setLoading(false);
+        if (!isCancelled) {
+          setLoading(false);
+        }
       }
     };
+
     fetchCatalog();
-  }, []);
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [
+    currentPage,
+    pageSize,
+    selectedGender,
+    selectedCategories,
+    maxPrice,
+    searchVal,
+    sortBy
+  ]);
 
   useEffect(() => {
     setHeaderSearch(searchVal);
@@ -342,37 +418,33 @@ export default function StoreProductListPage() {
     setCategorySearchQuery('');
     setSearchParams({});
     setHeaderSearch('');
+    setCurrentPage(1);
   };
 
-  // Dynamic Filtering Logic
+  // Reset page when any filter, sorting, or page size changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [
+    selectedGender,
+    selectedCategories,
+    maxPrice,
+    selectedColor,
+    selectedOccasions,
+    availability,
+    searchVal,
+    categoryVal,
+    genderParam,
+    sortBy,
+    pageSize
+  ]);
+
+  // Dynamic Client-side Filtering Logic (for attributes like color, occasion, availability if needed)
   let filteredList = catalogItems.filter(item => {
-    // Header / URL search query
-    if (searchVal.trim()) {
-      const q = searchVal.toLowerCase().trim();
-      const matchName = item.name.toLowerCase().includes(q);
-      const matchCat = item.category.toLowerCase().includes(q);
-      if (!matchName && !matchCat) return false;
-    }
-
-    // Category filter
-    if (selectedCategories.length > 0) {
-      const matchesCategory = selectedCategories.some(cat => isProductInCategory(item, cat));
-      if (!matchesCategory) return false;
-    }
-
-    // Gender filter
-    if (selectedGender && selectedGender !== 'All') {
-      if (item.gender?.toLowerCase() !== selectedGender.toLowerCase()) return false;
-    }
-
-    // Price filter
-    if (item.price > maxPrice) return false;
-
     // Color filter
-    if (selectedColor && item.color.toLowerCase() !== selectedColor.toLowerCase()) return false;
+    if (selectedColor && item.color && item.color.toLowerCase() !== selectedColor.toLowerCase()) return false;
 
     // Occasion filter
-    if (selectedOccasions.length > 0 && !selectedOccasions.includes(item.occasion)) return false;
+    if (selectedOccasions.length > 0 && item.occasion && !selectedOccasions.includes(item.occasion)) return false;
 
     // Availability filter
     if (availability.inStock && !item.inStock) return false;
@@ -381,7 +453,7 @@ export default function StoreProductListPage() {
     return true;
   });
 
-  // Sorting Logic
+  // Sorting Logic (fallback if sorting wasn't handled by server)
   if (sortBy === 'price-low') {
     filteredList.sort((a, b) => a.price - b.price);
   } else if (sortBy === 'price-high') {
@@ -389,6 +461,37 @@ export default function StoreProductListPage() {
   } else if (sortBy === 'newest') {
     filteredList.sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0));
   }
+
+  // Pagination Calculations
+  const totalPages = serverTotalPages || Math.max(1, Math.ceil((totalCount || filteredList.length) / pageSize));
+  const validCurrentPage = totalPages > 0 ? Math.min(Math.max(1, currentPage), totalPages) : 1;
+  const startIndex = (validCurrentPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, totalCount || filteredList.length);
+  const paginatedList = filteredList;
+
+  const getPageNumbers = () => {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    if (validCurrentPage <= 4) {
+      return [1, 2, 3, 4, 5, '...', totalPages];
+    }
+    if (validCurrentPage >= totalPages - 3) {
+      return [1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+    }
+    return [1, '...', validCurrentPage - 1, validCurrentPage, validCurrentPage + 1, '...', totalPages];
+  };
+
+  const handlePageChange = (page) => {
+    if (page < 1 || page > totalPages || page === validCurrentPage) return;
+    setCurrentPage(page);
+    const targetElement = document.querySelector('.catalog-top-bar') || document.querySelector('.catalog-main-wrap');
+    if (targetElement) {
+      targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      window.scrollTo({ top: 350, behavior: 'smooth' });
+    }
+  };
 
   const pageTitle = searchVal
     ? `Search Results for "${searchVal}"`
@@ -412,7 +515,7 @@ export default function StoreProductListPage() {
               {searchVal ? `"${searchVal}"` : pageTitle}
             </h2>
             <p className="banner-sub-count">
-              Showing {filteredList.length} results {searchVal ? `for ${searchVal}` : ''}
+              Showing {(totalCount || filteredList.length) === 0 ? 0 : `${startIndex + 1}–${endIndex}`} of {totalCount || filteredList.length} results {searchVal ? `for "${searchVal}"` : ''}
             </p>
           </div>
 
@@ -438,6 +541,24 @@ export default function StoreProductListPage() {
                 <option value="price-low">Price: Low to High</option>
                 <option value="price-high">Price: High to Low</option>
                 <option value="newest">Newest Arrivals</option>
+              </select>
+            </div>
+
+            <div className="sort-box">
+              <label>Show:</label>
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="sort-select"
+                aria-label="Items per page"
+              >
+                <option value={8}>8 per page</option>
+                <option value={12}>12 per page</option>
+                <option value={24}>24 per page</option>
+                <option value={48}>48 per page</option>
               </select>
             </div>
 
@@ -771,9 +892,9 @@ export default function StoreProductListPage() {
           <main className="product-grid-main">
             {loading ? (
               <Loader message="Fetching latest collection from database..." />
-            ) : filteredList.length > 0 ? (
+            ) : paginatedList.length > 0 ? (
               <div className="store-products-grid">
-                {filteredList.map((prod) => (
+                {paginatedList.map((prod) => (
                   <div key={prod.id} className="store-product-card">
                     <div className="card-image-box">
                       {prod.isNew && <span className="badge-new">NEW</span>}
@@ -839,28 +960,44 @@ export default function StoreProductListPage() {
             )}
 
             {/* Pagination Controls */}
-            <div className="catalog-pagination">
-              <button className="page-nav-btn" disabled>‹</button>
-              <button
-                className={`page-num-btn ${currentPage === 1 ? 'active' : ''}`}
-                onClick={() => setCurrentPage(1)}
-              >
-                1
-              </button>
-              <button
-                className={`page-num-btn ${currentPage === 2 ? 'active' : ''}`}
-                onClick={() => setCurrentPage(2)}
-              >
-                2
-              </button>
-              <button
-                className={`page-num-btn ${currentPage === 3 ? 'active' : ''}`}
-                onClick={() => setCurrentPage(3)}
-              >
-                3
-              </button>
-              <button className="page-nav-btn">›</button>
-            </div>
+            {totalPages > 1 && (
+              <div className="catalog-pagination">
+                <button
+                  className="page-nav-btn"
+                  disabled={validCurrentPage === 1}
+                  onClick={() => handlePageChange(validCurrentPage - 1)}
+                  aria-label="Previous Page"
+                  title="Previous Page"
+                >
+                  ‹
+                </button>
+                {getPageNumbers().map((item, idx) =>
+                  item === '...' ? (
+                    <span key={`dots-${idx}`} className="page-dots">
+                      …
+                    </span>
+                  ) : (
+                    <button
+                      key={item}
+                      className={`page-num-btn ${validCurrentPage === item ? 'active' : ''}`}
+                      onClick={() => handlePageChange(item)}
+                      aria-label={`Go to page ${item}`}
+                    >
+                      {item}
+                    </button>
+                  )
+                )}
+                <button
+                  className="page-nav-btn"
+                  disabled={validCurrentPage === totalPages}
+                  onClick={() => handlePageChange(validCurrentPage + 1)}
+                  aria-label="Next Page"
+                  title="Next Page"
+                >
+                  ›
+                </button>
+              </div>
+            )}
           </main>
         </div>
       </div>

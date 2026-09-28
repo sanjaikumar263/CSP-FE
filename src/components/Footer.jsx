@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import logoSvg from '../assets/hero_logo.svg';
+import logoSvg from '../assets/hero_logo_white.svg';
 import { API_BASE_URL } from '../config';
 import './Footer.css';
 

@@ -688,7 +688,7 @@
   box-sizing: border-box;
 }
 
-.pd-add-to-cart-btn:hover {
+.pd-add-to-cart-btn:hover:not(:disabled) {
   background-color: #e5e7eb;
   border-color: #9ca3af;
   color: #000000;
@@ -721,14 +721,22 @@
   box-shadow: 0 2px 6px rgba(10, 48, 93, 0.2);
 }
 
-.pd-buy-now-btn:hover {
+.pd-buy-now-btn:hover:not(:disabled) {
   background-color: var(--maroon-hover, #1f3a68);
   border-color: var(--maroon-hover, #1f3a68);
   box-shadow: 0 4px 12px rgba(10, 48, 93, 0.3);
 }
 
-.pd-buy-now-btn:active,
-.pd-add-to-cart-btn:active {
+.pd-buy-now-btn:disabled,
+.pd-add-to-cart-btn:disabled {
+  cursor: not-allowed !important;
+  opacity: 0.65 !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.pd-buy-now-btn:active:not(:disabled),
+.pd-add-to-cart-btn:active:not(:disabled) {
   transform: translateY(1px);
 }
 

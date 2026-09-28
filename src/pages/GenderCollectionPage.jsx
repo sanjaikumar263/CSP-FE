@@ -57,7 +57,12 @@ export default function GenderCollectionPage() {
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'All');
   const [priceSort, setPriceSort] = useState('newest');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(8);
   const { isWishlisted, toggleWishlist } = useWishlist();
+
+  const [totalCount, setTotalCount] = useState(0);
+  const [serverTotalPages, setServerTotalPages] = useState(1);
 
   useEffect(() => {
     if (genderType) {
@@ -73,27 +78,81 @@ export default function GenderCollectionPage() {
     setSelectedCategory(cat || 'All');
   }, [searchParams]);
 
-  // Fetch full catalog once on mount
+  // Fetch catalog with pagination query payload
   useEffect(() => {
+    let isCancelled = false;
+
     const fetchCatalog = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`${API_BASE_URL}/products`);
+
+        const queryParams = new URLSearchParams();
+        queryParams.set('page', currentPage);
+        queryParams.set('limit', pageSize);
+        queryParams.set('count', pageSize);
+
+        if (selectedGender !== 'all') {
+          queryParams.set('gender', selectedGender);
+        }
+        if (selectedCategory !== 'All') {
+          queryParams.set('category', selectedCategory);
+        }
+        if (searchQuery.trim()) {
+          queryParams.set('search', searchQuery.trim());
+        }
+        if (priceSort === 'price-low-high') {
+          queryParams.set('sort', 'price-low-high');
+        } else if (priceSort === 'price-high-low') {
+          queryParams.set('sort', 'price-high-low');
+        } else if (priceSort === 'newest') {
+          queryParams.set('sort', 'newest');
+        }
+
+        const res = await fetch(`${API_BASE_URL}/products?${queryParams.toString()}`);
         const data = await res.json();
+
+        if (isCancelled) return;
+
         if (res.ok && data.success && Array.isArray(data.data)) {
-          setAllProducts(data.data);
+          const hasServerPagination = data.totalCount !== undefined || data.totalProducts !== undefined || data.totalPages !== undefined;
+          if (hasServerPagination) {
+            const total = data.totalCount ?? data.totalProducts ?? data.data.length;
+            const pages = data.totalPages ?? Math.max(1, Math.ceil(total / pageSize));
+            setAllProducts(data.data);
+            setTotalCount(total);
+            setServerTotalPages(pages);
+          } else {
+            // Fallback for non-paginated backend response
+            setTotalCount(data.data.length);
+            const pages = Math.max(1, Math.ceil(data.data.length / pageSize));
+            setServerTotalPages(pages);
+            setAllProducts(data.data);
+          }
         } else {
           setAllProducts([]);
+          setTotalCount(0);
+          setServerTotalPages(1);
         }
       } catch (err) {
         console.warn('API error fetching gender products:', err);
-        setAllProducts([]);
+        if (!isCancelled) {
+          setAllProducts([]);
+          setTotalCount(0);
+          setServerTotalPages(1);
+        }
       } finally {
-        setLoading(false);
+        if (!isCancelled) {
+          setLoading(false);
+        }
       }
     };
+
     fetchCatalog();
-  }, []);
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [selectedGender, selectedCategory, searchQuery, priceSort, currentPage, pageSize]);
 
   // Products belonging to the selected collection/gender
   const genderProducts = useMemo(() => {
@@ -141,6 +200,44 @@ export default function GenderCollectionPage() {
 
     return list;
   }, [genderProducts, selectedCategory, searchQuery, priceSort]);
+
+  // Reset page when gender, category, search, or sort changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedGender, selectedCategory, searchQuery, priceSort, pageSize]);
+
+  // Pagination Calculations
+  const totalPages = serverTotalPages || Math.max(1, Math.ceil((totalCount || displayedProducts.length) / pageSize));
+  const validCurrentPage = totalPages > 0 ? Math.min(Math.max(1, currentPage), totalPages) : 1;
+  const startIndex = (validCurrentPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, totalCount || displayedProducts.length);
+  const paginatedProducts = (serverTotalPages > 1 && allProducts.length <= pageSize)
+    ? displayedProducts
+    : displayedProducts.slice(startIndex, endIndex);
+
+  const getPageNumbers = () => {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    }
+    if (validCurrentPage <= 4) {
+      return [1, 2, 3, 4, 5, '...', totalPages];
+    }
+    if (validCurrentPage >= totalPages - 3) {
+      return [1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+    }
+    return [1, '...', validCurrentPage - 1, validCurrentPage, validCurrentPage + 1, '...', totalPages];
+  };
+
+  const handlePageChange = (page) => {
+    if (page < 1 || page > totalPages || page === validCurrentPage) return;
+    setCurrentPage(page);
+    const targetElement = document.querySelector('.gp-controls-bar') || document.querySelector('.gp-product-grid');
+    if (targetElement) {
+      targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      window.scrollTo({ top: 350, behavior: 'smooth' });
+    }
+  };
 
   const handleGenderTabChange = (g) => {
     setSelectedGender(g);
@@ -271,6 +368,22 @@ export default function GenderCollectionPage() {
               <option value="price-high-low">Price: High to Low</option>
             </select>
           </div>
+
+          <div className="gp-sort-box">
+            <label htmlFor="gpPageSizeSelect">Show:</label>
+            <select
+              id="gpPageSizeSelect"
+              value={pageSize}
+              onChange={e => {
+                setPageSize(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+            >
+              <option value={8}>8 per page</option>
+              <option value={12}>12 per page</option>
+              <option value={24}>24 per page</option>
+            </select>
+          </div>
         </div>
 
         {/* Product Grid */}
@@ -286,53 +399,95 @@ export default function GenderCollectionPage() {
             </button>
           </div>
         ) : (
-          <div className="gp-product-grid">
-            {displayedProducts.map(product => (
-              <div key={product._id || product.id} className="gp-product-card">
-                <div className="gp-card-image-wrap">
-                  <SafeImage
-                    src={product.image || product.images?.[0] || placeholderSvg}
-                    alt={product.name}
-                    className="gp-card-img"
-                  />
-                  <div className="gp-gender-badge">{product.gender || 'Women'}</div>
-                  {product.isNewProduct && <div className="gp-new-tag">NEW</div>}
+          <>
+            <div className="gp-product-grid">
+              {paginatedProducts.map(product => (
+                <div key={product._id || product.id} className="gp-product-card">
+                  <div className="gp-card-image-wrap">
+                    <SafeImage
+                      src={product.image || product.images?.[0] || placeholderSvg}
+                      alt={product.name}
+                      className="gp-card-img"
+                    />
+                    <div className="gp-gender-badge">{product.gender || 'Women'}</div>
+                    {product.isNewProduct && <div className="gp-new-tag">NEW</div>}
 
-                  <button
-                    className={`gp-wishlist-btn ${isWishlisted(product._id || product.id) ? 'active' : ''}`}
-                    onClick={() => toggleWishlist(product)}
-                    title={isWishlisted(product._id || product.id) ? "Remove from wishlist" : "Add to wishlist"}
-                  >
-                    ♥
-                  </button>
-                </div>
+                    <button
+                      className={`gp-wishlist-btn ${isWishlisted(product._id || product.id) ? 'active' : ''}`}
+                      onClick={() => toggleWishlist(product)}
+                      title={isWishlisted(product._id || product.id) ? "Remove from wishlist" : "Add to wishlist"}
+                    >
+                      ♥
+                    </button>
+                  </div>
 
-                <div className="gp-card-details">
-                  <span className="gp-card-category">{product.category || 'Traditional'}</span>
-                  <h3 className="gp-card-title">
-                    <Link to={`/product/${product._id || product.id}`}>{product.name}</Link>
-                  </h3>
+                  <div className="gp-card-details">
+                    <span className="gp-card-category">{product.category || 'Traditional'}</span>
+                    <h3 className="gp-card-title">
+                      <Link to={`/product/${product._id || product.id}`}>{product.name}</Link>
+                    </h3>
 
-                  <div className="gp-card-price-row">
-                    <span className="gp-current-price">
-                      {product.currency || 'MYR'} {typeof product.price === 'number' ? product.price.toFixed(2) : product.price}
-                    </span>
-                    {product.originalPrice && (
-                      <span className="gp-original-price">
-                        {product.currency || 'MYR'} {product.originalPrice.toFixed(2)}
+                    <div className="gp-card-price-row">
+                      <span className="gp-current-price">
+                        {product.currency || 'MYR'} {typeof product.price === 'number' ? product.price.toFixed(2) : product.price}
                       </span>
-                    )}
-                  </div>
+                      {product.originalPrice && (
+                        <span className="gp-original-price">
+                          {product.currency || 'MYR'} {product.originalPrice.toFixed(2)}
+                        </span>
+                      )}
+                    </div>
 
-                  <div className="gp-card-actions">
-                    <Link to={`/product/${product._id || product.id}`} className="gp-btn-view">
-                      View Details
-                    </Link>
+                    <div className="gp-card-actions">
+                      <Link to={`/product/${product._id || product.id}`} className="gp-btn-view">
+                        View Details
+                      </Link>
+                    </div>
                   </div>
                 </div>
+              ))}
+            </div>
+
+            {/* Gender Collection Pagination */}
+            {totalPages > 1 && (
+              <div className="gp-pagination">
+                <button
+                  className="gp-page-nav-btn"
+                  disabled={validCurrentPage === 1}
+                  onClick={() => handlePageChange(validCurrentPage - 1)}
+                  aria-label="Previous Page"
+                  title="Previous Page"
+                >
+                  ‹
+                </button>
+                {getPageNumbers().map((item, idx) =>
+                  item === '...' ? (
+                    <span key={`gp-dots-${idx}`} className="gp-page-dots">
+                      …
+                    </span>
+                  ) : (
+                    <button
+                      key={item}
+                      className={`gp-page-num-btn ${validCurrentPage === item ? 'active' : ''}`}
+                      onClick={() => handlePageChange(item)}
+                      aria-label={`Go to page ${item}`}
+                    >
+                      {item}
+                    </button>
+                  )
+                )}
+                <button
+                  className="gp-page-nav-btn"
+                  disabled={validCurrentPage === totalPages}
+                  onClick={() => handlePageChange(validCurrentPage + 1)}
+                  aria-label="Next Page"
+                  title="Next Page"
+                >
+                  ›
+                </button>
               </div>
-            ))}
-          </div>
+            )}
+          </>
         )}
       </main>
 
