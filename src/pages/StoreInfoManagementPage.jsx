@@ -35,6 +35,7 @@ export default function StoreInfoManagementPage() {
     facebook: '#facebook',
     instagram: '#instagram',
     youtube: '#youtube',
+    tiktok: 'https://www.tiktok.com/@chennaisilkpalace.klang',
 
     // About Us Content
     heroSubtitleTag: 'ABOUT CHENNAI SILK PALACE',
@@ -98,7 +99,8 @@ export default function StoreInfoManagementPage() {
       if (res.ok && data.success && data.data) {
         setFormData(prev => ({
           ...prev,
-          ...data.data
+          ...data.data,
+          tiktok: data.data.tiktok || prev.tiktok || 'https://www.tiktok.com/@chennaisilkpalace.klang'
         }));
       }
     } catch (err) {
@@ -488,6 +490,17 @@ export default function StoreInfoManagementPage() {
                       className="form-input-text"
                       value={formData.youtube}
                       onChange={(e) => setFormData({ ...formData, youtube: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="form-field-wrapper">
+                    <label>TikTok Profile Link</label>
+                    <input
+                      type="text"
+                      className="form-input-text"
+                      value={formData.tiktok || ''}
+                      onChange={(e) => setFormData({ ...formData, tiktok: e.target.value })}
+                      placeholder="https://www.tiktok.com/@chennaisilkpalace.klang"
                     />
                   </div>
                 </div>

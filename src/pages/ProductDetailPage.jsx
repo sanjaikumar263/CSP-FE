@@ -21,6 +21,26 @@ export default function ProductDetailPage() {
   const [loading, setLoading] = useState(true);
   const [isZoomOpen, setIsZoomOpen] = useState(false);
   const [zoomScale, setZoomScale] = useState(1);
+  const [isMainHovered, setIsMainHovered] = useState(false);
+  const [mainHoverPos, setMainHoverPos] = useState({ x: 50, y: 50 });
+  const [isModalHovered, setIsModalHovered] = useState(false);
+  const [modalHoverPos, setModalHoverPos] = useState({ x: 50, y: 50 });
+  const [modalZoomLevel, setModalZoomLevel] = useState(2.5);
+  const [isZoomLocked, setIsZoomLocked] = useState(false);
+
+  const handleMainMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+    const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
+    setMainHoverPos({ x, y });
+  };
+
+  const handleModalMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+    const y = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
+    setModalHoverPos({ x, y });
+  };
   const [cartFeedback, setCartFeedback] = useState(false);
 
   const handleAddToCart = () => {
@@ -95,6 +115,9 @@ export default function ProductDetailPage() {
   useEffect(() => {
     if (!isZoomOpen) {
       setZoomScale(1);
+      setIsModalHovered(false);
+      setIsZoomLocked(false);
+      setModalHoverPos({ x: 50, y: 50 });
       return;
     }
 
@@ -260,15 +283,37 @@ export default function ProductDetailPage() {
             )}
 
             <div
-              className="pd-main-image-wrapper"
+              className={`pd-main-image-wrapper ${isMainHovered ? 'is-hover-zoomed' : ''}`}
               onClick={() => setIsZoomOpen(true)}
-              title="Click to zoom image"
+              onMouseEnter={() => setIsMainHovered(true)}
+              onMouseLeave={() => {
+                setIsMainHovered(false);
+                setMainHoverPos({ x: 50, y: 50 });
+              }}
+              onMouseMove={handleMainMouseMove}
+              title="Hover to zoom • Click for full screen"
             >
               <SafeImage
                 src={product.images?.[selectedImage] || product.images?.[0] || placeholderSvg}
                 alt={product.title}
                 className="pd-main-image"
+                style={{
+                  transformOrigin: `${mainHoverPos.x}% ${mainHoverPos.y}%`,
+                  transform: isMainHovered ? 'scale(2.2)' : 'scale(1)',
+                  cursor: isMainHovered ? 'crosshair' : 'zoom-in'
+                }}
               />
+              {!isMainHovered && (
+                <div className="pd-main-hover-hint">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    <line x1="11" y1="8" x2="11" y2="14"></line>
+                    <line x1="8" y1="11" x2="14" y2="11"></line>
+                  </svg>
+                  <span>Hover to Zoom</span>
+                </div>
+              )}
               {/* Floating Wishlist Button on Top-Right of Main Product Image */}
               <button
                 type="button"
@@ -586,7 +631,9 @@ export default function ProductDetailPage() {
         <div
           className="pd-zoom-modal-backdrop"
           onClick={(e) => {
-            if (e.target === e.currentTarget) setIsZoomOpen(false);
+            if (e.target.classList.contains('pd-zoom-modal-backdrop') || e.target.classList.contains('pd-zoom-stage')) {
+              setIsZoomOpen(false);
+            }
           }}
         >
           {/* Header Controls */}
@@ -596,15 +643,31 @@ export default function ProductDetailPage() {
                 ? `${selectedImage + 1} / ${product.images.length}`
                 : product.title}
             </div>
+
+            <div className="pd-zoom-hint-badge">
+              <span className="pd-hint-pulse"></span>
+              <span>Hover image to zoom • Move cursor to inspect details</span>
+            </div>
+
             <div className="pd-zoom-controls">
-              <button
-                type="button"
-                className="pd-zoom-scale-btn"
-                onClick={() => setZoomScale((s) => (s === 1 ? 2 : 1))}
-                title={zoomScale === 1 ? 'Zoom In (2x)' : 'Reset Zoom'}
-              >
-                {zoomScale === 1 ? '🔍+ 2x' : '🔍− 1x'}
-              </button>
+              <div className="pd-zoom-level-toggle" title="Zoom magnification on hover">
+                <span className="pd-zoom-toggle-label">Scale:</span>
+                {[1.8, 2.5, 3.2].map((lvl) => (
+                  <button
+                    key={lvl}
+                    type="button"
+                    className={`pd-zoom-lvl-btn ${modalZoomLevel === lvl ? 'active' : ''}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setModalZoomLevel(lvl);
+                    }}
+                    title={`Set zoom scale to ${lvl}x`}
+                  >
+                    {lvl}x
+                  </button>
+                ))}
+              </div>
+
               <button
                 type="button"
                 className="pd-zoom-close-btn"
@@ -618,10 +681,7 @@ export default function ProductDetailPage() {
           </div>
 
           {/* Main Zoomed Image Stage */}
-          <div
-            className="pd-zoom-stage"
-            onClick={() => setZoomScale((s) => (s === 1 ? 2 : 1))}
-          >
+          <div className="pd-zoom-stage">
             {product.images.length > 1 && (
               <button
                 type="button"
@@ -629,7 +689,8 @@ export default function ProductDetailPage() {
                 onClick={(e) => {
                   e.stopPropagation();
                   setSelectedImage((prev) => (prev - 1 + product.images.length) % product.images.length);
-                  setZoomScale(1);
+                  setIsModalHovered(false);
+                  setIsZoomLocked(false);
                 }}
                 aria-label="Previous Image"
               >
@@ -637,16 +698,41 @@ export default function ProductDetailPage() {
               </button>
             )}
 
-            <div className={`pd-zoom-image-container ${zoomScale > 1 ? 'zoomed-in' : ''}`}>
+            <div
+              className={`pd-zoom-image-container ${isModalHovered || isZoomLocked ? 'is-zoomed' : ''}`}
+              onMouseEnter={() => setIsModalHovered(true)}
+              onMouseLeave={() => {
+                if (!isZoomLocked) {
+                  setIsModalHovered(false);
+                  setModalHoverPos({ x: 50, y: 50 });
+                }
+              }}
+              onMouseMove={handleModalMouseMove}
+              onClick={() => setIsZoomLocked((prev) => !prev)}
+              title={isZoomLocked ? 'Click to unlock hover zoom' : 'Hover to inspect • Click to lock zoom'}
+            >
               <SafeImage
                 src={product.images?.[selectedImage] || product.images?.[0] || placeholderSvg}
                 alt={product.title}
                 className="pd-zoom-image"
                 style={{
-                  transform: `scale(${zoomScale})`,
-                  cursor: zoomScale === 1 ? 'zoom-in' : 'zoom-out'
+                  transformOrigin: `${modalHoverPos.x}% ${modalHoverPos.y}%`,
+                  transform: isModalHovered || isZoomLocked ? `scale(${modalZoomLevel})` : 'scale(1)',
+                  cursor: isZoomLocked ? 'zoom-out' : isModalHovered ? 'crosshair' : 'zoom-in'
                 }}
               />
+
+              {!isModalHovered && !isZoomLocked && (
+                <div className="pd-zoom-floating-tag">
+                  🔍 Hover to Zoom ({modalZoomLevel}x)
+                </div>
+              )}
+
+              {isZoomLocked && (
+                <div className="pd-zoom-locked-tag">
+                  🔒 Zoom Locked • Click to Unlock
+                </div>
+              )}
             </div>
 
             {product.images.length > 1 && (
@@ -656,7 +742,8 @@ export default function ProductDetailPage() {
                 onClick={(e) => {
                   e.stopPropagation();
                   setSelectedImage((prev) => (prev + 1) % product.images.length);
-                  setZoomScale(1);
+                  setIsModalHovered(false);
+                  setIsZoomLocked(false);
                 }}
                 aria-label="Next Image"
               >
@@ -674,7 +761,8 @@ export default function ProductDetailPage() {
                   className={`pd-zoom-thumb-item ${selectedImage === idx ? 'active' : ''}`}
                   onClick={() => {
                     setSelectedImage(idx);
-                    setZoomScale(1);
+                    setIsModalHovered(false);
+                    setIsZoomLocked(false);
                   }}
                 >
                   <SafeImage src={img} alt={`Thumb ${idx + 1}`} />
