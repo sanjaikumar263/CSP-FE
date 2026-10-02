@@ -29,7 +29,31 @@ export default function StoreInfoManagementPage() {
     altPhone: '+60 3 3372 7272',
     email: 'info@chennaisilkpalace.com',
     supportEmail: 'support@chennaisilkpalace.com',
-    address: 'No. 1, Jalan Sultan Iskandar, 30000 Ipoh, Perak, Malaysia.',
+    address: 'No. 1, Jalan Istana, 41000 Klang, Selangor, Malaysia.',
+    mapLink: 'https://share.google/v2s1iwCkuPDMbaNlb',
+    branches: [
+      {
+        name: 'Main Branch (Klang Showroom)',
+        address: 'No. 1, Jalan Istana, 41000 Klang, Selangor, Malaysia.',
+        phone: '03 3372 7272',
+        mapLink: 'https://share.google/v2s1iwCkuPDMbaNlb',
+        isMain: true
+      },
+      {
+        name: 'Ipoh Branch',
+        address: 'No. 1, Jalan Sultan Iskandar, 30000 Ipoh, Perak, Malaysia.',
+        phone: '05-255 7272',
+        mapLink: 'https://share.google/cbemCGPSZvcpPJozh',
+        isMain: false
+      },
+      {
+        name: 'Penang Branch',
+        address: 'No. 28, Lebuh Penang, 10200 Pulau Pinang, Malaysia.',
+        phone: '04-250 2727',
+        mapLink: 'https://share.google/CeE1plmidX9YXdG5y',
+        isMain: false
+      }
+    ],
     businessHours: 'Daily: 10:00 AM - 9:30 PM',
     whatsapp: '+60123456789',
     facebook: '#facebook',
@@ -100,6 +124,10 @@ export default function StoreInfoManagementPage() {
         setFormData(prev => ({
           ...prev,
           ...data.data,
+          mapLink: data.data.mapLink || prev.mapLink || 'https://share.google/v2s1iwCkuPDMbaNlb',
+          branches: (Array.isArray(data.data.branches) && data.data.branches.length > 0)
+            ? data.data.branches
+            : prev.branches,
           tiktok: data.data.tiktok || prev.tiktok || 'https://www.tiktok.com/@chennaisilkpalace.klang'
         }));
       }
@@ -304,6 +332,46 @@ export default function StoreInfoManagementPage() {
     }
   };
 
+  const handleBranchChange = (index, field, value) => {
+    const updated = [...(formData.branches || [])];
+    if (updated[index]) {
+      updated[index] = { ...updated[index], [field]: value };
+      setFormData(prev => ({ ...prev, branches: updated }));
+    }
+  };
+
+  const handleAddBranch = () => {
+    const newBranch = {
+      name: `Branch ${(formData.branches || []).length + 1}`,
+      address: '',
+      phone: '',
+      mapLink: '',
+      isMain: false
+    };
+    setFormData(prev => ({ ...prev, branches: [...(prev.branches || []), newBranch] }));
+  };
+
+  const handleRemoveBranch = (index) => {
+    if (!window.confirm('Are you sure you want to remove this branch showroom?')) return;
+    const updated = [...(formData.branches || [])];
+    updated.splice(index, 1);
+    setFormData(prev => ({ ...prev, branches: updated }));
+  };
+
+  const handleSetMainBranch = (index) => {
+    const updated = (formData.branches || []).map((b, i) => ({
+      ...b,
+      isMain: i === index
+    }));
+    const target = updated[index];
+    setFormData(prev => ({
+      ...prev,
+      branches: updated,
+      mapLink: target.mapLink || prev.mapLink,
+      address: target.address || prev.address
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -440,6 +508,30 @@ export default function StoreInfoManagementPage() {
                   </div>
 
                   <div className="form-field-wrapper form-group-full">
+                    <label>Main Store Google Maps Link</label>
+                    <div className="input-with-action-btn">
+                      <input
+                        type="url"
+                        className="form-input-text"
+                        placeholder="https://share.google/... or Google Maps URL"
+                        value={formData.mapLink || ''}
+                        onChange={(e) => setFormData({ ...formData, mapLink: e.target.value })}
+                      />
+                      {formData.mapLink && (
+                        <a
+                          href={formData.mapLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="test-link-btn"
+                          title="Open map link in new tab"
+                        >
+                          Test Map ↗
+                        </a>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="form-field-wrapper form-group-full">
                     <label>Daily Business Hours</label>
                     <input
                       type="text"
@@ -450,7 +542,7 @@ export default function StoreInfoManagementPage() {
                   </div>
                 </div>
 
-                <h3 className="section-form-title" style={{ marginTop: '24px' }}>Social Media & Messaging Links</h3>
+                <h3 className="section-form-title" style={{ marginTop: '28px' }}>Social Media &amp; Messaging Links</h3>
 
                 <div className="form-grid-2">
                   <div className="form-field-wrapper">
@@ -502,6 +594,122 @@ export default function StoreInfoManagementPage() {
                       onChange={(e) => setFormData({ ...formData, tiktok: e.target.value })}
                       placeholder="https://www.tiktok.com/@chennaisilkpalace.klang"
                     />
+                  </div>
+                </div>
+
+                {/* Showrooms & Branch Locations Admin Section */}
+                <div className="branches-section-wrapper" style={{ marginTop: '36px' }}>
+                  <div className="section-header-row">
+                    <div>
+                      <h3 className="section-form-title" style={{ margin: 0, border: 'none', padding: 0 }}>
+                        Store Showrooms &amp; Branch Locations (Google Maps)
+                      </h3>
+                      <p className="section-form-subtitle" style={{ margin: '4px 0 0', color: '#64748B', fontSize: '13px' }}>
+                        Manage branch locations, phone numbers, and Google Maps direct links displayed in the Footer and About Us page.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      className="add-branch-btn"
+                      onClick={handleAddBranch}
+                    >
+                      + Add Branch Location
+                    </button>
+                  </div>
+
+                  <div className="branches-admin-list" style={{ marginTop: '16px' }}>
+                    {(formData.branches || []).map((branch, bIdx) => (
+                      <div key={bIdx} className={`branch-admin-card ${branch.isMain ? 'is-main-card' : ''}`}>
+                        <div className="branch-admin-card-header">
+                          <div className="branch-admin-title-wrap">
+                            <span className="branch-admin-num">#{bIdx + 1}</span>
+                            <strong className="branch-admin-name-display">{branch.name || 'Untitled Branch'}</strong>
+                            {branch.isMain ? (
+                              <span className="branch-admin-main-badge">★ MAIN SHOWROOM</span>
+                            ) : null}
+                          </div>
+                          <div className="branch-admin-header-actions">
+                            {!branch.isMain && (
+                              <button
+                                type="button"
+                                className="set-main-btn"
+                                onClick={() => handleSetMainBranch(bIdx)}
+                                title="Mark this as Main Showroom"
+                              >
+                                ★ Set as Main
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              className="remove-branch-btn"
+                              onClick={() => handleRemoveBranch(bIdx)}
+                              title="Delete this branch"
+                            >
+                              ✕ Delete
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="form-grid-2" style={{ marginTop: '14px' }}>
+                          <div className="form-field-wrapper">
+                            <label>Branch Showroom Name</label>
+                            <input
+                              type="text"
+                              className="form-input-text"
+                              value={branch.name || ''}
+                              onChange={(e) => handleBranchChange(bIdx, 'name', e.target.value)}
+                              placeholder="e.g. Klang (Main Showroom), Ipoh Branch, Penang Branch"
+                            />
+                          </div>
+
+                          <div className="form-field-wrapper">
+                            <label>Branch Phone Number</label>
+                            <input
+                              type="text"
+                              className="form-input-text"
+                              value={branch.phone || ''}
+                              onChange={(e) => handleBranchChange(bIdx, 'phone', e.target.value)}
+                              placeholder="e.g. 03 3372 7272"
+                            />
+                          </div>
+
+                          <div className="form-field-wrapper form-group-full">
+                            <label>Showroom Physical Address</label>
+                            <input
+                              type="text"
+                              className="form-input-text"
+                              value={branch.address || ''}
+                              onChange={(e) => handleBranchChange(bIdx, 'address', e.target.value)}
+                              placeholder="Full address of this showroom"
+                            />
+                          </div>
+
+                          <div className="form-field-wrapper form-group-full">
+                            <label>Google Maps Location Link</label>
+                            <div className="input-with-action-btn">
+                              <input
+                                type="url"
+                                className="form-input-text"
+                                value={branch.mapLink || ''}
+                                onChange={(e) => handleBranchChange(bIdx, 'mapLink', e.target.value)}
+                                placeholder="https://share.google/... or Google Maps URL"
+                              />
+                              {branch.mapLink && (
+                                <a
+                                  href={branch.mapLink}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="test-link-btn"
+                                  title="Test this map link in new tab"
+                                >
+                                  Test Map ↗
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>

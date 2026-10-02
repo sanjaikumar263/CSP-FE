@@ -8,7 +8,28 @@ export default function Footer() {
   const [storeInfo, setStoreInfo] = useState({
     phone: '03 33727272',
     email: 'info@chennaisilkpalace.com',
-    address: 'No. 1, Jalan Sultan Iskandar, 30000 Ipoh, Perak, Malaysia.',
+    address: 'No. 1, Jalan Istana, 41000 Klang, Selangor, Malaysia.',
+    mapLink: 'https://share.google/v2s1iwCkuPDMbaNlb',
+    branches: [
+      {
+        name: 'Klang (Main Showroom)',
+        address: 'No. 1, Jalan Istana, 41000 Klang, Selangor, Malaysia.',
+        mapLink: 'https://share.google/v2s1iwCkuPDMbaNlb',
+        isMain: true
+      },
+      {
+        name: 'Ipoh Branch',
+        address: 'No. 1, Jalan Sultan Iskandar, 30000 Ipoh, Perak, Malaysia.',
+        mapLink: 'https://share.google/cbemCGPSZvcpPJozh',
+        isMain: false
+      },
+      {
+        name: 'Penang Branch',
+        address: 'No. 28, Lebuh Penang, 10200 Pulau Pinang, Malaysia.',
+        mapLink: 'https://share.google/CeE1plmidX9YXdG5y',
+        isMain: false
+      }
+    ],
     footerAboutText: 'Your ultimate destination for exquisite silk sarees and traditional Indian wear. Experience timeless elegance, handcrafted with passion.',
     facebook: '',
     instagram: '',
@@ -26,6 +47,10 @@ export default function Footer() {
           setStoreInfo(prev => ({
             ...prev,
             ...data.data,
+            mapLink: data.data.mapLink || prev.mapLink,
+            branches: (Array.isArray(data.data.branches) && data.data.branches.length > 0)
+              ? data.data.branches
+              : prev.branches,
             tiktok: data.data.tiktok || prev.tiktok || 'https://www.tiktok.com/@chennaisilkpalace.klang'
           }));
         }
@@ -76,8 +101,43 @@ export default function Footer() {
             <div className="footer-contact-info">
               <p>📞 {storeInfo.phone}</p>
               <p>✉️ {storeInfo.email}</p>
-              <p>📍 {storeInfo.address}</p>
+              <p>
+                <a
+                  href={storeInfo.mapLink || 'https://share.google/v2s1iwCkuPDMbaNlb'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="footer-map-link"
+                  title="View Main Branch on Google Maps"
+                >
+                  📍 {storeInfo.address}
+                  <span className="footer-map-badge">View Map ↗</span>
+                </a>
+              </p>
             </div>
+
+            {/* Store Branches & Map Locations */}
+            {storeInfo.branches && storeInfo.branches.length > 0 && (
+              <div className="footer-branches-block">
+                <span className="footer-branches-heading">STORE SHOWROOMS</span>
+                <div className="footer-branches-list">
+                  {storeInfo.branches.map((branch, bIdx) => (
+                    <a
+                      key={bIdx}
+                      href={branch.mapLink || '#'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`footer-branch-pill ${branch.isMain ? 'main-branch' : ''}`}
+                      title={`Open ${branch.name} on Google Maps`}
+                    >
+                      <span className="branch-pin">📍</span>
+                      <span className="branch-name">{branch.name}</span>
+                      <span className="branch-arrow">↗</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="footer-social-links" style={{ marginTop: '16px' }}>
               <a href={storeInfo.facebook || '#'} aria-label="Facebook" target={storeInfo.facebook && !storeInfo.facebook.startsWith('#') ? '_blank' : undefined} rel="noopener noreferrer">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">

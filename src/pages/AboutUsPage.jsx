@@ -42,6 +42,33 @@ export default function AboutUsPage() {
         image: `${API_BASE_URL.replace('/api', '')}/uploads/achievement-generations.webp`,
         tag: 'FAMILY & TEAM'
       }
+    ],
+    mapLink: 'https://share.google/v2s1iwCkuPDMbaNlb',
+    branches: [
+      {
+        name: 'Klang (Main Showroom & Flagship)',
+        address: 'Historic Standard Chartered Building, No. 1, Jalan Istana, 41000 Klang, Selangor, Malaysia',
+        phone: '03 3372 7272',
+        mapLink: 'https://share.google/v2s1iwCkuPDMbaNlb',
+        isMain: true,
+        hours: 'Daily: 10:00 AM - 9:30 PM'
+      },
+      {
+        name: 'Ipoh Branch Showroom',
+        address: 'No. 1, Jalan Sultan Iskandar, 30000 Ipoh, Perak, Malaysia',
+        phone: '05-255 7272',
+        mapLink: 'https://share.google/cbemCGPSZvcpPJozh',
+        isMain: false,
+        hours: 'Daily: 10:00 AM - 9:30 PM'
+      },
+      {
+        name: 'Penang Branch Showroom',
+        address: 'No. 28, Lebuh Penang, 10200 Pulau Pinang, Malaysia',
+        phone: '04-250 2727',
+        mapLink: 'https://share.google/CeE1plmidX9YXdG5y',
+        isMain: false,
+        hours: 'Daily: 10:00 AM - 9:30 PM'
+      }
     ]
   });
 
@@ -54,6 +81,10 @@ export default function AboutUsPage() {
           setStoreInfo(prev => ({
             ...prev,
             ...data.data,
+            mapLink: data.data.mapLink || prev.mapLink,
+            branches: (Array.isArray(data.data.branches) && data.data.branches.length > 0)
+              ? data.data.branches
+              : prev.branches,
             directorImage: data.data.directorImage || ownerImg,
             achievements: (Array.isArray(data.data.achievements) && data.data.achievements.length > 0)
               ? data.data.achievements
@@ -284,6 +315,93 @@ export default function AboutUsPage() {
               <span className="bullet-icon">💎</span>
               <span>Premium Fashion Accessories</span>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Showrooms & Store Locations (Google Map Links) */}
+      <section className="about-branches-section" id="branches">
+        <div className="about-container">
+          <div className="section-header-centered">
+            <div className="ornament-eyebrow">VISIT OUR SHOWROOMS</div>
+            <h2 className="section-main-title">Our Store Locations &amp; Google Maps</h2>
+            <p className="section-sub-title">
+              Experience the finest handloom silks and personalized hospitality in person. Tap below for direct Google Maps directions to any of our branches.
+            </p>
+          </div>
+
+          <div className="about-branches-grid">
+            {(storeInfo.branches && storeInfo.branches.length > 0
+              ? storeInfo.branches
+              : [
+                  {
+                    name: 'Klang (Main Showroom & Flagship)',
+                    address: 'Historic Standard Chartered Building, No. 1, Jalan Istana, 41000 Klang, Selangor, Malaysia',
+                    phone: '03 3372 7272',
+                    mapLink: 'https://share.google/v2s1iwCkuPDMbaNlb',
+                    isMain: true,
+                    hours: 'Daily: 10:00 AM - 9:30 PM'
+                  },
+                  {
+                    name: 'Ipoh Branch Showroom',
+                    address: 'No. 1, Jalan Sultan Iskandar, 30000 Ipoh, Perak, Malaysia',
+                    phone: '05-255 7272',
+                    mapLink: 'https://share.google/cbemCGPSZvcpPJozh',
+                    isMain: false,
+                    hours: 'Daily: 10:00 AM - 9:30 PM'
+                  },
+                  {
+                    name: 'Penang Branch Showroom',
+                    address: 'No. 28, Lebuh Penang, 10200 Pulau Pinang, Malaysia',
+                    phone: '04-250 2727',
+                    mapLink: 'https://share.google/CeE1plmidX9YXdG5y',
+                    isMain: false,
+                    hours: 'Daily: 10:00 AM - 9:30 PM'
+                  }
+                ]
+            ).map((branch, idx) => (
+              <div key={idx} className={`branch-card ${branch.isMain ? 'branch-card-main' : ''}`}>
+                <div className="branch-card-header">
+                  <span className={`branch-badge ${branch.isMain ? 'badge-flagship' : 'badge-branch'}`}>
+                    {branch.isMain ? '★ MAIN SHOWROOM' : '📍 BRANCH SHOWROOM'}
+                  </span>
+                  <h3 className="branch-card-title">{branch.name}</h3>
+                </div>
+                <div className="branch-card-body">
+                  <div className="branch-info-row">
+                    <span className="branch-info-icon">📍</span>
+                    <span className="branch-info-text">{branch.address}</span>
+                  </div>
+                  {branch.phone && (
+                    <div className="branch-info-row">
+                      <span className="branch-info-icon">📞</span>
+                      <a href={`tel:${branch.phone.replace(/[^0-9+]/g, '')}`} className="branch-phone-link">
+                        {branch.phone}
+                      </a>
+                    </div>
+                  )}
+                  <div className="branch-info-row">
+                    <span className="branch-info-icon">🕒</span>
+                    <span className="branch-info-text">{branch.hours || 'Daily: 10:00 AM - 9:30 PM'}</span>
+                  </div>
+                </div>
+                <div className="branch-card-footer">
+                  <a
+                    href={branch.mapLink || '#'}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="branch-map-btn"
+                  >
+                    <span>Get Directions on Google Maps</span>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                      <polyline points="15 3 21 3 21 9"></polyline>
+                      <line x1="10" y1="14" x2="21" y2="3"></line>
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
