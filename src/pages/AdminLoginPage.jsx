@@ -94,7 +94,7 @@ export default function AdminLoginPage() {
                 id="admin-email"
                 type="email"
                 className="admin-input"
-                placeholder="admin@example.com"
+                placeholder="admin@csp.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -180,14 +180,6 @@ export default function AdminLoginPage() {
           </button>
         </form>
 
-        <div className="demo-credentials-box">
-          <p>🔑 Demo Admin Credentials:</p>
-          <div>Email: <code>admin@example.com</code></div>
-          <div style={{ marginTop: '4px' }}>Password: <code>Admin@12345</code></div>
-          <button type="button" className="auto-fill-btn" onClick={fillDemoCredentials}>
-            Click to Auto-fill Demo Credentials
-          </button>
-        </div>
 
         <Link to="/" className="back-to-store">
           ← Back to Public Storefront
