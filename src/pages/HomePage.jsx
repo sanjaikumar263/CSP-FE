@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import productsData from '../data/products.json';
 import shopImg from '../assets/Shop Image.png';
+import womenBannerFallback from '../assets/women_banner.jpg';
+import menBannerFallback from '../assets/men_banner.jpg';
+import kidsBannerFallback from '../assets/kids_banner.jpg';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import Loader from '../components/Loader';
@@ -25,9 +28,9 @@ export default function HomePage() {
   const [heroSlides, setHeroSlides] = useState([]);
   const [offers, setOffers] = useState([]);
   const [genderImages, setGenderImages] = useState({
-    women: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1200&q=80',
-    men: 'https://images.unsplash.com/photo-1583391733956-6c78276477e2?auto=format&fit=crop&w=1200&q=80',
-    kids: 'https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?auto=format&fit=crop&w=1200&q=80'
+    women: womenBannerFallback,
+    men: menBannerFallback,
+    kids: kidsBannerFallback
   });
 
   useEffect(() => {
@@ -61,34 +64,45 @@ export default function HomePage() {
 
     const fetchGenderImages = async () => {
       try {
-        const [womenRes, menRes] = await Promise.all([
+        const [womenRes, menRes, kidRes] = await Promise.all([
           fetch(`${API_BASE_URL}/products?gender=Women`),
-          fetch(`${API_BASE_URL}/products?gender=Men`)
+          fetch(`${API_BASE_URL}/products?gender=Men`),
+          fetch(`${API_BASE_URL}/products?gender=Kids`)
         ]);
 
         const womenData = await womenRes.json();
         const menData = await menRes.json();
+        const kidData = await kidRes.json();
 
         let womenImg = '';
         let menImg = '';
+        let kidImg = '';
 
         if (womenRes.ok && womenData.success && Array.isArray(womenData.data)) {
-          const firstWomen = womenData.data.find(p => p.image || p.images?.[0]);
+          const firstWomen = womenData.data.find(p => (p.image && p.image.trim() !== '') || (Array.isArray(p.images) && p.images.length > 0));
           if (firstWomen) {
-            womenImg = firstWomen.image || firstWomen.images[0];
+            womenImg = (firstWomen.image && firstWomen.image.trim() !== '') ? firstWomen.image : firstWomen.images[0];
           }
         }
 
         if (menRes.ok && menData.success && Array.isArray(menData.data)) {
-          const firstMen = menData.data.find(p => p.image || p.images?.[0]);
+          const firstMen = menData.data.find(p => (p.image && p.image.trim() !== '') || (Array.isArray(p.images) && p.images.length > 0));
           if (firstMen) {
-            menImg = firstMen.image || firstMen.images[0];
+            menImg = (firstMen.image && firstMen.image.trim() !== '') ? firstMen.image : firstMen.images[0];
+          }
+        }
+
+        if (kidRes.ok && kidData.success && Array.isArray(kidData.data)) {
+          const firstKid = kidData.data.find(p => (p.image && p.image.trim() !== '') || (Array.isArray(p.images) && p.images.length > 0));
+          if (firstKid) {
+            kidImg = (firstKid.image && firstKid.image.trim() !== '') ? firstKid.image : firstKid.images[0];
           }
         }
 
         setGenderImages(prev => ({
-          women: womenImg || prev.women,
-          men: menImg || prev.men
+          women: womenImg || prev?.women || womenBannerFallback,
+          men: menImg || prev?.men || menBannerFallback,
+          kids: kidImg || prev?.kids || kidsBannerFallback
         }));
       } catch (err) {
         console.warn('Error fetching gender images from backend API:', err);
@@ -155,12 +169,19 @@ export default function HomePage() {
   const shopByCategories = (productsData.shopByCategories || []).filter(cat => cat.image && cat.image.trim() !== '');
   const heritageInfo = productsData.heritageInfo;
 
+  // Auto-slide Hero Banner Carousel on timer (every 5 seconds)
+  useEffect(() => {
+    if (heroSlides.length <= 1) return;
+
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [heroSlides.length, currentSlide]);
+
   const handleNextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
-  };
-
-  const handlePrevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length);
   };
 
 
@@ -264,34 +285,6 @@ export default function HomePage() {
               )}
             </div>
 
-            {/* Slider Navigation Arrows */}
-            {heroSlides.length > 1 && (
-              <>
-                <button
-                  type="button"
-                  className="hero-arrow prev-arrow"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handlePrevSlide();
-                  }}
-                  aria-label="Previous Slide"
-                >
-                  ‹
-                </button>
-                <button
-                  type="button"
-                  className="hero-arrow next-arrow"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleNextSlide();
-                  }}
-                  aria-label="Next Slide"
-                >
-                  ›
-                </button>
-              </>
-            )}
-
             {/* Slider Indicator Dots */}
             {heroSlides.length > 1 && (
               <div className="hero-dots" onClick={(e) => e.stopPropagation()}>
@@ -384,7 +377,7 @@ export default function HomePage() {
             <div className="gender-card women-card">
               <div
                 className="gender-card-bg"
-                style={{ backgroundImage: `url(${genderImages.women})` }}
+                style={{ backgroundImage: genderImages?.women ? `url(${genderImages.women})` : undefined }}
               ></div>
               <div className="gender-card-content">
                 <span className="gender-tag">HERITAGE SAREES &amp; LEHENGAS</span>
@@ -397,7 +390,7 @@ export default function HomePage() {
             <div className="gender-card men-card">
               <div
                 className="gender-card-bg"
-                style={{ backgroundImage: `url(${genderImages.men})` }}
+                style={{ backgroundImage: genderImages?.men ? `url(${genderImages.men})` : undefined }}
               ></div>
               <div className="gender-card-content">
                 <span className="gender-tag">ROYAL TRADITIONAL WEAR</span>
@@ -410,7 +403,7 @@ export default function HomePage() {
             <div className="gender-card kids-card">
               <div
                 className="gender-card-bg"
-                style={{ backgroundImage: `url(${genderImages.kids})` }}
+                style={{ backgroundImage: genderImages?.kids ? `url(${genderImages.kids})` : undefined }}
               ></div>
               <div className="gender-card-content">
                 <span className="gender-tag">FESTIVE BOYS &amp; GIRLS</span>

@@ -5,6 +5,9 @@ import Footer from '../components/Footer';
 import Loader from '../components/Loader';
 import SafeImage from '../components/SafeImage';
 import placeholderSvg from '../assets/placeholder.svg';
+import womenBannerFallback from '../assets/women_banner.jpg';
+import menBannerFallback from '../assets/men_banner.jpg';
+import kidsBannerFallback from '../assets/kids_banner.jpg';
 import { API_BASE_URL } from '../config';
 import { getTopLevelCategoryTabs, isProductInCategory } from '../data/categoriesData';
 import { useWishlist } from '../context/WishlistContext';
@@ -15,28 +18,28 @@ const GENDER_HERO_DATA = {
     title: "Women's Collection",
     subtitle: "Discover opulent Kanchipuram silks, Banarasi weaves, Designer Lehengas, and Punjabi suits crafted for royalty.",
     eyebrow: "HERITAGE ELEGANCE",
-    bgImage: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1200&q=80",
+    bgImage: womenBannerFallback,
     badge: "100% Pure Silk & Artisanal Weaves"
   },
   men: {
     title: "Men's Collection",
     subtitle: "Regal silk shirts, traditional pattu dhotis, wedding sherwanis, and royal handcrafted kurta sets tailored for every celebratory occasion.",
     eyebrow: "TRADITIONAL SPLENDOR",
-    bgImage: "https://images.unsplash.com/photo-1583391733956-6c78276477e2?auto=format&fit=crop&w=1200&q=80",
+    bgImage: menBannerFallback,
     badge: "Authentic Zari Weaves & Sherwanis"
   },
   kids: {
     title: "Kids' Collection",
     subtitle: "Adorable Pattu Pavadais, royal Boys Sherwanis, traditional dhoti combos, and celebratory lehengas crafted with pure comfort.",
     eyebrow: "FESTIVE INNOCENCE & CHARM",
-    bgImage: "https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?auto=format&fit=crop&w=1200&q=80",
+    bgImage: kidsBannerFallback,
     badge: "100% Child-Friendly Pure Fabrics"
   },
   all: {
     title: "Shop By Collection",
     subtitle: "Explore our complete curated collections tailored for Women, Men, and Kids.",
     eyebrow: "FULL CATALOGUE",
-    bgImage: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=1200&q=80",
+    bgImage: womenBannerFallback,
     badge: "Generations of Heritage & Trust"
   }
 };

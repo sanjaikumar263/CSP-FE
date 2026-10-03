@@ -3,6 +3,8 @@ import AdminSidebar from '../components/AdminSidebar';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL, BACKEND_URL } from '../config';
 import { compressImage } from '../utils/imageCompressor';
+import womenBanner from '../assets/women_banner.jpg';
+import menBanner from '../assets/men_banner.jpg';
 import './OfferManagementPage.css';
 
 export default function OfferManagementPage() {
@@ -35,7 +37,7 @@ export default function OfferManagementPage() {
 const OFFER_PLACEHOLDER_PRESETS = [
   {
     label: "👗 Women's Collection Offer",
-    image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1200&q=80",
+    image: womenBanner,
     badge: "HERITAGE SILK FESTIVAL",
     title: "Women's Royal Silk Offer",
     subtitle: "Get up to 35% off on Kanchipuram and Banarasi silk sarees",
@@ -44,7 +46,7 @@ const OFFER_PLACEHOLDER_PRESETS = [
   },
   {
     label: "👔 Men's Collection Offer",
-    image: "https://images.unsplash.com/photo-1583391733956-6c78276477e2?auto=format&fit=crop&w=1200&q=80",
+    image: menBanner,
     badge: "ROYAL ETHNIC SALE",
     title: "Men's Traditional Kurta & Dhoti",
     subtitle: "Special festive discounts on pure silk shirts & dhotis",
@@ -53,7 +55,7 @@ const OFFER_PLACEHOLDER_PRESETS = [
   },
   {
     label: "🌸 Kanchipuram Festival",
-    image: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=1200&q=80",
+    image: womenBanner,
     badge: "GRAND WEAVE CELEBRATION",
     title: "Kanchipuram Heritage Silk",
     subtitle: "Handcrafted pure zari sarees directly from master weavers",
