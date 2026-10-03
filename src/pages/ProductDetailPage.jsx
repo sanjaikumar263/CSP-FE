@@ -7,15 +7,19 @@ import SafeImage from '../components/SafeImage';
 import placeholderSvg from '../assets/placeholder.svg';
 import { API_BASE_URL } from '../config';
 import { useWishlist } from '../context/WishlistContext';
+import { useCart } from '../context/CartContext';
 import './ProductDetailPage.css';
 
 export default function ProductDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [selectedImage, setSelectedImage] = useState(0);
+  const [selectedColor, setSelectedColor] = useState('');
+  const [selectedSize, setSelectedSize] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [shareFeedback, setShareFeedback] = useState('');
   const { isWishlisted, toggleWishlist } = useWishlist();
+  const { addToCart, openCart } = useCart();
   const [apiProduct, setApiProduct] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -43,16 +47,6 @@ export default function ProductDetailPage() {
   };
   const [cartFeedback, setCartFeedback] = useState(false);
 
-  const handleAddToCart = () => {
-    setCartFeedback(true);
-    setTimeout(() => setCartFeedback(false), 2500);
-  };
-
-  const handleBuyNow = () => {
-    setCartFeedback(true);
-    setTimeout(() => setCartFeedback(false), 2500);
-  };
-
   // Scroll to top on load or ID change and fetch product & related products from backend
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -67,6 +61,25 @@ export default function ProductDetailPage() {
           if (res.ok && data.success && data.data) {
             const prodData = data.data;
             setApiProduct(prodData);
+
+            // Initialize default selected color
+            if (Array.isArray(prodData.colors) && prodData.colors.length > 0) {
+              const firstC = typeof prodData.colors[0] === 'string' ? prodData.colors[0] : prodData.colors[0].name;
+              setSelectedColor(firstC || '');
+            } else if (prodData.color) {
+              setSelectedColor(prodData.color);
+            } else {
+              setSelectedColor('');
+            }
+
+            // Initialize default selected size
+            if (Array.isArray(prodData.sizes) && prodData.sizes.length > 0) {
+              setSelectedSize(prodData.sizes[0] || '');
+            } else if (Array.isArray(prodData.variants) && prodData.variants.length > 0) {
+              setSelectedSize(prodData.variants[0]?.size || '');
+            } else {
+              setSelectedSize('');
+            }
 
             // Fetch related products from backend
             try {
@@ -179,6 +192,42 @@ export default function ProductDetailPage() {
     ? apiProduct.images
     : (apiProduct.image ? [apiProduct.image] : [placeholderSvg]);
 
+  // Color, Size, and Variant Calculations
+  const colorsList = Array.isArray(apiProduct.colors) && apiProduct.colors.length > 0
+    ? apiProduct.colors.map(c => typeof c === 'string' ? { name: c, code: '#0A305D' } : { name: c.name, code: c.code || '#0A305D' })
+    : (apiProduct.color ? [{ name: apiProduct.color, code: '#0A305D' }] : []);
+
+  const variantsList = Array.isArray(apiProduct.variants) ? apiProduct.variants : [];
+
+  const sizesList = Array.isArray(apiProduct.sizes) && apiProduct.sizes.length > 0
+    ? apiProduct.sizes
+    : (variantsList.length > 0
+      ? [...new Set(variantsList.map(v => v.size).filter(Boolean))]
+      : []);
+
+  const activeColor = selectedColor || (colorsList[0]?.name || '');
+  const activeSize = selectedSize || (sizesList[0] || '');
+
+  // Calculate dynamic color-based gallery photos without calling hooks after early returns
+  let activeColorImages = rawImages;
+  if (activeColor) {
+    if (Array.isArray(apiProduct.colorImages) && apiProduct.colorImages.length > 0) {
+      const match = apiProduct.colorImages.find(
+        ci => ci.color && ci.color.toLowerCase() === activeColor.toLowerCase()
+      );
+      if (match && Array.isArray(match.images) && match.images.length > 0) {
+        activeColorImages = match.images;
+      }
+    } else if (Array.isArray(apiProduct.variants) && apiProduct.variants.length > 0) {
+      const variantWithImg = apiProduct.variants.find(
+        v => v.color && v.color.toLowerCase() === activeColor.toLowerCase() && v.image
+      );
+      if (variantWithImg && variantWithImg.image) {
+        activeColorImages = [variantWithImg.image, ...rawImages.filter(img => img !== variantWithImg.image)];
+      }
+    }
+  }
+
   const product = {
     id: apiProduct._id || apiProduct.id || id,
     title: apiProduct.name || apiProduct.title || 'Product Details',
@@ -193,7 +242,8 @@ export default function ProductDetailPage() {
     sku: apiProduct.sku || '',
     stockQuantity: apiProduct.stockQuantity ?? (apiProduct.inStock ? 10 : 0),
     inStock: apiProduct.inStock ?? ((apiProduct.stockQuantity ?? 1) > 0),
-    images: rawImages,
+    images: activeColorImages,
+    allImages: rawImages,
     description: apiProduct.description || '',
     fabric: apiProduct.fabric || '',
     color: apiProduct.color || '',
@@ -243,6 +293,80 @@ export default function ProductDetailPage() {
       setShareFeedback('Failed to copy link');
       setTimeout(() => setShareFeedback(''), 3000);
     }
+  };
+
+  // Find exact matching variant combination
+  const currentVariant = variantsList.find(v => {
+    const matchC = !activeColor || !v.color || v.color.toLowerCase() === activeColor.toLowerCase();
+    const matchS = !activeSize || !v.size || v.size.toLowerCase() === activeSize.toLowerCase();
+    return matchC && matchS;
+  });
+
+  const variantStock = currentVariant
+    ? (parseInt(currentVariant.stockQuantity, 10) || 0)
+    : (variantsList.length === 0 ? product.stockQuantity : 0);
+
+  const isVariantInStock = variantStock > 0;
+
+  const getSizeStockForColor = (sizeStr) => {
+    if (variantsList.length === 0) return product.stockQuantity;
+    const match = variantsList.find(v => {
+      const matchC = !activeColor || !v.color || v.color.toLowerCase() === activeColor.toLowerCase();
+      const matchS = v.size && v.size.toLowerCase() === sizeStr.toLowerCase();
+      return matchC && matchS;
+    });
+    return match ? (parseInt(match.stockQuantity, 10) || 0) : 0;
+  };
+
+  const getColorStock = (colorName) => {
+    if (variantsList.length === 0) return product.stockQuantity;
+    const matches = variantsList.filter(v => v.color && v.color.toLowerCase() === colorName.toLowerCase());
+    if (matches.length === 0) return product.stockQuantity;
+    return matches.reduce((sum, v) => sum + (parseInt(v.stockQuantity, 10) || 0), 0);
+  };
+
+  const activeColorObj = colorsList.find(c => c.name.toLowerCase() === activeColor.toLowerCase());
+  const activeSelectedImage = activeColorImages[selectedImage] || activeColorImages[0] || (product.images && product.images[0]) || '';
+  const isCurrentVariantWishlisted = isWishlisted(product.id, activeColor, activeSize);
+
+  const handleToggleWishlist = () => {
+    toggleWishlist(product, {
+      selectedColor: activeColor,
+      selectedSize: activeSize,
+      colorCode: activeColorObj?.code || '#0A305D',
+      image: activeSelectedImage,
+      sku: currentVariant?.sku || product.sku,
+      stockQuantity: variantStock
+    });
+  };
+
+  const handleAddToCart = () => {
+    if (!isVariantInStock) return;
+    addToCart(product, {
+      selectedColor: activeColor,
+      selectedSize: activeSize,
+      colorCode: activeColorObj?.code || '#0A305D',
+      image: activeSelectedImage,
+      sku: currentVariant?.sku || product.sku,
+      quantity: quantity,
+      stockQuantity: variantStock
+    });
+    setCartFeedback(true);
+    setTimeout(() => setCartFeedback(false), 2500);
+  };
+
+  const handleBuyNow = () => {
+    if (!isVariantInStock) return;
+    addToCart(product, {
+      selectedColor: activeColor,
+      selectedSize: activeSize,
+      colorCode: activeColorObj?.code || '#0A305D',
+      image: activeSelectedImage,
+      sku: currentVariant?.sku || product.sku,
+      quantity: quantity,
+      stockQuantity: variantStock
+    });
+    openCart();
   };
 
   return (
@@ -317,15 +441,15 @@ export default function ProductDetailPage() {
               {/* Floating Wishlist Button on Top-Right of Main Product Image */}
               <button
                 type="button"
-                className={`pd-floating-wishlist-btn ${isWishlisted(product._id || product.id) ? 'active' : ''}`}
-                aria-label={isWishlisted(product._id || product.id) ? "Remove from Wishlist" : "Add to Wishlist"}
-                title={isWishlisted(product._id || product.id) ? "In Wishlist" : "Add to Wishlist"}
+                className={`pd-floating-wishlist-btn ${isCurrentVariantWishlisted ? 'active' : ''}`}
+                aria-label={isCurrentVariantWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
+                title={isCurrentVariantWishlisted ? "In Wishlist" : "Add to Wishlist"}
                 onClick={(e) => {
                   e.stopPropagation();
-                  toggleWishlist(product);
+                  handleToggleWishlist();
                 }}
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill={isWishlisted(product._id || product.id) ? "#b91c1c" : "none"} stroke={isWishlisted(product._id || product.id) ? "#b91c1c" : "#1e293b"} strokeWidth="2">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill={isCurrentVariantWishlisted ? "#b91c1c" : "none"} stroke={isCurrentVariantWishlisted ? "#b91c1c" : "#1e293b"} strokeWidth="2">
                   <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                 </svg>
               </button>
@@ -363,19 +487,19 @@ export default function ProductDetailPage() {
               {/* Wishlist Button on Top of Product Info */}
               <button
                 type="button"
-                className={`pd-top-wishlist-btn ${isWishlisted(product._id || product.id) ? 'active' : ''}`}
-                onClick={() => toggleWishlist(product)}
-                title={isWishlisted(product._id || product.id) ? "Saved in Wishlist" : "Save to Wishlist"}
+                className={`pd-top-wishlist-btn ${isCurrentVariantWishlisted ? 'active' : ''}`}
+                onClick={handleToggleWishlist}
+                title={isCurrentVariantWishlisted ? "Saved in Wishlist" : "Save to Wishlist"}
               >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill={isWishlisted(product._id || product.id) ? "#b91c1c" : "none"} stroke={isWishlisted(product._id || product.id) ? "#b91c1c" : "currentColor"} strokeWidth="2">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill={isCurrentVariantWishlisted ? "#b91c1c" : "none"} stroke={isCurrentVariantWishlisted ? "#b91c1c" : "currentColor"} strokeWidth="2">
                   <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                 </svg>
-                <span>{isWishlisted(product._id || product.id) ? 'Wishlisted' : 'Wishlist'}</span>
+                <span>{isCurrentVariantWishlisted ? 'Wishlisted' : 'Wishlist'}</span>
               </button>
             </div>
 
             {/* Product Title */}
-            {product.sku && <div className="pd-sku-header">SKU: {product.sku}</div>}
+            {product.sku && <div className="pd-sku-header">SKU: {currentVariant?.sku || product.sku}</div>}
             <h1 className="pd-title">{product.title}</h1>
 
             {/* Price */}
@@ -398,17 +522,17 @@ export default function ProductDetailPage() {
               <div className="pd-tax-note">Tax included. <Link to="/about" className="tax-shipping-link">Shipping</Link> calculated at checkout.</div>
             </div>
 
-            {/* Wishlist & Share Inline Row (Matching Reference Screenshot) */}
+            {/* Wishlist & Share Inline Row */}
             <div className="pd-wishlist-inline-row">
               <button
                 type="button"
-                className={`pd-kalyan-wishlist-btn ${isWishlisted(product._id || product.id) ? 'active' : ''}`}
-                onClick={() => toggleWishlist(product)}
+                className={`pd-kalyan-wishlist-btn ${isCurrentVariantWishlisted ? 'active' : ''}`}
+                onClick={handleToggleWishlist}
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill={isWishlisted(product._id || product.id) ? '#dc2626' : 'none'} stroke={isWishlisted(product._id || product.id) ? '#dc2626' : '#dc2626'} strokeWidth="1.8">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill={isCurrentVariantWishlisted ? '#dc2626' : 'none'} stroke={isCurrentVariantWishlisted ? '#dc2626' : '#dc2626'} strokeWidth="1.8">
                   <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                 </svg>
-                <span>{isWishlisted(product._id || product.id) ? 'Added to wishlist' : 'Add to wishlist'}</span>
+                <span>{isCurrentVariantWishlisted ? 'Added to wishlist' : 'Add to wishlist'}</span>
               </button>
 
               <button
@@ -428,12 +552,103 @@ export default function ProductDetailPage() {
               </button>
             </div>
 
-            {/* In Stock Highlight (Matching Reference Screenshot: "7 Items In Stock") */}
+            {/* ========================================================
+                COLOR SELECTION SECTION
+                ======================================================== */}
+            {colorsList.length > 0 && (
+              <div className="pd-variant-picker-section">
+                <div className="pd-variant-label-row">
+                  <span className="pd-variant-title">
+                    Color: <strong className="pd-variant-value">{activeColor}</strong>
+                  </span>
+                  {activeColor && getColorStock(activeColor) <= 0 && (
+                    <span className="pd-variant-out-badge">Out of Stock in this color</span>
+                  )}
+                </div>
+                <div className="pd-color-swatches-list" role="radiogroup" aria-label="Select Color">
+                  {colorsList.map(c => {
+                    const isSelected = activeColor.toLowerCase() === c.name.toLowerCase();
+                    const colorStock = getColorStock(c.name);
+                    const isColorOut = colorStock <= 0;
+                    return (
+                      <button
+                        key={c.name}
+                        type="button"
+                        className={`pd-color-swatch-btn ${isSelected ? 'active' : ''} ${isColorOut ? 'out-of-stock' : ''}`}
+                        onClick={() => {
+                          setSelectedColor(c.name);
+                          setSelectedImage(0);
+                        }}
+                        title={`${c.name} ${isColorOut ? '(Out of Stock)' : `(${colorStock} in stock)`}`}
+                      >
+                        <span
+                          className="pd-swatch-color-circle"
+                          style={{ backgroundColor: c.code || '#0A305D' }}
+                        />
+                        <span className="pd-swatch-name">{c.name}</span>
+                        {isSelected && <span className="pd-swatch-check">✓</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* ========================================================
+                SIZE SELECTION SECTION
+                ======================================================== */}
+            {sizesList.length > 0 && (
+              <div className="pd-variant-picker-section">
+                <div className="pd-variant-label-row">
+                  <span className="pd-variant-title">
+                    Size: <strong className="pd-variant-value">{activeSize}</strong>
+                  </span>
+                  {activeSize && getSizeStockForColor(activeSize) <= 0 && (
+                    <span className="pd-variant-out-badge">Out of Stock for {activeColor}</span>
+                  )}
+                </div>
+                <div className="pd-size-pills-list" role="radiogroup" aria-label="Select Size">
+                  {sizesList.map(s => {
+                    const isSelected = activeSize.toLowerCase() === s.toLowerCase();
+                    const sizeStock = getSizeStockForColor(s);
+                    const isSizeOut = sizeStock <= 0;
+                    return (
+                      <button
+                        key={s}
+                        type="button"
+                        className={`pd-size-pill-btn ${isSelected ? 'active' : ''} ${isSizeOut ? 'out-of-stock' : ''}`}
+                        onClick={() => setSelectedSize(s)}
+                        title={`${s} ${isSizeOut ? '(Sold out in this combination)' : `(${sizeStock} available)`}`}
+                      >
+                        <span className="pd-size-text">{s}</span>
+                        {isSizeOut ? (
+                          <span className="pd-size-soldout-label">Sold Out</span>
+                        ) : (
+                          <span className="pd-size-stock-badge">{sizeStock} left</span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Real-time Combination Stock Highlight */}
             <div className="pd-stock-kalyan-box">
-              {product.inStock && product.stockQuantity > 0 ? (
-                <span className="pd-kalyan-stock-count">{product.stockQuantity} Items In Stock</span>
+              {isVariantInStock ? (
+                <div className={`pd-kalyan-stock-count ${variantStock <= 5 ? 'low-stock-alert' : ''}`}>
+                  <span className="stock-indicator-dot in-stock"></span>
+                  {variantStock <= 5 ? (
+                    <span>Hurry! Only <strong>{variantStock}</strong> items left for <strong>{activeColor} {activeSize ? `(${activeSize})` : ''}</strong></span>
+                  ) : (
+                    <span><strong>{variantStock}</strong> Items In Stock for <strong>{activeColor} {activeSize ? `(${activeSize})` : ''}</strong></span>
+                  )}
+                </div>
               ) : (
-                <span className="pd-kalyan-stock-out">Out of Stock</span>
+                <div className="pd-kalyan-stock-out">
+                  <span className="stock-indicator-dot out-of-stock"></span>
+                  <span>Out of Stock for <strong>{activeColor} {activeSize ? `(${activeSize})` : ''}</strong></span>
+                </div>
               )}
             </div>
 
@@ -442,7 +657,7 @@ export default function ProductDetailPage() {
               {product.sku && (
                 <div className="spec-row">
                   <div className="spec-label"><span className="spec-icon">🏷️</span> SKU</div>
-                  <div className="spec-value">{product.sku}</div>
+                  <div className="spec-value">{currentVariant?.sku || product.sku}</div>
                 </div>
               )}
               {product.category && (
@@ -457,20 +672,35 @@ export default function ProductDetailPage() {
                   <div className="spec-value">{product.gender}</div>
                 </div>
               )}
+              {colorsList.length > 0 && (
+                <div className="spec-row">
+                  <div className="spec-label"><span className="spec-icon">🎨</span> Colors</div>
+                  <div className="spec-value spec-colors-list">
+                    {colorsList.map(c => (
+                      <span key={c.name} className="spec-color-chip">
+                        <span className="spec-color-dot" style={{ backgroundColor: c.code || '#0A305D' }}></span>
+                        {c.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {sizesList.length > 0 && (
+                <div className="spec-row">
+                  <div className="spec-label"><span className="spec-icon">📏</span> Sizes</div>
+                  <div className="spec-value">{sizesList.join(', ')}</div>
+                </div>
+              )}
               <div className="spec-row">
                 <div className="spec-label"><span className="spec-icon">📦</span> Stock</div>
-                <div className="spec-value">{product.inStock && product.stockQuantity > 0 ? `${product.stockQuantity} units available` : 'Out of Stock'}</div>
+                <div className="spec-value">
+                  {isVariantInStock ? `${variantStock} units available for ${activeColor} (${activeSize})` : `Out of Stock for ${activeColor} (${activeSize})`}
+                </div>
               </div>
               {product.fabric && (
                 <div className="spec-row">
                   <div className="spec-label"><span className="spec-icon">🧶</span> Fabric</div>
                   <div className="spec-value">{product.fabric}</div>
-                </div>
-              )}
-              {product.color && (
-                <div className="spec-row">
-                  <div className="spec-label"><span className="spec-icon">🎨</span> Color</div>
-                  <div className="spec-value">{product.color}</div>
                 </div>
               )}
               {product.work && (
@@ -491,9 +721,23 @@ export default function ProductDetailPage() {
             <div className="pd-quantity-row">
               <span className="qty-title">Quantity</span>
               <div className="qty-stepper-box">
-                <button className="qty-btn" onClick={() => setQuantity(q => Math.max(1, q - 1))}>−</button>
-                <span className="qty-num">{quantity}</span>
-                <button className="qty-btn" onClick={() => setQuantity(q => q + 1)}>+</button>
+                <button
+                  type="button"
+                  className="qty-btn"
+                  onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                  disabled={!isVariantInStock}
+                >
+                  −
+                </button>
+                <span className="qty-num">{isVariantInStock ? quantity : 0}</span>
+                <button
+                  type="button"
+                  className="qty-btn"
+                  onClick={() => setQuantity(q => Math.min(variantStock, q + 1))}
+                  disabled={!isVariantInStock || quantity >= variantStock}
+                >
+                  +
+                </button>
               </div>
             </div>
 
@@ -501,20 +745,22 @@ export default function ProductDetailPage() {
             <div className="pd-actions-row">
               <button
                 type="button"
-                className="pd-add-to-cart-btn disabled-action-btn"
-                disabled
-                title="Coming Soon"
+                className={`pd-add-to-cart-btn ${!isVariantInStock ? 'sold-out-btn' : (cartFeedback ? 'added-success' : '')}`}
+                disabled={!isVariantInStock}
+                onClick={handleAddToCart}
+                title={!isVariantInStock ? 'Sold out in this combination' : 'Add to Shopping Bag'}
               >
-                Add to Cart
+                {!isVariantInStock ? 'Out of Stock' : (cartFeedback ? '✓ Added to Cart!' : 'Add to Cart')}
               </button>
 
               <button
                 type="button"
-                className="pd-buy-now-btn disabled-action-btn"
-                disabled
-                title="Coming Soon"
+                className={`pd-buy-now-btn ${!isVariantInStock ? 'sold-out-btn' : ''}`}
+                disabled={!isVariantInStock}
+                onClick={handleBuyNow}
+                title={!isVariantInStock ? 'Sold out in this combination' : 'Proceed to Checkout'}
               >
-                Buy It Now
+                {!isVariantInStock ? 'Sold Out' : 'Buy It Now'}
               </button>
             </div>
 

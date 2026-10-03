@@ -39,6 +39,9 @@ export default function ProductListPage() {
           gender: item.gender || 'Women',
           price: item.currency ? `${item.currency} ${item.price?.toFixed(2)}` : `MYR ${item.price}`,
           stock: item.stockQuantity ?? 10,
+          variantsCount: Array.isArray(item.variants) ? item.variants.length : 0,
+          colors: item.colors || (item.color ? [{ name: item.color, code: '#0A305D' }] : []),
+          sizes: item.sizes || [],
           status: item.status || (item.inStock ? 'published' : 'outofstock'),
           date: item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '16 Jul 2026'
         }));
@@ -275,13 +278,28 @@ export default function ProductListPage() {
                         ) : (
                           <div className={`swatch ${p.sw}`}></div>
                         )}
-                        <div><div className="n">{p.name}</div><div className="s">SKU {p.sku}</div></div>
+                        <div>
+                          <div className="n">
+                            {p.name}
+                            {p.variantsCount > 0 && (
+                              <span style={{ fontSize: '10.5px', color: '#0A305D', background: '#EFF6FF', padding: '1px 6px', borderRadius: '4px', border: '1px solid rgba(10,48,93,0.15)', fontWeight: 700, marginLeft: '6px' }}>
+                                {p.variantsCount} variants
+                              </span>
+                            )}
+                          </div>
+                          <div className="s">SKU {p.sku}</div>
+                        </div>
                       </div>
                     </td>
                     <td>{p.cat}</td>
                     <td><span className="pill" style={{ background: '#f1f5f9', color: '#334155', fontWeight: 600 }}>{p.gender}</span></td>
                     <td>{p.price}</td>
-                    <td>{p.stock}</td>
+                    <td>
+                      <div style={{ fontWeight: 700 }}>{p.stock}</div>
+                      {p.variantsCount > 0 && (
+                        <div style={{ fontSize: '10.5px', color: '#64748B' }}>in {p.variantsCount} variants</div>
+                      )}
+                    </td>
                     <td><span className={`pill ${p.status}`}>{STATUS_LABEL[p.status] || p.status}</span></td>
                     <td>{p.date}</td>
                     <td>

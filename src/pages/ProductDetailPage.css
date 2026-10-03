@@ -524,27 +524,266 @@
   font-weight: 600;
 }
 
-/* Stock Inventory Badge (Like Screenshot: "7 Items In Stock") */
+/* ========================================================
+   COLOR & SIZE VARIANT SELECTORS
+   ======================================================== */
+.pd-variant-picker-section {
+  margin-bottom: 20px;
+}
+
+.pd-variant-label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.pd-variant-title {
+  font-size: 13.5px;
+  color: #475569;
+  font-weight: 500;
+}
+
+.pd-variant-value {
+  color: #0F172A;
+  font-weight: 700;
+  margin-left: 4px;
+}
+
+.pd-variant-out-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #DC2626;
+  background: #FEE2E2;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+/* Color Swatches Grid */
+.pd-color-swatches-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.pd-color-swatch-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px 7px 9px;
+  border-radius: 24px;
+  border: 1.5px solid #CBD5E1;
+  background: #ffffff;
+  color: #1E293B;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.pd-color-swatch-btn:hover {
+  border-color: #0A305D;
+  background: #F8FAFC;
+  transform: translateY(-1px);
+}
+
+.pd-color-swatch-btn.active {
+  border-color: #0A305D;
+  background: #0A305D;
+  color: #ffffff;
+  box-shadow: 0 3px 8px rgba(10, 48, 93, 0.25);
+}
+
+.pd-swatch-color-circle {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+}
+
+.pd-swatch-check {
+  font-size: 11px;
+  font-weight: 800;
+  color: #FFC73A;
+  margin-left: 2px;
+}
+
+.pd-color-swatch-btn.out-of-stock {
+  opacity: 0.55;
+  border-style: dashed;
+}
+
+/* Size Pills Grid */
+.pd-size-pills-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pd-size-pill-btn {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 58px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1.5px solid #CBD5E1;
+  background: #ffffff;
+  color: #1E293B;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pd-size-pill-btn:hover {
+  border-color: #0A305D;
+  background: #F8FAFC;
+  transform: translateY(-1px);
+}
+
+.pd-size-pill-btn.active {
+  background: #0A305D;
+  border-color: #0A305D;
+  color: #ffffff;
+  box-shadow: 0 3px 8px rgba(10, 48, 93, 0.25);
+}
+
+.pd-size-text {
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.pd-size-stock-badge {
+  font-size: 9.5px;
+  font-weight: 600;
+  color: #64748B;
+  margin-top: 2px;
+}
+
+.pd-size-pill-btn.active .pd-size-stock-badge {
+  color: #CBD5E1;
+}
+
+.pd-size-pill-btn.out-of-stock {
+  opacity: 0.45;
+  background: #F1F5F9;
+  border-color: #E2E8F0;
+  position: relative;
+  overflow: hidden;
+}
+
+.pd-size-pill-btn.out-of-stock::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -20%;
+  right: -20%;
+  height: 1.5px;
+  background: #EF4444;
+  transform: rotate(-24deg);
+}
+
+.pd-size-soldout-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: #DC2626;
+  margin-top: 2px;
+}
+
+.pd-size-pill-btn.active .pd-size-soldout-label {
+  color: #FCA5A5;
+}
+
+/* Stock Inventory Badge (Separate Stock Display) */
 .pd-stock-kalyan-box {
-  margin-bottom: 16px;
+  margin: 18px 0 20px 0;
+  padding: 11px 16px;
+  border-radius: 8px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
 }
 
 .pd-kalyan-stock-count {
   font-size: 13.5px;
   font-weight: 600;
-  color: #b45309;
+  color: #065F46;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+}
+
+.pd-kalyan-stock-count.low-stock-alert {
+  color: #B45309;
 }
 
 .pd-kalyan-stock-out {
   font-size: 13.5px;
   font-weight: 600;
-  color: #dc2626;
+  color: #DC2626;
   display: inline-flex;
   align-items: center;
+  gap: 8px;
+}
+
+.stock-indicator-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.stock-indicator-dot.in-stock {
+  background: #10B981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+}
+
+.low-stock-alert .stock-indicator-dot.in-stock {
+  background: #F59E0B;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+}
+
+.stock-indicator-dot.out-of-stock {
+  background: #EF4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+}
+
+/* Specs Color Chips */
+.spec-colors-list {
+  display: flex;
+  flex-wrap: wrap;
   gap: 6px;
+}
+
+.spec-color-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #ffffff;
+  padding: 2px 8px;
+  border-radius: 12px;
+  border: 1px solid #CBD5E1;
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.spec-color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+.sold-out-btn {
+  background: #E2E8F0 !important;
+  color: #94A3B8 !important;
+  border-color: #CBD5E1 !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
 }
 
 /* Specs Table */
