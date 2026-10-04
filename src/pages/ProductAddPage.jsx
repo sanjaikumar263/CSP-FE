@@ -163,13 +163,8 @@ export default function ProductAddPage() {
   const [tags, setTags] = useState(['New Collection']);
   const [tagInput, setTagInput] = useState('');
   const [status, setStatus] = useState('published');
-  const [toast, setToast] = useState({ show: false, msg: '' });
+  const [toast, setToast] = useState({ show: false, msg: '', type: 'success' });
   const [editingThumbId, setEditingThumbId] = useState(null);
-
-  // Active color tab in the Image Gallery: 'ALL' or Color Name
-  const [activeImageColorTab, setActiveImageColorTab] = useState('ALL');
-  // Store which color is being directly uploaded to via color section
-  const [directColorTarget, setDirectColorTarget] = useState('');
 
   // Controlled Form State
   const [name, setName] = useState('');
@@ -218,94 +213,15 @@ export default function ProductAddPage() {
             setTags(p.tags || []);
             setStatus(p.status || 'published');
 
-            // Handle colors
-            let loadedColors = [];
-            if (p.colors && Array.isArray(p.colors) && p.colors.length > 0) {
-              loadedColors = p.colors.map((c, i) =>
-                typeof c === 'string'
-                  ? { id: `c-${i}`, name: c, code: '#0A305D' }
-                  : { id: `c-${i}`, name: c.name || '', code: c.code || '#0A305D' }
-              );
-            } else if (p.color) {
-              loadedColors = [{ id: 'c-1', name: p.color, code: '#0A305D' }];
+            if (p.images && p.images.length > 0) {
+              setThumbs(p.images.map((src, i) => ({ id: i + 1, src, public_id: src, primary: i === 0 })));
+            } else if (p.image) {
+              setThumbs([{ id: 1, src: p.image, public_id: p.image, primary: true }]);
             }
-            setColors(loadedColors);
-
-            // Handle sizes
-            let loadedSizes = [];
-            if (p.sizes && Array.isArray(p.sizes) && p.sizes.length > 0) {
-              loadedSizes = p.sizes;
-            } else if (p.variants && Array.isArray(p.variants) && p.variants.length > 0) {
-              loadedSizes = [...new Set(p.variants.map(v => v.size).filter(Boolean))];
-            }
-            setSizes(loadedSizes);
-
-            // Handle variants
-            if (p.variants && Array.isArray(p.variants) && p.variants.length > 0) {
-              setVariants(p.variants.map((v, i) => ({
-                id: v.id || v._id || `v-${i}`,
-                color: v.color || '',
-                colorCode: v.colorCode || '#0A305D',
-                size: v.size || 'Free Size',
-                stockQuantity: v.stockQuantity ?? 0,
-                sku: v.sku || '',
-                inStock: (v.stockQuantity ?? 0) > 0,
-                image: v.image || ''
-              })));
-            } else {
-              setVariants(generateVariantList(loadedColors, loadedSizes, [], p.sku || ''));
-            }
-
-            // Build Thumbs with Color Association from colorImages and images
-            const builtThumbs = [];
-            const processedUrls = new Set();
-            let thumbCounter = 1;
-
-            if (p.colorImages && Array.isArray(p.colorImages)) {
-              p.colorImages.forEach(ci => {
-                const cName = ci.color || '';
-                if (Array.isArray(ci.images)) {
-                  ci.images.forEach(imgUrl => {
-                    if (imgUrl && !processedUrls.has(imgUrl)) {
-                      processedUrls.add(imgUrl);
-                      builtThumbs.push({
-                        id: thumbCounter++,
-                        src: imgUrl,
-                        public_id: imgUrl,
-                        primary: builtThumbs.length === 0,
-                        color: cName,
-                        uploading: false
-                      });
-                    }
-                  });
-                }
-              });
-            }
-
-            // Add any general images from p.images not already in colorImages
-            const allImagesList = p.images && p.images.length > 0 ? p.images : (p.image ? [p.image] : []);
-            allImagesList.forEach(imgUrl => {
-              if (imgUrl && !processedUrls.has(imgUrl)) {
-                processedUrls.add(imgUrl);
-                builtThumbs.push({
-                  id: thumbCounter++,
-                  src: imgUrl,
-                  public_id: imgUrl,
-                  primary: builtThumbs.length === 0,
-                  color: '',
-                  uploading: false
-                });
-              }
-            });
-
-            if (p.sizeChart && p.sizeChart.sections) {
-              setSizeChart(p.sizeChart);
-            }
-
-            setThumbs(builtThumbs);
           }
         } catch (err) {
           console.warn('API error fetching product details:', err);
+          showToast('Failed to load product details', 'error', false);
         }
       };
       fetchProductDetails();
@@ -665,13 +581,15 @@ export default function ProductAddPage() {
           public_id: data.public_id || data.url,
           uploading: false
         } : t));
-        showToast('Image replaced successfully!', false);
+        showToast('Image replaced on Cloudinary!', false);
       } else {
         setThumbs(ts => ts.map(t => t.id === editingThumbId ? { ...t, uploading: false } : t));
+        showToast(data.message || 'Failed to replace image', 'error', false);
       }
     } catch (err) {
       console.warn('Error replacing image:', err);
       setThumbs(ts => ts.map(t => t.id === editingThumbId ? { ...t, uploading: false } : t));
+      showToast('Error uploading replacement image', 'error', false);
     } finally {
       setEditingThumbId(null);
     }
@@ -685,27 +603,54 @@ export default function ProductAddPage() {
     }
   };
 
-  const showToast = (msg, shouldNavigate = true) => {
-    setToast({ show: true, msg });
-    setTimeout(() => {
-      setToast({ show: false, msg: '' });
-      if (shouldNavigate) {
+  const showToast = (msg, type = 'success', shouldNavigate = false) => {
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current);
+    }
+    setToast({ show: true, msg, type });
+    toastTimeoutRef.current = setTimeout(() => {
+      setToast({ show: false, msg: '', type: 'success' });
+      // Only navigate on success, NEVER on error
+      if (shouldNavigate && type === 'success') {
         navigate('/admin/products');
       }
-    }, 1500);
+    }, type === 'error' ? 3500 : 1500);
+  };
+
+  const closeToast = () => {
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current);
+    }
+    setToast({ show: false, msg: '', type: 'success' });
   };
 
   // Submit Product to Backend
   const handleSubmitProduct = async (targetStatus = status) => {
+    // 1. Validation for Published status
     if (targetStatus === 'published') {
       if (!name.trim()) {
-        showToast('Please enter a product name before publishing', false);
+        showToast('Please enter a product name before publishing', 'error', false);
         return;
       }
-      if (!price || parseFloat(price) <= 0) {
-        showToast('Please enter a valid price before publishing', false);
+      if (!price || isNaN(parseFloat(price)) || parseFloat(price) <= 0) {
+        showToast('Please enter a valid price before publishing', 'error', false);
         return;
       }
+    } else if (targetStatus === 'draft') {
+      if (price && (isNaN(parseFloat(price)) || parseFloat(price) < 0)) {
+        showToast('Please enter a valid price for the draft', 'error', false);
+        return;
+      }
+    }
+
+    if (salePrice && (isNaN(parseFloat(salePrice)) || parseFloat(salePrice) < 0)) {
+      showToast('Sale price must be a valid positive number', 'error', false);
+      return;
+    }
+
+    if (salePrice && price && parseFloat(salePrice) > parseFloat(price)) {
+      showToast('Sale price cannot be greater than the regular price', 'error', false);
+      return;
     }
 
     setIsSubmitting(true);
@@ -787,13 +732,23 @@ export default function ProductAddPage() {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        showToast(isEditMode ? 'Product updated successfully!' : (targetStatus === 'draft' ? 'Draft saved to database!' : 'Product published successfully!'));
+        showToast(
+          isEditMode
+            ? 'Product updated successfully!'
+            : (targetStatus === 'draft' ? 'Draft saved to database!' : 'Product published successfully!'),
+          'success',
+          true // Only navigate on success
+        );
       } else {
-        showToast(data.message || (isEditMode ? 'Product updated!' : (targetStatus === 'draft' ? 'Draft saved!' : 'Product published!')));
+        // Backend API returned error response - show in RED toast and DO NOT navigate
+        const errorMsg = data.message || data.error || (isEditMode ? 'Failed to update product' : 'Failed to save product');
+        showToast(errorMsg, 'error', false);
       }
     } catch (err) {
-      console.warn('Backend API connection warning:', err);
-      showToast(isEditMode ? 'Product updated successfully!' : (targetStatus === 'draft' ? 'Draft saved successfully!' : 'Product published successfully!'));
+      console.error('Backend API connection error:', err);
+      // Network or connection error - show in RED toast and DO NOT navigate
+      const errorMsg = err.message ? `Connection error: ${err.message}` : 'Failed to connect to backend server. Please try again.';
+      showToast(errorMsg, 'error', false);
     } finally {
       setIsSubmitting(false);
     }
@@ -1647,11 +1602,33 @@ export default function ProductAddPage() {
         </div>
       </main>
 
-      <div className={`toast${toast.show ? ' show' : ''}`}>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M20 6 9 17l-5-5"/>
-        </svg>
-        <span>{toast.msg}</span>
+      <div 
+        className={`toast ${toast.type}${toast.show ? ' show' : ''}`}
+        role="alert"
+        aria-live="assertive"
+      >
+        {toast.type === 'error' ? (
+          <svg className="toast-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="15" y1="9" x2="9" y2="15" />
+            <line x1="9" y1="9" x2="15" y2="15" />
+          </svg>
+        ) : (
+          <svg className="toast-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        )}
+        <span className="toast-msg">{toast.msg}</span>
+        {toast.type === 'error' && (
+          <button 
+            type="button" 
+            className="toast-close-btn" 
+            onClick={closeToast}
+            aria-label="Close notification"
+          >
+            ×
+          </button>
+        )}
       </div>
     </div>
   );

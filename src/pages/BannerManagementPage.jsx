@@ -4,6 +4,9 @@ import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../config';
 import { compressImage } from '../utils/imageCompressor';
 import ImageCropperModal from '../components/ImageCropperModal';
+import womenBanner from '../assets/women_banner.jpg';
+import menBanner from '../assets/men_banner.jpg';
+import kidsBanner from '../assets/kids_banner.jpg';
 import './BannerManagementPage.css';
 
 export default function BannerManagementPage() {
@@ -42,7 +45,7 @@ export default function BannerManagementPage() {
   const PLACEHOLDER_PRESETS = [
     {
       label: "👗 Women's Collection",
-      image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1200&q=80",
+      image: womenBanner,
       mobileImage: "",
       eyebrow: "HERITAGE SAREES & LEHENGAS",
       title: "Women's Collection",
@@ -53,7 +56,7 @@ export default function BannerManagementPage() {
     },
     {
       label: "👔 Men's Collection",
-      image: "https://images.unsplash.com/photo-1583391733956-6c78276477e2?auto=format&fit=crop&w=1200&q=80",
+      image: menBanner,
       mobileImage: "",
       eyebrow: "ROYAL TRADITIONAL WEAR",
       title: "Men's Collection",
@@ -63,8 +66,19 @@ export default function BannerManagementPage() {
       ctaLink: "/gender/men"
     },
     {
+      label: "🧒 Kids' Collection",
+      image: kidsBanner,
+      mobileImage: "",
+      eyebrow: "FESTIVE INNOCENCE & CHARM",
+      title: "Kids' Festive Collection",
+      titleHighlight: "Pattu Pavadais & Sherwanis",
+      subtitle: "Adorable Pattu Pavadais, royal Boys Sherwanis & celebratory lehengas crafted for kids.",
+      ctaText: "EXPLORE KIDS",
+      ctaLink: "/gender/kids"
+    },
+    {
       label: "🌸 Kanchipuram Silk",
-      image: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=1200&q=80",
+      image: womenBanner,
       mobileImage: "",
       eyebrow: "ROYAL HERITAGE 2026",
       title: "Kanchipuram Silk Splendor",
@@ -75,7 +89,7 @@ export default function BannerManagementPage() {
     },
     {
       label: "👑 Royal Kurta & Dhoti",
-      image: "https://images.unsplash.com/photo-1607345366928-199ea26cfe3e?auto=format&fit=crop&w=1200&q=80",
+      image: menBanner,
       mobileImage: "",
       eyebrow: "FESTIVE ESSENTIALS",
       title: "Royal Kurta & Dhoti Sets",
@@ -83,17 +97,6 @@ export default function BannerManagementPage() {
       subtitle: "Embracing authentic South Indian heritage with contemporary regal style.",
       ctaText: "SHOP MEN'S WEAR",
       ctaLink: "/gender/men"
-    },
-    {
-      label: "💃 Bridal Silk Lehenga",
-      image: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&w=1200&q=80",
-      mobileImage: "",
-      eyebrow: "BRIDAL EDITIONS",
-      title: "Grand Wedding Collection",
-      titleHighlight: "Memories Woven in Gold",
-      subtitle: "Regal bridal lehengas adorned with intricate hand-embroidered zari.",
-      ctaText: "EXPLORE BRIDAL",
-      ctaLink: "/products?category=Lehengas"
     }
   ];
 
