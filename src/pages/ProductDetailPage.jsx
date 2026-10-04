@@ -8,6 +8,8 @@ import placeholderSvg from '../assets/placeholder.svg';
 import { API_BASE_URL } from '../config';
 import { useWishlist } from '../context/WishlistContext';
 import { useCart } from '../context/CartContext';
+import SizeChartModal from '../components/SizeChartModal';
+import { getEffectiveSizeChart } from '../data/sizeChartPresets';
 import './ProductDetailPage.css';
 
 export default function ProductDetailPage() {
@@ -23,6 +25,7 @@ export default function ProductDetailPage() {
   const [apiProduct, setApiProduct] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isSizeChartOpen, setIsSizeChartOpen] = useState(false);
   const [isZoomOpen, setIsZoomOpen] = useState(false);
   const [zoomScale, setZoomScale] = useState(1);
   const [isMainHovered, setIsMainHovered] = useState(false);
@@ -249,7 +252,9 @@ export default function ProductDetailPage() {
     color: apiProduct.color || '',
     work: apiProduct.work || '',
     occasion: apiProduct.occasion || '',
-    tags: apiProduct.tags || []
+    tags: apiProduct.tags || [],
+    sizes: sizesList,
+    sizeChart: apiProduct.sizeChart || null
   };
 
   const handleShare = async () => {
@@ -597,15 +602,32 @@ export default function ProductDetailPage() {
             {/* ========================================================
                 SIZE SELECTION SECTION
                 ======================================================== */}
-            {sizesList.length > 0 && (
+            {sizesList.length > 0 ? (
               <div className="pd-variant-picker-section">
                 <div className="pd-variant-label-row">
                   <span className="pd-variant-title">
                     Size: <strong className="pd-variant-value">{activeSize}</strong>
                   </span>
-                  {activeSize && getSizeStockForColor(activeSize) <= 0 && (
-                    <span className="pd-variant-out-badge">Out of Stock for {activeColor}</span>
-                  )}
+                  <div className="pd-size-header-right">
+                    {activeSize && getSizeStockForColor(activeSize) <= 0 && (
+                      <span className="pd-variant-out-badge">Out of Stock for {activeColor}</span>
+                    )}
+                    <button
+                      type="button"
+                      className="pd-size-chart-trigger-btn"
+                      onClick={() => setIsSizeChartOpen(true)}
+                      title="View Body Measurements & Size Guide in Inches & Cm"
+                    >
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21.3 8.7 8.7 21.3c-1 1-2.5 1-3.4 0l-2.6-2.6c-1-1-1-2.5 0-3.4L15.3 2.7c1-1 2.5-1 3.4 0l2.6 2.6c1 1 1 2.5 0 3.4Z"/>
+                        <path d="m14.5 3.5 2 2"/>
+                        <path d="m11.5 6.5 2 2"/>
+                        <path d="m8.5 9.5 2 2"/>
+                        <path d="m5.5 12.5 2 2"/>
+                      </svg>
+                      <span>Size Chart</span>
+                    </button>
+                  </div>
                 </div>
                 <div className="pd-size-pills-list" role="radiogroup" aria-label="Select Size">
                   {sizesList.map(s => {
@@ -630,6 +652,24 @@ export default function ProductDetailPage() {
                     );
                   })}
                 </div>
+              </div>
+            ) : (
+              <div className="pd-freesize-chart-row">
+                <button
+                  type="button"
+                  className="pd-size-chart-trigger-btn inline-btn"
+                  onClick={() => setIsSizeChartOpen(true)}
+                  title="View Body Measurements & Size Guide in Inches & Cm"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21.3 8.7 8.7 21.3c-1 1-2.5 1-3.4 0l-2.6-2.6c-1-1-1-2.5 0-3.4L15.3 2.7c1-1 2.5-1 3.4 0l2.6 2.6c1 1 1 2.5 0 3.4Z"/>
+                    <path d="m14.5 3.5 2 2"/>
+                    <path d="m11.5 6.5 2 2"/>
+                    <path d="m8.5 9.5 2 2"/>
+                    <path d="m5.5 12.5 2 2"/>
+                  </svg>
+                  <span>📏 View Size Chart &amp; Body Measurements</span>
+                </button>
               </div>
             )}
 
@@ -1018,6 +1058,15 @@ export default function ProductDetailPage() {
           )}
         </div>
       )}
+
+      {/* Interactive Dual-Unit (Inch & Cm) Size Chart Modal */}
+      <SizeChartModal
+        isOpen={isSizeChartOpen}
+        onClose={() => setIsSizeChartOpen(false)}
+        sizeChart={getEffectiveSizeChart(product)}
+        productTitle={product?.title || product?.name || 'Product'}
+        selectedSize={activeSize}
+      />
     </div>
   );
 }

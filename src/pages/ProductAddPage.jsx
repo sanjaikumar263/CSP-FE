@@ -4,6 +4,8 @@ import AdminSidebar from '../components/AdminSidebar';
 import { API_BASE_URL } from '../config';
 import { compressImage } from '../utils/imageCompressor';
 import { getDepartmentHierarchy, findCategoryHierarchy } from '../data/categoriesData';
+import SizeChartEditor from '../components/SizeChartEditor';
+import { DEFAULT_SIZE_CHART } from '../data/sizeChartPresets';
 import './ProductAddPage.css';
 
 let nextId = 100;
@@ -191,6 +193,7 @@ export default function ProductAddPage() {
   const [customColorCode, setCustomColorCode] = useState('#0A305D');
   const [customSizeInput, setCustomSizeInput] = useState('');
   const [bulkStockInput, setBulkStockInput] = useState('10');
+  const [sizeChart, setSizeChart] = useState(DEFAULT_SIZE_CHART);
 
   // Fetch product by ID if in Edit Mode
   useEffect(() => {
@@ -294,6 +297,10 @@ export default function ProductAddPage() {
                 });
               }
             });
+
+            if (p.sizeChart && p.sizeChart.sections) {
+              setSizeChart(p.sizeChart);
+            }
 
             setThumbs(builtThumbs);
           }
@@ -761,7 +768,8 @@ export default function ProductAddPage() {
       colors: colors.map(c => ({ name: c.name, code: c.code || '#0A305D' })),
       sizes: sizes,
       colorImages: colorImagesPayload,
-      variants: formattedVariants
+      variants: formattedVariants,
+      sizeChart: sizeChart
     };
 
     const url = isEditMode ? `${API_BASE_URL}/products/${id}` : `${API_BASE_URL}/products`;
@@ -1066,30 +1074,40 @@ export default function ProductAddPage() {
                 <div className="field">
                   <label htmlFor="pprice">Regular price *</label>
                   <div className="prefix-input">
-                    <span>MYR</span>
+                    <span className="prefix-span">MYR</span>
                     <input
-                      type="number"
-                      step="0.01"
-                      min="0"
+                      type="text"
+                      inputMode="decimal"
                       id="pprice"
                       value={price}
-                      onChange={e => setPrice(e.target.value)}
+                      onChange={e => {
+                        const val = e.target.value;
+                        if (val === '' || /^\d*\.?\d*$/.test(val)) {
+                          setPrice(val);
+                        }
+                      }}
                       placeholder="0.00"
+                      style={{ paddingLeft: '58px' }}
                     />
                   </div>
                 </div>
                 <div className="field">
                   <label htmlFor="psale">Sale price <span style={{ fontWeight: 400, color: 'var(--ink-faint)' }}>(optional)</span></label>
                   <div className="prefix-input">
-                    <span>MYR</span>
+                    <span className="prefix-span">MYR</span>
                     <input
-                      type="number"
-                      step="0.01"
-                      min="0"
+                      type="text"
+                      inputMode="decimal"
                       id="psale"
                       value={salePrice}
-                      onChange={e => setSalePrice(e.target.value)}
+                      onChange={e => {
+                        const val = e.target.value;
+                        if (val === '' || /^\d*\.?\d*$/.test(val)) {
+                          setSalePrice(val);
+                        }
+                      }}
                       placeholder="0.00"
+                      style={{ paddingLeft: '58px' }}
                     />
                   </div>
                 </div>
@@ -1448,6 +1466,29 @@ export default function ProductAddPage() {
                     </div>
                   </div>
                 )}
+              </div>
+            </div>
+
+            {/* Size Chart & Body Measurements Master Panel */}
+            <div className="panel size-chart-panel" style={{ borderTop: '3px solid #0A305D' }}>
+              <div className="panel-header-row">
+                <div>
+                  <h3>Size Chart &amp; Body Measurements</h3>
+                  <div className="phint" style={{ marginBottom: 0 }}>
+                    Configure body measurements and garment dimensions in both <strong>inches (in)</strong> and <strong>centimeters (cm)</strong>. Shoppers can switch units on the product page.
+                  </div>
+                </div>
+                <div className="combination-count-pill" style={{ background: '#EFF6FF', color: '#0A305D', borderColor: '#BFDBFE' }}>
+                  📏 Dual Unit (Inch &amp; Cm)
+                </div>
+              </div>
+
+              <div style={{ marginTop: '16px' }}>
+                <SizeChartEditor
+                  sizeChart={sizeChart}
+                  onChange={setSizeChart}
+                  productSizes={sizes}
+                />
               </div>
             </div>
           </div>
