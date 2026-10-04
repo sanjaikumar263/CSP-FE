@@ -157,6 +157,7 @@ export default function ProductAddPage() {
   const fileInputRef = useRef(null);
   const replaceFileInputRef = useRef(null);
   const colorDirectInputRef = useRef(null);
+  const toastTimeoutRef = useRef(null);
 
   const [isDragging, setIsDragging] = useState(false);
   const [thumbs, setThumbs] = useState([]);
@@ -165,6 +166,11 @@ export default function ProductAddPage() {
   const [status, setStatus] = useState('published');
   const [toast, setToast] = useState({ show: false, msg: '', type: 'success' });
   const [editingThumbId, setEditingThumbId] = useState(null);
+
+  // Active color tab in the Image Gallery: 'ALL' or Color Name
+  const [activeImageColorTab, setActiveImageColorTab] = useState('ALL');
+  // Store which color is being directly uploaded to via color section
+  const [directColorTarget, setDirectColorTarget] = useState('');
 
   // Controlled Form State
   const [name, setName] = useState('');
@@ -213,11 +219,91 @@ export default function ProductAddPage() {
             setTags(p.tags || []);
             setStatus(p.status || 'published');
 
-            if (p.images && p.images.length > 0) {
-              setThumbs(p.images.map((src, i) => ({ id: i + 1, src, public_id: src, primary: i === 0 })));
-            } else if (p.image) {
-              setThumbs([{ id: 1, src: p.image, public_id: p.image, primary: true }]);
+            // Handle colors
+            let loadedColors = [];
+            if (p.colors && Array.isArray(p.colors) && p.colors.length > 0) {
+              loadedColors = p.colors.map((c, i) =>
+                typeof c === 'string'
+                  ? { id: `c-${i}`, name: c, code: '#0A305D' }
+                  : { id: `c-${i}`, name: c.name || '', code: c.code || '#0A305D' }
+              );
+            } else if (p.color) {
+              loadedColors = [{ id: 'c-1', name: p.color, code: '#0A305D' }];
             }
+            setColors(loadedColors);
+
+            // Handle sizes
+            let loadedSizes = [];
+            if (p.sizes && Array.isArray(p.sizes) && p.sizes.length > 0) {
+              loadedSizes = p.sizes;
+            } else if (p.variants && Array.isArray(p.variants) && p.variants.length > 0) {
+              loadedSizes = [...new Set(p.variants.map(v => v.size).filter(Boolean))];
+            }
+            setSizes(loadedSizes);
+
+            // Handle variants
+            if (p.variants && Array.isArray(p.variants) && p.variants.length > 0) {
+              setVariants(p.variants.map((v, i) => ({
+                id: v.id || v._id || `v-${i}`,
+                color: v.color || '',
+                colorCode: v.colorCode || '#0A305D',
+                size: v.size || 'Free Size',
+                stockQuantity: v.stockQuantity ?? 0,
+                sku: v.sku || '',
+                inStock: (v.stockQuantity ?? 0) > 0,
+                image: v.image || ''
+              })));
+            } else {
+              setVariants(generateVariantList(loadedColors, loadedSizes, [], p.sku || ''));
+            }
+
+            // Build Thumbs with Color Association from colorImages and images
+            const builtThumbs = [];
+            const processedUrls = new Set();
+            let thumbCounter = 1;
+
+            if (p.colorImages && Array.isArray(p.colorImages)) {
+              p.colorImages.forEach(ci => {
+                const cName = ci.color || '';
+                if (Array.isArray(ci.images)) {
+                  ci.images.forEach(imgUrl => {
+                    if (imgUrl && !processedUrls.has(imgUrl)) {
+                      processedUrls.add(imgUrl);
+                      builtThumbs.push({
+                        id: thumbCounter++,
+                        src: imgUrl,
+                        public_id: imgUrl,
+                        primary: builtThumbs.length === 0,
+                        color: cName,
+                        uploading: false
+                      });
+                    }
+                  });
+                }
+              });
+            }
+
+            // Add any general images from p.images not already in colorImages
+            const allImagesList = p.images && p.images.length > 0 ? p.images : (p.image ? [p.image] : []);
+            allImagesList.forEach(imgUrl => {
+              if (imgUrl && !processedUrls.has(imgUrl)) {
+                processedUrls.add(imgUrl);
+                builtThumbs.push({
+                  id: thumbCounter++,
+                  src: imgUrl,
+                  public_id: imgUrl,
+                  primary: builtThumbs.length === 0,
+                  color: '',
+                  uploading: false
+                });
+              }
+            });
+
+            if (p.sizeChart && p.sizeChart.sections) {
+              setSizeChart(p.sizeChart);
+            }
+
+            setThumbs(builtThumbs);
           }
         } catch (err) {
           console.warn('API error fetching product details:', err);
