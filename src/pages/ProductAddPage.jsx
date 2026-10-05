@@ -5,7 +5,7 @@ import { API_BASE_URL } from '../config';
 import { compressImage } from '../utils/imageCompressor';
 import { getDepartmentHierarchy, findCategoryHierarchy } from '../data/categoriesData';
 import SizeChartEditor from '../components/SizeChartEditor';
-import { DEFAULT_SIZE_CHART } from '../data/sizeChartPresets';
+import { DEFAULT_SIZE_CHART, syncSizeChartWithSizes } from '../data/sizeChartPresets';
 import './ProductAddPage.css';
 
 let nextId = 100;
@@ -75,9 +75,9 @@ function generateVariantList(currentColors, currentSizes, existingVariants = [],
           color: c.name,
           colorCode: c.code || '#0A305D',
           size: 'Free Size',
-          stockQuantity: 10,
+          stockQuantity: 0,
           sku: defaultVariantSku,
-          inStock: true
+          inStock: false
         });
       }
     });
@@ -106,9 +106,9 @@ function generateVariantList(currentColors, currentSizes, existingVariants = [],
           color: 'Standard Color',
           colorCode: '#0A305D',
           size: s,
-          stockQuantity: 10,
+          stockQuantity: 0,
           sku: defaultVariantSku,
-          inStock: true
+          inStock: false
         });
       }
     });
@@ -139,9 +139,9 @@ function generateVariantList(currentColors, currentSizes, existingVariants = [],
           color: c.name,
           colorCode: c.code || '#0A305D',
           size: s,
-          stockQuantity: 10,
+          stockQuantity: 0,
           sku: defaultVariantSku,
-          inStock: true
+          inStock: false
         });
       }
     });
@@ -178,7 +178,7 @@ export default function ProductAddPage() {
   const [price, setPrice] = useState('');
   const [salePrice, setSalePrice] = useState('');
   const [sku, setSku] = useState('');
-  const [stockQuantity, setStockQuantity] = useState(10);
+  const [stockQuantity, setStockQuantity] = useState(0);
   const [gender, setGender] = useState('Women');
   const [selectedMainCat, setSelectedMainCat] = useState('Sarees');
   const [primaryCategory, setPrimaryCategory] = useState('Soft Silk & Pure Silks Sarees');
@@ -193,7 +193,7 @@ export default function ProductAddPage() {
   const [customColorName, setCustomColorName] = useState('');
   const [customColorCode, setCustomColorCode] = useState('#0A305D');
   const [customSizeInput, setCustomSizeInput] = useState('');
-  const [bulkStockInput, setBulkStockInput] = useState('10');
+  const [bulkStockInput, setBulkStockInput] = useState('0');
   const [sizeChart, setSizeChart] = useState(DEFAULT_SIZE_CHART);
 
   // Fetch product by ID if in Edit Mode
@@ -210,7 +210,7 @@ export default function ProductAddPage() {
             setPrice(p.price !== undefined && p.price !== null ? p.price.toString() : '');
             setSalePrice(p.salePrice !== undefined && p.salePrice !== null ? p.salePrice.toString() : '');
             setSku(p.sku || '');
-            setStockQuantity(p.stockQuantity ?? 10);
+            setStockQuantity(p.stockQuantity ?? 0);
             const resolved = findCategoryHierarchy(p.category || (p.categories && p.categories[0]), p.gender || 'Women');
             setGender(resolved.gender);
             setSelectedMainCat(resolved.mainCategory);
@@ -391,6 +391,19 @@ export default function ProductAddPage() {
   };
 
   // Size Management Handlers
+  const handleScrollToSizes = () => {
+    const el = document.getElementById('available-sizes-section');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.classList.add('highlight-pulse');
+      setTimeout(() => el.classList.remove('highlight-pulse'), 1800);
+      const input = document.getElementById('custom-size-input');
+      if (input) {
+        setTimeout(() => input.focus(), 350);
+      }
+    }
+  };
+
   const handleToggleSizePreset = (sizeStr) => {
     const exists = sizes.includes(sizeStr);
     let nextSizes;
@@ -401,6 +414,7 @@ export default function ProductAddPage() {
     }
     setSizes(nextSizes);
     setVariants(prev => generateVariantList(colors, nextSizes, prev, sku));
+    setSizeChart(prev => syncSizeChartWithSizes(prev, nextSizes));
   };
 
   const handleAddCustomSize = (e) => {
@@ -428,6 +442,7 @@ export default function ProductAddPage() {
 
     setSizes(nextSizes);
     setVariants(prev => generateVariantList(colors, nextSizes, prev, sku));
+    setSizeChart(prev => syncSizeChartWithSizes(prev, nextSizes));
     setCustomSizeInput('');
     setToast({ show: true, msg: `Added ${addedCount} size${addedCount > 1 ? 's' : ''}!` });
     setTimeout(() => setToast({ show: false, msg: '' }), 1500);
@@ -444,6 +459,7 @@ export default function ProductAddPage() {
     });
     setSizes(nextSizes);
     setVariants(prev => generateVariantList(colors, nextSizes, prev, sku));
+    setSizeChart(prev => syncSizeChartWithSizes(prev, nextSizes));
     setToast({ show: true, msg: `Added ${addedCount} size${addedCount > 1 ? 's' : ''} from bundle!` });
     setTimeout(() => setToast({ show: false, msg: '' }), 1500);
   };
@@ -452,12 +468,14 @@ export default function ProductAddPage() {
     const nextSizes = sizes.filter(s => s !== sizeStr);
     setSizes(nextSizes);
     setVariants(prev => generateVariantList(colors, nextSizes, prev, sku));
+    setSizeChart(prev => syncSizeChartWithSizes(prev, nextSizes));
   };
 
   const handleClearAllSizes = () => {
     if (sizes.length === 0) return;
     setSizes([]);
     setVariants(prev => generateVariantList(colors, [], prev, sku));
+    setSizeChart(prev => syncSizeChartWithSizes(prev, []));
     setToast({ show: true, msg: 'Cleared all sizes' });
     setTimeout(() => setToast({ show: false, msg: '' }), 1500);
   };
@@ -1298,7 +1316,7 @@ export default function ProductAddPage() {
               </div>
 
               {/* 2. Sizes Section */}
-              <div className="var-section">
+              <div className="var-section" id="available-sizes-section">
                 <div className="var-section-header">
                   <div>
                     <label className="var-label">2. Available Sizes ({sizes.length})</label>
@@ -1375,6 +1393,7 @@ export default function ProductAddPage() {
                 <form className="custom-input-bar" onSubmit={handleAddCustomSize}>
                   <input
                     type="text"
+                    id="custom-size-input"
                     placeholder="Custom size(s) — comma separated allowed (e.g. 38, 40, 42, 44 or 5.5m)"
                     value={customSizeInput}
                     onChange={e => setCustomSizeInput(e.target.value)}
@@ -1529,6 +1548,7 @@ export default function ProductAddPage() {
                   sizeChart={sizeChart}
                   onChange={setSizeChart}
                   productSizes={sizes}
+                  onScrollToSizes={handleScrollToSizes}
                 />
               </div>
             </div>

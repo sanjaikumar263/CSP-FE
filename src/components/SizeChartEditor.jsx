@@ -11,7 +11,8 @@ import './SizeChartEditor.css';
 export default function SizeChartEditor({
   sizeChart = DEFAULT_SIZE_CHART,
   onChange,
-  productSizes = []
+  productSizes = [],
+  onScrollToSizes
 }) {
   const [activeUnit, setActiveUnit] = useState('inch'); // 'inch' or 'cm'
   const [showPreview, setShowPreview] = useState(false);
@@ -55,7 +56,7 @@ export default function SizeChartEditor({
   // Sync size columns from product's active sizes
   const handleSyncSizes = () => {
     if (productSizes.length === 0) {
-      alert('Please select or add product sizes in the "Available Sizes" section above first.');
+      handleAddSizeColumn();
       return;
     }
     const synced = syncSizeChartWithSizes(sizeChart, productSizes);
@@ -64,16 +65,23 @@ export default function SizeChartEditor({
 
   // Section handlers
   const handleAddSection = () => {
+    const newSizes = productSizes.length > 0 ? [...productSizes] : ['S', 'M', 'L', 'XL', 'XXL'];
+    const initialInches = {};
+    const initialCms = {};
+    newSizes.forEach(s => {
+      initialInches[s] = '0';
+      initialCms[s] = '0';
+    });
     const newSection = {
       id: `sec-${Date.now()}`,
       title: sections.length === 0 ? 'TOP' : 'BOTTOM',
-      sizes: productSizes.length > 0 ? [...productSizes] : ['S', 'M', 'L', 'XL', 'XXL'],
+      sizes: newSizes,
       measurements: [
         {
           id: `m-${Date.now()}-1`,
           label: 'Measurement 1',
-          inches: {},
-          cms: {}
+          inches: initialInches,
+          cms: initialCms
         }
       ]
     };
@@ -94,17 +102,21 @@ export default function SizeChartEditor({
     onChange({ ...sizeChart, sections: updated });
   };
 
-  // Size Column Handlers
-  const handleAddSizeColumn = (sIdx) => {
-    const sizeName = prompt('Enter size column name (e.g. 3XL, 46, Free Size):');
-    if (!sizeName || !sizeName.trim()) return;
-    const clean = sizeName.trim();
-    const updated = [...sections];
-    const sec = { ...updated[sIdx] };
-    if (!sec.sizes.includes(clean)) {
-      sec.sizes = [...sec.sizes, clean];
-      updated[sIdx] = sec;
-      onChange({ ...sizeChart, sections: updated });
+  // Size Column Handlers - Smoothly move to Available Sizes section
+  const handleAddSizeColumn = () => {
+    if (onScrollToSizes) {
+      onScrollToSizes();
+    } else {
+      const el = document.getElementById('available-sizes-section');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.add('highlight-pulse');
+        setTimeout(() => el.classList.remove('highlight-pulse'), 1800);
+        const input = document.getElementById('custom-size-input');
+        if (input) {
+          setTimeout(() => input.focus(), 350);
+        }
+      }
     }
   };
 
@@ -120,11 +132,17 @@ export default function SizeChartEditor({
   const handleAddMeasurementRow = (sIdx) => {
     const updated = [...sections];
     const sec = { ...updated[sIdx] };
+    const initialInches = {};
+    const initialCms = {};
+    (sec.sizes || []).forEach(s => {
+      initialInches[s] = '0';
+      initialCms[s] = '0';
+    });
     const newM = {
       id: `m-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
       label: 'New Metric',
-      inches: {},
-      cms: {}
+      inches: initialInches,
+      cms: initialCms
     };
     sec.measurements = [...sec.measurements, newM];
     updated[sIdx] = sec;
@@ -160,10 +178,10 @@ export default function SizeChartEditor({
 
     if (activeUnit === 'inch') {
       inches[sz] = inputVal;
-      cms[sz] = inputVal ? inchToCm(inputVal) : '';
+      cms[sz] = inputVal !== '' ? inchToCm(inputVal) : '0';
     } else {
       cms[sz] = inputVal;
-      inches[sz] = inputVal ? cmToInch(inputVal) : '';
+      inches[sz] = inputVal !== '' ? cmToInch(inputVal) : '0';
     }
 
     row.inches = inches;
@@ -363,8 +381,8 @@ export default function SizeChartEditor({
                             {sizes.map((sz) => {
                               const cellVal =
                                 activeUnit === 'inch'
-                                  ? (m.inches?.[sz] !== undefined ? m.inches[sz] : '')
-                                  : (m.cms?.[sz] !== undefined ? m.cms[sz] : (m.inches?.[sz] ? inchToCm(m.inches[sz]) : ''));
+                                  ? (m.inches?.[sz] !== undefined && m.inches?.[sz] !== '' ? m.inches[sz] : '0')
+                                  : (m.cms?.[sz] !== undefined && m.cms?.[sz] !== '' ? m.cms[sz] : (m.inches?.[sz] !== undefined && m.inches?.[sz] !== '' ? inchToCm(m.inches[sz]) : '0'));
 
                               return (
                                 <td key={sz} className="sce-td-val-input">

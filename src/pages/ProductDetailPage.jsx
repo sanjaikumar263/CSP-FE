@@ -643,10 +643,8 @@ export default function ProductDetailPage() {
                         title={`${s} ${isSizeOut ? '(Sold out in this combination)' : `(${sizeStock} available)`}`}
                       >
                         <span className="pd-size-text">{s}</span>
-                        {isSizeOut ? (
+                        {isSizeOut && (
                           <span className="pd-size-soldout-label">Sold Out</span>
-                        ) : (
-                          <span className="pd-size-stock-badge">{sizeStock} left</span>
                         )}
                       </button>
                     );
