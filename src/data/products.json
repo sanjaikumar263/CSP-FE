@@ -1,25 +1,5 @@
 {
   "heroSlides": [],
-  "trustBadges": [
-    {
-      "id": 1,
-      "icon": "shield",
-      "title": "100% Pure Silk",
-      "subtitle": "Authentic Quality"
-    },
-    {
-      "id": 2,
-      "icon": "sparkles",
-      "title": "Handpicked Designs",
-      "subtitle": "Made for You"
-    },
-    {
-      "id": 3,
-      "icon": "award",
-      "title": "Trusted Since 1965",
-      "subtitle": "Generations of Trust"
-    }
-  ],
   "featuredCategories": [],
   "trendingProducts": [],
   "lehengaCollection": [],
