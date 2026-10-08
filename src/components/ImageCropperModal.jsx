@@ -2,7 +2,8 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import './ImageCropperModal.css';
 
 const ASPECT_RATIOS = [
-  { label: 'Hero Full Screen', ratio: 16 / 7, desc: '16:7 (Desktop Banner)' },
+  { label: 'Full / Original', ratio: 'original', desc: 'Natural Ratio' },
+  { label: 'Hero Desktop', ratio: 16 / 7, desc: '16:7 (Hero Banner)' },
   { label: 'Hero Mobile', ratio: 4 / 5, desc: '4:5 (Mobile Banner)' },
   { label: 'Widescreen', ratio: 16 / 9, desc: '16:9 (Standard)' },
   { label: 'Ultra-Wide', ratio: 21 / 9, desc: '21:9 (Panorama)' },
@@ -19,12 +20,10 @@ export default function ImageCropperModal({
   defaultRatioIndex = 0
 }) {
   const [activeRatioIndex, setActiveRatioIndex] = useState(defaultRatioIndex);
+  const [resolvedSrc, setResolvedSrc] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
-  useEffect(() => {
-    if (isOpen) {
-      setActiveRatioIndex(defaultRatioIndex);
-    }
-  }, [isOpen, defaultRatioIndex]);
   const [imgNaturalSize, setImgNaturalSize] = useState({ width: 0, height: 0 });
   const [displaySize, setDisplaySize] = useState({ width: 0, height: 0 });
   
@@ -39,6 +38,7 @@ export default function ImageCropperModal({
 
   const stageInnerRef = useRef(null);
   const imgRef = useRef(null);
+  const fileInputRef = useRef(null);
   const dragRef = useRef({
     active: false,
     mode: null, // 'MOVE' or handle name: 'tl','tr','bl','br','tm','bm','lm','rm'
@@ -47,7 +47,78 @@ export default function ImageCropperModal({
     startCrop: { x: 0, y: 0, width: 0, height: 0 }
   });
 
-  const activeRatio = ASPECT_RATIOS[activeRatioIndex]?.ratio;
+  useEffect(() => {
+    if (isOpen) {
+      setActiveRatioIndex(defaultRatioIndex);
+      setRotation(0);
+      setFlipH(false);
+      setZoom(1);
+    }
+  }, [isOpen, defaultRatioIndex]);
+
+  // Robustly resolve image source (convert remote HTTP/HTTPS to local Blob URL to prevent CORS taint)
+  useEffect(() => {
+    if (!isOpen || !imageSrc) {
+      setResolvedSrc('');
+      setIsLoading(false);
+      return;
+    }
+
+    let isMounted = true;
+    let createdBlobUrl = null;
+
+    setLoadError(false);
+    setIsLoading(true);
+
+    if (imageSrc.startsWith('data:') || imageSrc.startsWith('blob:')) {
+      setResolvedSrc(imageSrc);
+      setIsLoading(false);
+    } else if (imageSrc.startsWith('http://') || imageSrc.startsWith('https://')) {
+      // Try to fetch image as Blob to eliminate CORS canvas taint
+      fetch(imageSrc, { mode: 'cors' })
+        .then((res) => {
+          if (!res.ok) throw new Error('Fetch failed');
+          return res.blob();
+        })
+        .then((blob) => {
+          if (isMounted) {
+            createdBlobUrl = URL.createObjectURL(blob);
+            setResolvedSrc(createdBlobUrl);
+            setIsLoading(false);
+          }
+        })
+        .catch(() => {
+          // If direct fetch fails (e.g. CORS restrictions on remote server), fall back to original imageSrc
+          if (isMounted) {
+            setResolvedSrc(imageSrc);
+            setIsLoading(false);
+          }
+        });
+    } else {
+      setResolvedSrc(imageSrc);
+      setIsLoading(false);
+    }
+
+    return () => {
+      isMounted = false;
+      if (createdBlobUrl) {
+        URL.revokeObjectURL(createdBlobUrl);
+      }
+    };
+  }, [isOpen, imageSrc]);
+
+  // Calculate the numeric active ratio
+  const getNumericRatio = useCallback(() => {
+    const selected = ASPECT_RATIOS[activeRatioIndex];
+    if (!selected) return null;
+    if (selected.ratio === 'original') {
+      if (imgNaturalSize.width && imgNaturalSize.height) {
+        return imgNaturalSize.width / imgNaturalSize.height;
+      }
+      return null;
+    }
+    return selected.ratio;
+  }, [activeRatioIndex, imgNaturalSize]);
 
   // Initialize crop box to fit aspect ratio
   const initCropBox = useCallback((dispW, dispH, ratio) => {
@@ -56,15 +127,15 @@ export default function ImageCropperModal({
     let w, h;
     if (ratio) {
       if (dispW / dispH > ratio) {
-        h = Math.round(dispH * 0.85);
+        h = Math.round(dispH * 0.9);
         w = Math.round(h * ratio);
       } else {
-        w = Math.round(dispW * 0.85);
+        w = Math.round(dispW * 0.9);
         h = Math.round(w / ratio);
       }
     } else {
-      w = Math.round(dispW * 0.85);
-      h = Math.round(dispH * 0.85);
+      w = Math.round(dispW * 0.9);
+      h = Math.round(dispH * 0.9);
     }
 
     // Ensure within bounds
@@ -76,24 +147,39 @@ export default function ImageCropperModal({
     setCrop({ x, y, width: w, height: h });
   }, []);
 
-  // When image loads or source changes
-  const handleImageLoad = () => {
-    if (!imgRef.current) return;
-    const nw = imgRef.current.naturalWidth || 800;
-    const nh = imgRef.current.naturalHeight || 600;
+  // When image loads
+  const handleImageLoad = (e) => {
+    const img = e?.currentTarget || imgRef.current;
+    if (!img) return;
+
+    setLoadError(false);
+    setIsLoading(false);
+
+    const nw = img.naturalWidth || 1200;
+    const nh = img.naturalHeight || 800;
     setImgNaturalSize({ width: nw, height: nh });
 
-    const dw = imgRef.current.clientWidth;
-    const dh = imgRef.current.clientHeight;
+    const dw = img.clientWidth || img.offsetWidth || 600;
+    const dh = img.clientHeight || img.offsetHeight || 400;
     setDisplaySize({ width: dw, height: dh });
 
-    initCropBox(dw, dh, activeRatio);
+    const currentRatio = ASPECT_RATIOS[activeRatioIndex]?.ratio === 'original'
+      ? (nw / nh)
+      : ASPECT_RATIOS[activeRatioIndex]?.ratio;
+
+    initCropBox(dw, dh, currentRatio);
   };
 
   // Recalculate on ratio change
   const handleRatioChange = (idx) => {
     setActiveRatioIndex(idx);
-    const newRatio = ASPECT_RATIOS[idx].ratio;
+    const selected = ASPECT_RATIOS[idx];
+    let newRatio = selected?.ratio;
+    if (newRatio === 'original') {
+      newRatio = imgNaturalSize.width && imgNaturalSize.height
+        ? (imgNaturalSize.width / imgNaturalSize.height)
+        : null;
+    }
     if (displaySize.width && displaySize.height) {
       initCropBox(displaySize.width, displaySize.height, newRatio);
     }
@@ -144,7 +230,7 @@ export default function ImageCropperModal({
         pctx.drawImage(imgRef.current, sourceX, sourceY, sourceW, sourceH, 0, 0, outW, outH);
         pctx.restore();
 
-        setPreviewDataUrl(previewCanvas.toDataURL('image/jpeg', 0.85));
+        setPreviewDataUrl(previewCanvas.toDataURL('image/jpeg', 0.88));
         setExportDimensions({
           width: Math.round(crop.width * scaleX),
           height: Math.round(crop.height * scaleY)
@@ -178,11 +264,12 @@ export default function ImageCropperModal({
       const dy = e.clientY - startY;
       const dw = displaySize.width;
       const dh = displaySize.height;
+      const activeNumericRatio = getNumericRatio();
 
       if (mode === 'MOVE') {
         const nextX = Math.max(0, Math.min(dw - startCrop.width, startCrop.x + dx));
         const nextY = Math.max(0, Math.min(dh - startCrop.height, startCrop.y + dy));
-        setCrop(prev => ({ ...prev, x: nextX, y: nextY }));
+        setCrop((prev) => ({ ...prev, x: nextX, y: nextY }));
         return;
       }
 
@@ -191,32 +278,38 @@ export default function ImageCropperModal({
 
       if (mode.includes('r')) {
         width = Math.max(50, Math.min(dw - x, startCrop.width + dx));
-        if (activeRatio) height = Math.round(width / activeRatio);
+        if (activeNumericRatio) height = Math.round(width / activeNumericRatio);
       }
       if (mode.includes('l')) {
         const proposedW = Math.max(50, startCrop.width - dx);
         const maxW = startCrop.x + startCrop.width;
         width = Math.min(proposedW, maxW);
         x = startCrop.x + (startCrop.width - width);
-        if (activeRatio) height = Math.round(width / activeRatio);
+        if (activeNumericRatio) height = Math.round(width / activeNumericRatio);
       }
       if (mode.includes('b')) {
         height = Math.max(50, Math.min(dh - y, startCrop.height + dy));
-        if (activeRatio) width = Math.round(height * activeRatio);
+        if (activeNumericRatio) width = Math.round(height * activeNumericRatio);
       }
       if (mode.includes('t')) {
         const proposedH = Math.max(50, startCrop.height - dy);
         const maxH = startCrop.y + startCrop.height;
         height = Math.min(proposedH, maxH);
         y = startCrop.y + (startCrop.height - height);
-        if (activeRatio) width = Math.round(height * activeRatio);
+        if (activeNumericRatio) width = Math.round(height * activeNumericRatio);
       }
 
       // Keep inside bounds
       if (x + width > dw) width = dw - x;
       if (y + height > dh) height = dh - y;
-      if (x < 0) { width += x; x = 0; }
-      if (y < 0) { height += y; y = 0; }
+      if (x < 0) {
+        width += x;
+        x = 0;
+      }
+      if (y < 0) {
+        height += y;
+        y = 0;
+      }
 
       setCrop({
         x: Math.round(x),
@@ -236,20 +329,25 @@ export default function ImageCropperModal({
       window.removeEventListener('pointermove', handlePointerMove);
       window.removeEventListener('pointerup', handlePointerUp);
     };
-  }, [displaySize, activeRatio]);
+  }, [displaySize, getNumericRatio]);
 
   // Apply final crop and export file
-  const handleApplyCrop = () => {
+  const handleApplyCrop = async () => {
     if (!imgRef.current) return;
 
     try {
-      const scaleX = imgNaturalSize.width / displaySize.width;
-      const scaleY = imgNaturalSize.height / displaySize.height;
+      const scaleX = imgNaturalSize.width / (displaySize.width || 1);
+      const scaleY = imgNaturalSize.height / (displaySize.height || 1);
 
       const sourceX = Math.max(0, crop.x * scaleX);
       const sourceY = Math.max(0, crop.y * scaleY);
       const sourceW = Math.min(imgNaturalSize.width - sourceX, crop.width * scaleX);
       const sourceH = Math.min(imgNaturalSize.height - sourceY, crop.height * scaleY);
+
+      if (sourceW <= 0 || sourceH <= 0) {
+        alert('Please select a valid area to crop.');
+        return;
+      }
 
       // Desired export resolution (maintain crisp high-res up to 2560px)
       const exportCanvas = document.createElement('canvas');
@@ -296,7 +394,36 @@ export default function ImageCropperModal({
       );
     } catch (err) {
       console.error('Error cropping image:', err);
-      alert('Error cropping image. If loading from external URL, please upload file directly.');
+      // If canvas SecurityError happens due to CORS, attempt blob fallback
+      try {
+        const response = await fetch(resolvedSrc || imageSrc);
+        const blob = await response.blob();
+        const bitmap = await createImageBitmap(blob);
+        const exportCanvas = document.createElement('canvas');
+        const scaleX = bitmap.width / (displaySize.width || 1);
+        const scaleY = bitmap.height / (displaySize.height || 1);
+        const sourceX = Math.max(0, crop.x * scaleX);
+        const sourceY = Math.max(0, crop.y * scaleY);
+        const sourceW = Math.min(bitmap.width - sourceX, crop.width * scaleX);
+        const sourceH = Math.min(bitmap.height - sourceY, crop.height * scaleY);
+
+        exportCanvas.width = Math.round(sourceW);
+        exportCanvas.height = Math.round(sourceH);
+        const ctx = exportCanvas.getContext('2d');
+        ctx.drawImage(bitmap, sourceX, sourceY, sourceW, sourceH, 0, 0, exportCanvas.width, exportCanvas.height);
+        exportCanvas.toBlob(
+          (b) => {
+            if (b) {
+              const file = new File([b], 'banner-cropped.jpg', { type: 'image/jpeg', lastModified: Date.now() });
+              onCropComplete(b, file);
+            }
+          },
+          'image/jpeg',
+          0.92
+        );
+      } catch {
+        alert('Browser security prevents editing this external URL directly. Please select or upload the image file from your computer.');
+      }
     }
   };
 
@@ -304,12 +431,27 @@ export default function ImageCropperModal({
     setRotation(0);
     setFlipH(false);
     setZoom(1);
+    const activeNumericRatio = getNumericRatio();
     if (displaySize.width && displaySize.height) {
-      initCropBox(displaySize.width, displaySize.height, activeRatio);
+      initCropBox(displaySize.width, displaySize.height, activeNumericRatio);
     }
   };
 
-  if (!isOpen || !imageSrc) return null;
+  const handleManualFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setResolvedSrc(reader.result);
+      setLoadError(false);
+      setIsLoading(false);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  if (!isOpen) return null;
+
+  const currentNumericRatio = getNumericRatio();
 
   return (
     <div className="cropper-modal-overlay">
@@ -348,54 +490,94 @@ export default function ImageCropperModal({
         <div className="cropper-workspace">
           {/* Canvas Stage */}
           <div className="cropper-canvas-stage">
-            <div className="cropper-stage-inner" ref={stageInnerRef}>
-              <img
-                ref={imgRef}
-                src={imageSrc}
-                alt="Crop Target"
-                className="cropper-source-img"
-                crossOrigin="anonymous"
-                onLoad={handleImageLoad}
-                style={{
-                  transform: `scale(${zoom}) rotate(${rotation}deg) scaleX(${flipH ? -1 : 1})`,
-                  transition: 'transform 0.2s ease-out'
-                }}
-              />
+            {isLoading && (
+              <div className="cropper-loading-state" style={{ color: '#d4af37', textAlign: 'center', padding: '40px' }}>
+                <div className="cropper-spinner" style={{ margin: '0 auto 12px', width: '32px', height: '32px', border: '3px solid rgba(212,175,55,0.2)', borderTopColor: '#d4af37', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }}></div>
+                <span>Loading Image...</span>
+              </div>
+            )}
 
-              {/* Crop Box */}
-              {displaySize.width > 0 && (
-                <div
-                  className="cropper-crop-box"
-                  style={{
-                    left: `${crop.x}px`,
-                    top: `${crop.y}px`,
-                    width: `${crop.width}px`,
-                    height: `${crop.height}px`
-                  }}
-                  onPointerDown={(e) => handlePointerDown(e, 'MOVE')}
+            {loadError ? (
+              <div className="cropper-error-box" style={{ textAlign: 'center', padding: '30px 20px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '12px', maxWidth: '420px' }}>
+                <div style={{ fontSize: '32px', marginBottom: '10px' }}>⚠️</div>
+                <h4 style={{ color: '#f87171', margin: '0 0 8px', fontSize: '15px' }}>Unable to load image preview</h4>
+                <p style={{ color: '#cbd5e1', fontSize: '12.5px', lineHeight: '1.5', margin: '0 0 16px' }}>
+                  The image link couldn't be loaded directly due to remote server restrictions. Select an image file from your device to crop:
+                </p>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleManualFileChange}
+                  style={{ display: 'none' }}
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  style={{ background: '#d4af37', color: '#0f172a', border: 'none', padding: '8px 18px', borderRadius: '8px', fontWeight: 700, cursor: 'pointer' }}
                 >
-                  {/* Rule of Thirds Grid */}
-                  <div className="cropper-grid-lines">
-                    <div className="grid-line-h1"></div>
-                    <div className="grid-line-h2"></div>
-                    <div className="grid-line-v1"></div>
-                    <div className="grid-line-v2"></div>
+                  📁 Choose File from Computer
+                </button>
+              </div>
+            ) : (
+              <div className="cropper-stage-inner" ref={stageInnerRef}>
+                <img
+                  ref={imgRef}
+                  src={resolvedSrc || imageSrc}
+                  alt="Crop Target"
+                  className="cropper-source-img"
+                  onLoad={handleImageLoad}
+                  onError={(e) => {
+                    if (e.currentTarget.crossOrigin) {
+                      e.currentTarget.removeAttribute('crossOrigin');
+                      e.currentTarget.src = resolvedSrc || imageSrc;
+                    } else {
+                      setLoadError(true);
+                      setIsLoading(false);
+                    }
+                  }}
+                  crossOrigin={resolvedSrc?.startsWith('blob:') || resolvedSrc?.startsWith('data:') ? undefined : 'anonymous'}
+                  style={{
+                    transform: `scale(${zoom}) rotate(${rotation}deg) scaleX(${flipH ? -1 : 1})`,
+                    transition: 'transform 0.2s ease-out'
+                  }}
+                />
+
+                {/* Crop Box */}
+                {displaySize.width > 0 && !loadError && (
+                  <div
+                    className="cropper-crop-box"
+                    style={{
+                      left: `${crop.x}px`,
+                      top: `${crop.y}px`,
+                      width: `${crop.width}px`,
+                      height: `${crop.height}px`
+                    }}
+                    onPointerDown={(e) => handlePointerDown(e, 'MOVE')}
+                  >
+                    {/* Rule of Thirds Grid */}
+                    <div className="cropper-grid-lines">
+                      <div className="grid-line-h1"></div>
+                      <div className="grid-line-h2"></div>
+                      <div className="grid-line-v1"></div>
+                      <div className="grid-line-v2"></div>
+                    </div>
+
+                    {/* Corner Handles */}
+                    <div className="crop-handle handle-tl" onPointerDown={(e) => handlePointerDown(e, 'tl')}></div>
+                    <div className="crop-handle handle-tr" onPointerDown={(e) => handlePointerDown(e, 'tr')}></div>
+                    <div className="crop-handle handle-bl" onPointerDown={(e) => handlePointerDown(e, 'bl')}></div>
+                    <div className="crop-handle handle-br" onPointerDown={(e) => handlePointerDown(e, 'br')}></div>
+
+                    {/* Edge Handles */}
+                    <div className="crop-handle handle-tm" onPointerDown={(e) => handlePointerDown(e, 'tm')}></div>
+                    <div className="crop-handle handle-bm" onPointerDown={(e) => handlePointerDown(e, 'bm')}></div>
+                    <div className="crop-handle handle-lm" onPointerDown={(e) => handlePointerDown(e, 'lm')}></div>
+                    <div className="crop-handle handle-rm" onPointerDown={(e) => handlePointerDown(e, 'rm')}></div>
                   </div>
-
-                  {/* Corner Handles */}
-                  <div className="crop-handle handle-tl" onPointerDown={(e) => handlePointerDown(e, 'tl')}></div>
-                  <div className="crop-handle handle-tr" onPointerDown={(e) => handlePointerDown(e, 'tr')}></div>
-                  <div className="crop-handle handle-bl" onPointerDown={(e) => handlePointerDown(e, 'bl')}></div>
-                  <div className="crop-handle handle-br" onPointerDown={(e) => handlePointerDown(e, 'br')}></div>
-
-                  {/* Edge Handles */}
-                  <div className="crop-handle handle-tm" onPointerDown={(e) => handlePointerDown(e, 'tm')}></div>
-                  <div className="crop-handle handle-bm" onPointerDown={(e) => handlePointerDown(e, 'bm')}></div>
-                  <div className="crop-handle handle-lm" onPointerDown={(e) => handlePointerDown(e, 'lm')}></div>
-                  <div className="crop-handle handle-rm" onPointerDown={(e) => handlePointerDown(e, 'rm')}></div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Sidebar Controls & Live Preview */}
@@ -406,7 +588,7 @@ export default function ImageCropperModal({
               <div className="cropper-preview-card">
                 <div
                   className="preview-aspect-container"
-                  style={{ aspectRatio: activeRatio ? `${activeRatio}` : '16/9' }}
+                  style={{ aspectRatio: currentNumericRatio ? `${currentNumericRatio}` : '16/9' }}
                 >
                   {previewDataUrl ? (
                     <img src={previewDataUrl} alt="Live Crop Preview" className="preview-canvas-render" />
@@ -416,7 +598,9 @@ export default function ImageCropperModal({
                 </div>
                 <div className="preview-meta">
                   <span>Output Resolution:</span>
-                  <span className="preview-dim">{exportDimensions.width} × {exportDimensions.height} px</span>
+                  <span className="preview-dim">
+                    {exportDimensions.width} × {exportDimensions.height} px
+                  </span>
                 </div>
               </div>
             </div>
@@ -433,7 +617,7 @@ export default function ImageCropperModal({
                   <button
                     type="button"
                     className="zoom-step-btn"
-                    onClick={() => setZoom(prev => Math.max(0.6, Number((prev - 0.1).toFixed(1))))}
+                    onClick={() => setZoom((prev) => Math.max(0.6, Number((prev - 0.1).toFixed(1))))}
                   >
                     -
                   </button>
@@ -449,7 +633,7 @@ export default function ImageCropperModal({
                   <button
                     type="button"
                     className="zoom-step-btn"
-                    onClick={() => setZoom(prev => Math.min(2.5, Number((prev + 0.1).toFixed(1))))}
+                    onClick={() => setZoom((prev) => Math.min(2.5, Number((prev + 0.1).toFixed(1))))}
                   >
                     +
                   </button>
@@ -464,7 +648,7 @@ export default function ImageCropperModal({
                 <button
                   type="button"
                   className="tool-btn"
-                  onClick={() => setRotation(r => (r + 90) % 360)}
+                  onClick={() => setRotation((r) => (r + 90) % 360)}
                   title="Rotate 90 degrees clockwise"
                 >
                   <span>↻</span> Rotate 90°
@@ -472,7 +656,7 @@ export default function ImageCropperModal({
                 <button
                   type="button"
                   className="tool-btn"
-                  onClick={() => setFlipH(f => !f)}
+                  onClick={() => setFlipH((f) => !f)}
                   title="Flip horizontally"
                 >
                   <span>⇄</span> Flip
@@ -504,7 +688,7 @@ export default function ImageCropperModal({
               type="button"
               className="btn-cropper-apply"
               onClick={handleApplyCrop}
-              disabled={isProcessing}
+              disabled={isProcessing || loadError}
             >
               {isProcessing ? (
                 <>
@@ -524,3 +708,4 @@ export default function ImageCropperModal({
     </div>
   );
 }
+

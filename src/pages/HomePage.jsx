@@ -283,7 +283,7 @@ export default function HomePage() {
                   </div>
                 </div>
               )}
-            </div>
+            </div> 
 
             {/* Slider Indicator Dots */}
             {heroSlides.length > 1 && (
@@ -304,39 +304,6 @@ export default function HomePage() {
             )}
           </div>
 
-          {/* Trust Badges Strip (Underneath Full Screen Banner) */}
-          <div className="hero-trust-strip">
-            <div className="container-inner">
-              <div className="hero-trust-bar">
-                {trustBadges.map((badge) => (
-                  <div key={badge.id} className="trust-item">
-                    <div className="trust-icon-box">
-                      {badge.icon === 'shield' && (
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                        </svg>
-                      )}
-                      {badge.icon === 'sparkles' && (
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                        </svg>
-                      )}
-                      {badge.icon === 'award' && (
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <circle cx="12" cy="8" r="7" />
-                          <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
-                        </svg>
-                      )}
-                    </div>
-                    <div className="trust-text-box">
-                      <div className="trust-title">{badge.title}</div>
-                      <div className="trust-sub">{badge.subtitle}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
         </section>
       )}
 
