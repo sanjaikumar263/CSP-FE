@@ -24,50 +24,137 @@ export function WishlistProvider({ children }) {
     }
   }, [wishlist]);
 
-  // Check if a product ID is wishlisted
-  const isWishlisted = (productId) => {
+  /**
+   * Check if a product or a specific color/size variant is wishlisted
+   * @param {string} productId - Product ID
+   * @param {string} [selectedColor] - Optional specific color to match
+   * @param {string} [selectedSize] - Optional specific size to match
+   */
+  const isWishlisted = (productId, selectedColor, selectedSize) => {
     if (!productId) return false;
     const strId = String(productId);
-    return wishlist.some(item => String(item.id || item._id) === strId);
+
+    if (selectedColor || selectedSize) {
+      return wishlist.some(item => {
+        const idMatches = String(item.productId || item.id || item._id) === strId;
+        const colorMatches = !selectedColor || !item.selectedColor ||
+          item.selectedColor.toLowerCase() === selectedColor.toLowerCase();
+        const sizeMatches = !selectedSize || !item.selectedSize ||
+          item.selectedSize.toLowerCase() === selectedSize.toLowerCase();
+        return idMatches && colorMatches && sizeMatches;
+      });
+    }
+
+    return wishlist.some(item => String(item.productId || item.id || item._id) === strId);
   };
 
-  // Toggle adding/removing a product
-  const toggleWishlist = (product) => {
+  /**
+   * Toggle adding/removing a product variant from the wishlist
+   * Supports both options object and positional arguments:
+   * toggleWishlist(product, { selectedColor, selectedSize, image, colorCode, sku })
+   * OR
+   * toggleWishlist(product, selectedColor, selectedSize, image, colorCode, sku)
+   */
+  const toggleWishlist = (product, optionsOrColor = {}, optionalSize, optionalImage, optionalColorCode, optionalSku) => {
     if (!product) return;
-    const prodId = String(product.id || product._id);
+
+    let selectedColor = '';
+    let selectedSize = '';
+    let image = '';
+    let colorCode = '#0A305D';
+    let sku = '';
+    let stockQuantity = 99;
+
+    if (typeof optionsOrColor === 'object' && optionsOrColor !== null && !Array.isArray(optionsOrColor)) {
+      selectedColor = optionsOrColor.selectedColor || optionsOrColor.color || product.selectedColor || '';
+      selectedSize = optionsOrColor.selectedSize || optionsOrColor.size || product.selectedSize || '';
+      image = optionsOrColor.image || product.image || (Array.isArray(product.images) && product.images[0]) || '';
+      colorCode = optionsOrColor.colorCode || product.colorCode || '#0A305D';
+      sku = optionsOrColor.sku || product.sku || '';
+      stockQuantity = optionsOrColor.stockQuantity ?? product.stockQuantity ?? 99;
+    } else {
+      selectedColor = typeof optionsOrColor === 'string' ? optionsOrColor : (product.selectedColor || '');
+      selectedSize = typeof optionalSize === 'string' ? optionalSize : (product.selectedSize || '');
+      image = optionalImage || product.image || (Array.isArray(product.images) && product.images[0]) || '';
+      colorCode = optionalColorCode || product.colorCode || '#0A305D';
+      sku = optionalSku || product.sku || '';
+      stockQuantity = product.stockQuantity ?? 99;
+    }
+
+    const prodId = String(product.productId || product._id || product.id);
+    const colorKey = selectedColor ? selectedColor.toLowerCase().replace(/\s+/g, '_') : 'default';
+    const sizeKey = selectedSize ? selectedSize.toLowerCase().replace(/\s+/g, '_') : 'default';
+    const compositeId = `${prodId}__c_${colorKey}__s_${sizeKey}`;
 
     setWishlist(prev => {
-      const exists = prev.some(item => String(item.id || item._id) === prodId);
-      if (exists) {
-        return prev.filter(item => String(item.id || item._id) !== prodId);
+      // Check if this exact variant (or base product if no color/size) exists
+      const existsIndex = prev.findIndex(item => {
+        if (item.id === compositeId) return true;
+        if (!selectedColor && !selectedSize && String(item.productId || item.id) === prodId) return true;
+        return false;
+      });
+
+      if (existsIndex > -1) {
+        // Toggle OFF (remove from wishlist)
+        return prev.filter((_, idx) => idx !== existsIndex);
       } else {
+        // Toggle ON (add to wishlist with exact details)
+        let effectivePrice = 0;
+        if (product.salePrice !== undefined && product.salePrice !== null && product.salePrice !== '') {
+          effectivePrice = typeof product.salePrice === 'number' ? product.salePrice : parseFloat(String(product.salePrice).replace(/[^0-9.]/g, '')) || 0;
+        } else if (product.price !== undefined && product.price !== null) {
+          effectivePrice = typeof product.price === 'number' ? product.price : parseFloat(String(product.price).replace(/[^0-9.]/g, '')) || 0;
+        }
+
+        let originalPrice = null;
+        if (product.originalPrice !== undefined && product.originalPrice !== null) {
+          originalPrice = typeof product.originalPrice === 'number' ? product.originalPrice : parseFloat(String(product.originalPrice).replace(/[^0-9.]/g, '')) || null;
+        } else if (product.salePrice && product.price && product.price > effectivePrice) {
+          originalPrice = typeof product.price === 'number' ? product.price : parseFloat(String(product.price).replace(/[^0-9.]/g, '')) || null;
+        }
+
         const itemToSave = {
-          id: prodId,
-          _id: prodId,
+          id: compositeId,
+          _id: compositeId,
+          productId: prodId,
           name: product.name || product.title || 'Product',
           title: product.title || product.name || 'Product',
-          price: typeof product.price === 'number' ? product.price : parseFloat(product.price) || 0,
-          originalPrice: product.originalPrice ? (typeof product.originalPrice === 'number' ? product.originalPrice : parseFloat(product.originalPrice)) : null,
+          price: effectivePrice,
+          originalPrice: originalPrice,
           currency: product.currency || 'MYR',
-          image: product.image || (Array.isArray(product.images) && product.images[0]) || '',
+          selectedColor: selectedColor,
+          colorCode: colorCode,
+          selectedSize: selectedSize,
+          image: image || (Array.isArray(product.images) && product.images[0]) || '',
           category: product.category || '',
+          sku: sku,
           isNew: Boolean(product.isNew),
           inStock: product.inStock !== false,
-          stockQuantity: product.stockQuantity || 0
+          stockQuantity: stockQuantity
         };
+
         return [itemToSave, ...prev];
       }
     });
   };
 
-  // Remove a product by ID
-  const removeFromWishlist = (productId) => {
-    if (!productId) return;
-    const strId = String(productId);
-    setWishlist(prev => prev.filter(item => String(item.id || item._id) !== strId));
+  /**
+   * Remove a product or specific variant from wishlist
+   * @param {string} id - Either composite ID or base product ID
+   */
+  const removeFromWishlist = (id) => {
+    if (!id) return;
+    const strId = String(id);
+    setWishlist(prev => prev.filter(item =>
+      item.id !== strId &&
+      item._id !== strId &&
+      (strId.includes('__') ? true : String(item.productId) !== strId)
+    ));
   };
 
-  // Clear entire wishlist
+  /**
+   * Clear entire wishlist
+   */
   const clearWishlist = () => {
     setWishlist([]);
   };

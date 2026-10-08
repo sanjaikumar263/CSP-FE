@@ -333,6 +333,60 @@
   text-decoration: line-through;
 }
 
+/* EXACT VARIANT PILLS (COLOR & SIZE) */
+.wishlist-card-variant-box {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.wishlist-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  line-height: 1;
+}
+
+.wishlist-pill.color-pill {
+  background-color: #fffdf8;
+  border-color: #ebdfc8;
+}
+
+.wishlist-pill .pill-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+}
+
+.wishlist-pill.size-pill {
+  background-color: #f0f7ff;
+  border-color: #bae6fd;
+}
+
+.wishlist-pill .pill-size-icon {
+  font-size: 10px;
+}
+
+.wishlist-pill .pill-lbl {
+  color: #64748b;
+  font-weight: 500;
+}
+
+.wishlist-pill .pill-val {
+  color: #0f172a;
+  font-weight: 700;
+}
+
 /* Actions Row in Card */
 .wishlist-card-actions {
   display: flex;
@@ -346,16 +400,23 @@
   background-color: var(--primary-maroon, #0a305d);
   color: #ffffff;
   border: none;
-  border-radius: 4px;
-  padding: 8px 10px;
-  font-size: 12px;
+  border-radius: 5px;
+  padding: 9px 12px;
+  font-size: 12.5px;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(10, 48, 93, 0.15);
+}
+
+.wishlist-add-cart-btn:hover {
+  background-color: #061c38;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(10, 48, 93, 0.25);
 }
 
 .wishlist-quick-remove-btn {

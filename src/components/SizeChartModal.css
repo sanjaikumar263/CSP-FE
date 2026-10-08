@@ -1,0 +1,480 @@
+/* Size Chart Modal - Chennai Silk Palace Royal Theme */
+.scm-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 25, 47, 0.7);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: scmFadeIn 0.22s ease-out;
+  overflow-y: auto;
+}
+
+@keyframes scmFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.scm-modal-card {
+  background: #ffffff;
+  width: 100%;
+  max-width: 960px;
+  max-height: 90vh;
+  border-radius: 16px;
+  box-shadow: 0 25px 50px -12px rgba(10, 48, 93, 0.35), 0 0 0 1px rgba(10, 48, 93, 0.08);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: scmSlideUp 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid #E2E8F0;
+}
+
+@keyframes scmSlideUp {
+  from {
+    transform: translateY(16px) scale(0.98);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Header Row */
+.scm-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 24px 30px 18px;
+  background: #FFFFFF;
+  border-bottom: 1px solid #E2E8F0;
+  gap: 16px;
+}
+
+.scm-badge-pill {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #0A305D;
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  padding: 3px 10px;
+  border-radius: 20px;
+  margin-bottom: 6px;
+}
+
+.scm-modal-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.scm-product-sub {
+  font-size: 13.5px;
+  color: #64748B;
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+.scm-close-btn {
+  background: #F8FAFC;
+  border: 1px solid #CBD5E1;
+  color: #334155;
+  font-size: 22px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.scm-close-btn:hover {
+  background: #0A305D;
+  color: #ffffff;
+  border-color: #0A305D;
+  transform: rotate(90deg);
+}
+
+/* Unit Pill Switcher Bar (Luxury Royal Navy & Gold Theme) */
+.scm-unit-bar-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 16px 24px;
+  background: #F8FAFC;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.scm-unit-pill-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 18px;
+  background: #EFF6FF;
+  border: 1.5px solid #BFDBFE;
+  border-radius: 30px;
+  padding: 8px 22px;
+  box-shadow: 0 2px 8px rgba(10, 48, 93, 0.08);
+}
+
+.scm-unit-pill-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #0A305D;
+  letter-spacing: -0.01em;
+}
+
+.scm-unit-radio-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  background: #FFFFFF;
+  padding: 5px 14px;
+  border-radius: 20px;
+  border: 1px solid #93C5FD;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.scm-unit-radio-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #475569;
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.15s ease;
+}
+
+.scm-unit-radio-label.active {
+  color: #0A305D;
+}
+
+.scm-unit-radio-label input[type="radio"] {
+  display: none;
+}
+
+.scm-radio-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid #94A3B8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.scm-unit-radio-label.active .scm-radio-dot {
+  border-color: #0A305D;
+}
+
+.scm-unit-radio-label.active .scm-radio-dot::after {
+  content: '';
+  width: 7px;
+  height: 7px;
+  background: #0A305D;
+  border-radius: 50%;
+  display: block;
+}
+
+/* Modal Body Content */
+.scm-body-content {
+  padding: 20px 30px 24px;
+  overflow-y: auto;
+  flex: 1;
+  background: #FFFFFF;
+}
+
+/* Multi-Table Grid Layout */
+.scm-tables-grid {
+  display: grid;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.scm-tables-grid.multi-col {
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+}
+
+.scm-tables-grid.single-col {
+  grid-template-columns: 1fr;
+}
+
+.scm-section-card {
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  border-top: 3px solid #0A305D;
+  border-radius: 12px;
+  padding: 18px 20px;
+  position: relative;
+  box-shadow: 0 4px 12px rgba(10, 48, 93, 0.04);
+}
+
+.scm-section-header-title {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #0A305D;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.scm-section-header-title::before,
+.scm-section-header-title::after {
+  content: '';
+  height: 1px;
+  width: 28px;
+  background: #CBD5E1;
+}
+
+.scm-table-scroll-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 8px;
+  border: 1px solid #E2E8F0;
+}
+
+.scm-measurement-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+  font-size: 13px;
+  background: #FFFFFF;
+}
+
+.scm-measurement-table thead tr {
+  background: #F8FAFC;
+}
+
+.scm-measurement-table th {
+  padding: 11px 12px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #0A305D;
+  border-bottom: 2px solid #E2E8F0;
+  border-right: 1px solid #E2E8F0;
+  white-space: nowrap;
+}
+
+.scm-measurement-table th:last-child {
+  border-right: none;
+}
+
+.scm-measurement-table th.scm-th-metric {
+  text-align: left;
+  min-width: 140px;
+  color: #0F172A;
+  background: #F1F5F9;
+}
+
+.scm-measurement-table th.scm-th-size {
+  min-width: 58px;
+}
+
+.scm-measurement-table td {
+  padding: 10px 12px;
+  color: #334155;
+  border-bottom: 1px solid #F1F5F9;
+  border-right: 1px solid #F1F5F9;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.scm-measurement-table td:last-child {
+  border-right: none;
+}
+
+.scm-measurement-table tr:last-child td {
+  border-bottom: none;
+}
+
+.scm-measurement-table tr:nth-child(even) {
+  background: #FAFAFA;
+}
+
+.scm-measurement-table tr:hover {
+  background: #F1F5F9;
+}
+
+.scm-td-label {
+  text-align: left;
+  font-weight: 700 !important;
+  color: #0F172A !important;
+  background: #F8FAFC;
+}
+
+/* Active Column Highlight for customer's selected size */
+.scm-th-size.active-col-header {
+  background: #0A305D !important;
+  color: #ffffff !important;
+  position: relative;
+}
+
+.scm-active-size-tag {
+  display: block;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  background: #D4AF37;
+  color: #061527;
+  padding: 1px 5px;
+  border-radius: 4px;
+  margin-top: 2px;
+  letter-spacing: 0.04em;
+}
+
+.scm-td-val.active-col-cell {
+  background: #EFF6FF !important;
+  color: #0A305D !important;
+  font-weight: 800 !important;
+}
+
+/* How to measure card */
+.scm-how-to-measure-card {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 18px 22px;
+  margin-top: 10px;
+}
+
+.scm-htm-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 800;
+  color: #0A305D;
+  margin-bottom: 12px;
+}
+
+.scm-htm-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px 18px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #475569;
+}
+
+.scm-htm-item strong {
+  display: block;
+  color: #0A305D;
+  margin-bottom: 2px;
+  font-size: 12px;
+}
+
+/* Footer Row */
+.scm-footer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 30px;
+  background: #F8FAFC;
+  border-top: 1px solid #E2E8F0;
+  flex-wrap: wrap;
+}
+
+.scm-footer-note {
+  font-size: 12px;
+  color: #64748B;
+  flex: 1;
+  min-width: 240px;
+}
+
+.scm-got-it-btn {
+  background: #0A305D;
+  color: #ffffff;
+  border: 1px solid #0A305D;
+  padding: 9px 22px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(10, 48, 93, 0.15);
+}
+
+.scm-got-it-btn:hover {
+  background: #1F3A68;
+  border-color: #1F3A68;
+}
+
+.scm-empty-notice {
+  text-align: center;
+  padding: 40px 20px;
+  color: #64748B;
+  font-size: 14px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .scm-modal-card {
+    max-height: 94vh;
+  }
+
+  .scm-header-row {
+    padding: 18px 20px 14px;
+  }
+
+  .scm-modal-title {
+    font-size: 22px;
+  }
+
+  .scm-body-content {
+    padding: 14px 16px;
+  }
+
+  .scm-unit-bar-wrap {
+    padding: 10px 16px;
+  }
+
+  .scm-unit-pill-container {
+    padding: 6px 14px;
+    gap: 10px;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .scm-unit-pill-title {
+    font-size: 13.5px;
+  }
+
+  .scm-tables-grid.multi-col {
+    grid-template-columns: 1fr;
+  }
+
+  .scm-footer-row {
+    padding: 12px 16px;
+  }
+
+  .scm-got-it-btn {
+    width: 100%;
+  }
+}

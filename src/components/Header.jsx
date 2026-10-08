@@ -4,6 +4,7 @@ import logoSvg from '../assets/hero_logo.svg';
 import { API_BASE_URL } from '../config';
 import { CATEGORY_TREE } from '../data/categoriesData';
 import { useWishlist } from '../context/WishlistContext';
+import { useCart } from '../context/CartContext';
 import './Header.css';
 
 const NAV_LINKS = [
@@ -21,6 +22,7 @@ export default function Header({ initialSearchQuery = '', onSearchSubmit }) {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const { wishlistCount } = useWishlist();
+  const { cartCount, openCart } = useCart();
   
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
@@ -184,17 +186,22 @@ export default function Header({ initialSearchQuery = '', onSearchSubmit }) {
               <span>Admin</span>
             </Link>
 
-            <Link to="/products" className="action-btn cart-btn desktop-only" aria-label="Cart">
+            <button
+              type="button"
+              className="action-btn cart-btn desktop-only"
+              aria-label="Shopping Bag"
+              onClick={openCart}
+            >
               <div className="cart-icon-wrapper">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill={cartCount > 0 ? "rgba(10, 48, 93, 0.12)" : "none"} stroke="currentColor" strokeWidth="1.6">
                   <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
                   <line x1="3" y1="6" x2="21" y2="6" />
                   <path d="M16 10a4 4 0 0 1-8 0" />
                 </svg>
-                <span className="cart-badge">0</span>
+                {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
               </div>
               <span>Cart</span>
-            </Link>
+            </button>
 
             {/* Mobile Hamburger Toggle */}
             <button
@@ -271,17 +278,25 @@ export default function Header({ initialSearchQuery = '', onSearchSubmit }) {
               <span>Admin</span>
             </Link>
 
-            <Link to="/products" className="mobile-quick-card" onClick={() => setMobileMenuOpen(false)}>
+            <button
+              type="button"
+              className="mobile-quick-card"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                openCart();
+              }}
+              aria-label="Shopping Bag"
+            >
               <div className="cart-icon-wrapper">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill={cartCount > 0 ? "rgba(10, 48, 93, 0.12)" : "none"} stroke="currentColor" strokeWidth="1.8">
                   <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
                   <line x1="3" y1="6" x2="21" y2="6" />
                   <path d="M16 10a4 4 0 0 1-8 0" />
                 </svg>
-                <span className="cart-badge">0</span>
+                {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
               </div>
               <span>Cart</span>
-            </Link>
+            </button>
           </div>
 
           <ul className="nav-menu">
