@@ -783,22 +783,20 @@ export default function ProductDetailPage() {
             <div className="pd-actions-row">
               <button
                 type="button"
-                className={`pd-add-to-cart-btn ${!isVariantInStock ? 'sold-out-btn' : (cartFeedback ? 'added-success' : '')}`}
-                disabled={!isVariantInStock}
-                onClick={handleAddToCart}
-                title={!isVariantInStock ? 'Sold out in this combination' : 'Add to Shopping Bag'}
+                className="pd-add-to-cart-btn disabled-action-btn"
+                disabled
+                title="Coming Soon"
               >
-                {!isVariantInStock ? 'Out of Stock' : (cartFeedback ? '✓ Added to Cart!' : 'Add to Cart')}
+                Add to Cart
               </button>
 
               <button
                 type="button"
-                className={`pd-buy-now-btn ${!isVariantInStock ? 'sold-out-btn' : ''}`}
-                disabled={!isVariantInStock}
-                onClick={handleBuyNow}
-                title={!isVariantInStock ? 'Sold out in this combination' : 'Proceed to Checkout'}
+                className="pd-buy-now-btn disabled-action-btn"
+                disabled
+                title="Coming Soon"
               >
-                {!isVariantInStock ? 'Sold Out' : 'Buy It Now'}
+                Buy It Now
               </button>
             </div>
 
