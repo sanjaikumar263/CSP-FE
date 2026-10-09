@@ -18,6 +18,9 @@ import AdminLoginPage from './pages/AdminLoginPage';
 import BannerManagementPage from './pages/BannerManagementPage';
 import OfferManagementPage from './pages/OfferManagementPage';
 import StoreInfoManagementPage from './pages/StoreInfoManagementPage';
+import SendParcelManagementPage from './pages/SendParcelManagementPage';
+import OrderTrackingPage from './pages/OrderTrackingPage';
+import CheckoutPage from './pages/CheckoutPage';
 
 export default function App() {
   return (
@@ -32,6 +35,8 @@ export default function App() {
             <Route path="/products" element={<StoreProductListPage />} />
             <Route path="/wishlist" element={<WishlistPage />} />
             <Route path="/cart" element={<CartPage />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/track-order" element={<OrderTrackingPage />} />
             <Route path="/gender" element={<GenderCollectionPage />} />
             <Route path="/gender/:genderType" element={<GenderCollectionPage />} />
             <Route path="/product/:id" element={<ProductDetailPage />} />
@@ -85,6 +90,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <OfferManagementPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/sendparcel"
+          element={
+            <ProtectedRoute>
+              <SendParcelManagementPage />
             </ProtectedRoute>
           }
         />

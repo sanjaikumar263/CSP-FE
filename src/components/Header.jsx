@@ -138,7 +138,10 @@ export default function Header({ initialSearchQuery = '', onSearchSubmit }) {
     <div className="header-component-wrapper">
       {/* Top Announcement Bar */}
       <div className="top-announce-bar">
-        <span>🚚 Free Express Shipping on Orders Over MYR 100+</span>
+        <span>🚚 Free Express Shipping across Malaysia on Orders Over MYR 150+</span>
+        <Link to="/track-order" className="announce-track-link" style={{ marginLeft: '16px', color: '#fef08a', textDecoration: 'underline', fontWeight: '600', fontSize: '11.5px' }}>
+          📍 Track Pos Laju Parcel
+        </Link>
       </div>
 
       {/* Main Header */}
@@ -168,6 +171,16 @@ export default function Header({ initialSearchQuery = '', onSearchSubmit }) {
 
           {/* Header Action Icons */}
           <div className="header-actions">
+            <Link to="/track-order" className="action-btn desktop-only" aria-label="Track Order">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+                <rect x="1" y="3" width="15" height="13" rx="1.5"></rect>
+                <polygon points="16 8 20 8 23 11 23 16 16 16 8"></polygon>
+                <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                <circle cx="18.5" cy="18.5" r="2.5"></circle>
+              </svg>
+              <span>Track</span>
+            </Link>
+
             <Link to="/wishlist" className="action-btn desktop-only" aria-label="Wishlist">
               <div className="cart-icon-wrapper">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill={wishlistCount > 0 ? "rgba(185, 28, 28, 0.15)" : "none"} stroke="currentColor" strokeWidth="1.6">

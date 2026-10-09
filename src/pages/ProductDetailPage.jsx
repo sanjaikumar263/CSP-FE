@@ -9,6 +9,7 @@ import { API_BASE_URL } from '../config';
 import { useWishlist } from '../context/WishlistContext';
 import { useCart } from '../context/CartContext';
 import SizeChartModal from '../components/SizeChartModal';
+import ShippingCalculatorModal from '../components/ShippingCalculatorModal';
 import { getEffectiveSizeChart } from '../data/sizeChartPresets';
 import './ProductDetailPage.css';
 
@@ -26,6 +27,7 @@ export default function ProductDetailPage() {
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isSizeChartOpen, setIsSizeChartOpen] = useState(false);
+  const [isShippingCalcOpen, setIsShippingCalcOpen] = useState(false);
   const [isZoomOpen, setIsZoomOpen] = useState(false);
   const [zoomScale, setZoomScale] = useState(1);
   const [isMainHovered, setIsMainHovered] = useState(false);
@@ -371,7 +373,7 @@ export default function ProductDetailPage() {
       quantity: quantity,
       stockQuantity: variantStock
     });
-    openCart();
+    navigate('/checkout');
   };
 
   return (
@@ -642,6 +644,7 @@ export default function ProductDetailPage() {
                         onClick={() => setSelectedSize(s)}
                         title={`${s} ${isSizeOut ? '(Sold out in this combination)' : `(${sizeStock} available)`}`}
                       >
+                        
                         <span className="pd-size-text">{s}</span>
                         {isSizeOut && (
                           <span className="pd-size-soldout-label">Sold Out</span>
@@ -783,20 +786,22 @@ export default function ProductDetailPage() {
             <div className="pd-actions-row">
               <button
                 type="button"
-                className="pd-add-to-cart-btn disabled-action-btn"
-                disabled
-                title="Coming Soon"
+                className={`pd-add-to-cart-btn ${!isVariantInStock ? 'sold-out-btn' : (cartFeedback ? 'added-success' : '')}`}
+                disabled={!isVariantInStock}
+                onClick={handleAddToCart}
+                title={!isVariantInStock ? 'Sold out in this combination' : 'Add to Shopping Bag'}
               >
-                Add to Cart
+                {!isVariantInStock ? 'Out of Stock' : (cartFeedback ? '✓ Added to Cart!' : 'Add to Cart')}
               </button>
 
               <button
                 type="button"
-                className="pd-buy-now-btn disabled-action-btn"
-                disabled
-                title="Coming Soon"
+                className={`pd-buy-now-btn ${!isVariantInStock ? 'sold-out-btn' : ''}`}
+                disabled={!isVariantInStock}
+                onClick={handleBuyNow}
+                title={!isVariantInStock ? 'Sold out in this combination' : 'Proceed to Checkout • Cash on Delivery Available'}
               >
-                Buy It Now
+                {!isVariantInStock ? 'Sold Out' : 'Buy It Now (COD Available)'}
               </button>
             </div>
 
@@ -825,6 +830,26 @@ export default function ProductDetailPage() {
                   <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
                 </svg>
                 <span>Delivery within 7 business days after dispatch. <Link to="/about" className="shipping-policy-link">View Shipping Policy</Link></span>
+              </div>
+              <div className="shipping-perk-item">
+                <button
+                  type="button"
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: 0,
+                    color: '#0a305d',
+                    fontWeight: '700',
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                  onClick={() => setIsShippingCalcOpen(true)}
+                >
+                  🚚 Estimate Pos Laju Shipping Fee by Postcode →
+                </button>
               </div>
             </div>
 
@@ -1062,6 +1087,14 @@ export default function ProductDetailPage() {
         sizeChart={getEffectiveSizeChart(product)}
         productTitle={product?.title || product?.name || 'Product'}
         selectedSize={activeSize}
+      />
+
+      {/* SendParcel PRO / Pos Laju Shipping Estimator Modal */}
+      <ShippingCalculatorModal
+        isOpen={isShippingCalcOpen}
+        onClose={() => setIsShippingCalcOpen(false)}
+        defaultWeight={0.95}
+        defaultItemValue={product?.price || 150}
       />
     </div>
   );

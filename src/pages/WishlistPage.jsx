@@ -167,9 +167,9 @@ export default function WishlistPage() {
                       <div className="wishlist-card-actions">
                         <button
                           type="button"
-                          className="wishlist-add-cart-btn disabled-action-btn"
-                          disabled
-                          title="Coming Soon"
+                          className="wishlist-add-cart-btn active-cart-btn"
+                          onClick={() => handleAddToCartFromWishlist(item)}
+                          title="Move to Shopping Bag"
                         >
                           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />

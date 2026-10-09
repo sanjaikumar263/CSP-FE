@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import SafeImage from '../components/SafeImage';
@@ -9,6 +9,7 @@ import './CartPage.css';
 const FREE_SHIPPING_THRESHOLD = 150;
 
 export default function CartPage() {
+  const navigate = useNavigate();
   const {
     cart,
     cartCount,
@@ -275,9 +276,7 @@ export default function CartPage() {
                   <button
                     type="button"
                     className="summary-checkout-btn"
-                    onClick={() => {
-                      alert(`Thank you for choosing Chennai Silk Palace! Checkout is configured for online payment & express dispatch. (Order Total: MYR ${cartSubtotal.toFixed(2)})`);
-                    }}
+                    onClick={() => navigate('/checkout')}
                   >
                     <span>Proceed to Checkout</span>
                     <span className="summary-btn-arrow">→</span>

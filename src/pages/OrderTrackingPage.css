@@ -1,0 +1,524 @@
+/* Customer Order Tracking Page Styles */
+
+.tracking-page-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #fdfbf7;
+}
+
+.tracking-main-content {
+  flex: 1;
+  padding-bottom: 60px;
+}
+
+/* Hero Section */
+.tracking-hero-banner {
+  background: linear-gradient(135deg, #0a2540 0%, #0f172a 100%);
+  color: #ffffff;
+  padding: 60px 20px 70px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.tracking-hero-banner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(217, 4, 41, 0.15) 1px, transparent 1px);
+  background-size: 24px 24px;
+  pointer-events: none;
+}
+
+.tracking-hero-badge {
+  display: inline-block;
+  background: #d90429;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  padding: 4px 12px;
+  border-radius: 999px;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+}
+
+.tracking-hero-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 36px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 12px 0;
+}
+
+.tracking-hero-sub {
+  font-size: 16px;
+  color: #cbd5e1;
+  max-width: 580px;
+  margin: 0 auto 32px;
+  line-height: 1.5;
+}
+
+/* Search Form */
+.tracking-search-form {
+  display: flex;
+  max-width: 620px;
+  margin: 0 auto 20px;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 6px;
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.tracking-input-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 0 14px;
+  color: #64748b;
+}
+
+.tracking-input-wrapper input {
+  width: 100%;
+  border: none;
+  outline: none;
+  font-size: 15px;
+  padding: 14px 0;
+  color: #0f172a;
+  font-family: inherit;
+}
+
+.clear-track-btn {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.track-submit-btn {
+  background: #d90429;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 0 24px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.track-submit-btn:hover:not(:disabled) {
+  background: #b90322;
+  transform: translateY(-1px);
+}
+
+.track-submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.quick-sample-codes {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 12.5px;
+  color: #94a3b8;
+  flex-wrap: wrap;
+}
+
+.quick-sample-codes button {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #f1f5f9;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 11.5px;
+  cursor: pointer;
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: 600;
+  transition: all 0.15s;
+}
+
+.quick-sample-codes button:hover {
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+/* Error Card */
+.track-error-card {
+  max-width: 620px;
+  margin: 24px auto 0;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  padding: 14px 20px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #991b1b;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Results Section */
+.tracking-results-section {
+  margin-top: -30px;
+  position: relative;
+  z-index: 10;
+  padding: 0 20px;
+}
+
+.track-result-card {
+  max-width: 860px;
+  margin: 0 auto;
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.track-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 24px 30px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.carrier-brand-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+  margin-bottom: 6px;
+}
+
+.pos-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #d90429;
+}
+
+.tracking-code-heading {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 26px;
+  font-weight: 800;
+  color: #0a305d;
+  margin: 0 0 4px 0;
+  letter-spacing: 0.05em;
+}
+
+.order-link-sub {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.tracking-status-pill {
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tracking-status-pill.delivered { background: #dcfce7; color: #15803d; }
+.tracking-status-pill.in_transit { background: #e0f2fe; color: #0284c7; }
+.tracking-status-pill.out_for_delivery { background: #fef9c3; color: #854d0e; }
+.tracking-status-pill.pickup_requested { background: #fef3c7; color: #92400e; }
+.tracking-status-pill.label_generated { background: #f1f5f9; color: #475569; }
+
+.dispatch-date {
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* Visual Stepper */
+.visual-stepper-container {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 30px 40px;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  overflow-x: auto;
+}
+
+.step-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  min-width: 90px;
+}
+
+.step-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  border: 2px solid #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: #64748b;
+  margin-bottom: 10px;
+  transition: all 0.2s;
+}
+
+.step-item.step-done .step-circle {
+  background: #0a305d;
+  border-color: #0a305d;
+  color: #ffffff;
+}
+
+.step-item.step-active .step-circle {
+  background: #d90429;
+  border-color: #d90429;
+  color: #ffffff;
+  box-shadow: 0 0 0 4px rgba(217, 4, 41, 0.2);
+}
+
+.step-text strong {
+  display: block;
+  font-size: 12.5px;
+  color: #0f172a;
+}
+
+.step-text span {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.step-connector {
+  flex: 1;
+  height: 3px;
+  background: #e2e8f0;
+  margin-top: 22px;
+  min-width: 20px;
+}
+
+.step-connector.step-done {
+  background: #0a305d;
+}
+
+/* Info Grid */
+.delivery-info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  padding: 24px 30px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  gap: 20px;
+}
+
+.info-block {
+  display: flex;
+  flex-direction: column;
+}
+
+.info-lbl {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.info-block strong {
+  font-size: 14px;
+  color: #0f172a;
+  margin-bottom: 2px;
+}
+
+.info-block p {
+  font-size: 12.5px;
+  color: #64748b;
+  margin: 0;
+}
+
+/* Checkpoints Timeline */
+.checkpoint-timeline-container {
+  padding: 30px;
+}
+
+.timeline-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 24px 0;
+}
+
+.customer-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.timeline-checkpoint-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.checkpoint-time {
+  width: 90px;
+  display: flex;
+  flex-direction: column;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.checkpoint-time strong {
+  font-size: 13px;
+  color: #0f172a;
+}
+
+.checkpoint-time span {
+  font-size: 11.5px;
+  color: #64748b;
+}
+
+.checkpoint-bullet-line {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  height: 100%;
+}
+
+.bullet-node {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #0a305d;
+  border: 3px solid #ffffff;
+  box-shadow: 0 0 0 2px #0a305d;
+  z-index: 2;
+}
+
+.timeline-checkpoint-row:not(:first-child) .bullet-node {
+  background: #94a3b8;
+  box-shadow: 0 0 0 2px #cbd5e1;
+}
+
+.connector-line {
+  position: absolute;
+  top: 14px;
+  bottom: -24px;
+  width: 2px;
+  background: #e2e8f0;
+  z-index: 1;
+}
+
+.checkpoint-details {
+  flex: 1;
+}
+
+.checkpoint-loc {
+  display: inline-block;
+  background: #f1f5f9;
+  color: #1e293b;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-bottom: 4px;
+}
+
+.checkpoint-desc {
+  font-size: 13.5px;
+  color: #334155;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Help Banner */
+.tracking-help-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 30px;
+  background: #eff6ff;
+  border-top: 1px solid #dbeafe;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.help-text strong {
+  display: block;
+  font-size: 13.5px;
+  color: #1e3a8a;
+}
+
+.help-text span {
+  font-size: 12.5px;
+  color: #3b82f6;
+}
+
+.help-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.wa-help-btn {
+  background: #25d366;
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+
+.wa-help-btn:hover {
+  background: #1eb857;
+}
+
+.contact-help-btn {
+  background: #ffffff;
+  color: #1e3a8a;
+  border: 1px solid #bfdbfe;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 8px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .delivery-info-grid {
+    grid-template-columns: 1fr;
+  }
+  .visual-stepper-container {
+    padding: 20px;
+  }
+}

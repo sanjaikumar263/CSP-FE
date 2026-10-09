@@ -113,6 +113,15 @@ export default function AdminSidebar() {
             </svg>
             Special Offers
           </Link>
+          <Link to="/admin/sendparcel" className={isActive('/admin/sendparcel') ? 'active' : ''} onClick={() => setOpen(false)}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+              <rect x="1" y="3" width="15" height="13" rx="1.5"></rect>
+              <polygon points="16 8 20 8 23 11 23 16 16 16 8"></polygon>
+              <circle cx="5.5" cy="18.5" r="2.5"></circle>
+              <circle cx="18.5" cy="18.5" r="2.5"></circle>
+            </svg>
+            SendParcel Logistics
+          </Link>
           <Link to="/admin/settings" className={isActive('/admin/settings') ? 'active' : ''} onClick={() => setOpen(false)}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
               <circle cx="12" cy="12" r="3"/>

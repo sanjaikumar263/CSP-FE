@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import SafeImage from './SafeImage';
 import placeholderSvg from '../assets/placeholder.svg';
@@ -8,6 +8,7 @@ import './CartDrawer.css';
 const FREE_SHIPPING_THRESHOLD = 150;
 
 export default function CartDrawer() {
+  const navigate = useNavigate();
   const {
     cart,
     cartCount,
@@ -244,7 +245,8 @@ export default function CartDrawer() {
                 type="button"
                 className="cart-checkout-btn"
                 onClick={() => {
-                  alert(`Thank you for shopping at Chennai Silk Palace! Checkout integration is configured for direct order processing. (Order Total: MYR ${cartSubtotal.toFixed(2)})`);
+                  closeCart();
+                  navigate('/checkout');
                 }}
               >
                 <span>Proceed to Checkout</span>

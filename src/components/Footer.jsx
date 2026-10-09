@@ -91,6 +91,7 @@ export default function Footer() {
             <ul className="footer-links">
               <li><Link to="/about">Our Story</Link></li>
               <li><Link to="/about">Contact Us</Link></li>
+              <li><Link to="/track-order">Track Order (Pos Laju)</Link></li>
               <li><Link to="/admin/login">Admin Portal</Link></li>
             </ul>
           </div>

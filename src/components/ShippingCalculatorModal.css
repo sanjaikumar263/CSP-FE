@@ -1,0 +1,225 @@
+/* Shipping Calculator Modal Styles */
+.shipping-calc-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 16px;
+}
+
+.shipping-calc-card {
+  background: #ffffff;
+  border-radius: 14px;
+  max-width: 480px;
+  width: 100%;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  animation: calcPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes calcPop {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.shipping-calc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: #0f172a;
+  color: #ffffff;
+}
+
+.calc-header-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.calc-close-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  color: #ffffff;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.calc-close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.shipping-calc-body {
+  padding: 20px;
+}
+
+.calc-intro {
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.45;
+  margin: 0 0 16px 0;
+}
+
+.calc-input-group label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.postcode-input-box {
+  display: flex;
+  gap: 8px;
+}
+
+.postcode-input-box input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  font-family: inherit;
+}
+
+.postcode-input-box input:focus {
+  border-color: #0a305d;
+  box-shadow: 0 0 0 3px rgba(10, 48, 93, 0.1);
+}
+
+.calc-go-btn {
+  background: #0a305d;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 0 18px;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.calc-go-btn:hover {
+  background: #082649;
+}
+
+.calc-err-alert {
+  margin-top: 12px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  font-size: 12.5px;
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+
+.calc-modal-results {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.dest-tag-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12.5px;
+  color: #334155;
+  margin-bottom: 12px;
+}
+
+.free-tag {
+  background: #ecfdf5;
+  color: #059669;
+  font-weight: 800;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid #a7f3d0;
+}
+
+.services-estimate-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.srv-estimate-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.srv-estimate-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.srv-estimate-info strong {
+  font-size: 13px;
+  color: #0f172a;
+}
+
+.srv-transit {
+  font-size: 11.5px;
+  color: #64748b;
+}
+
+.srv-estimate-price {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.strike-orig {
+  font-size: 12px;
+  color: #94a3b8;
+  text-decoration: line-through;
+}
+
+.free-text {
+  font-size: 14px;
+  font-weight: 900;
+  color: #059669;
+}
+
+.price-bold {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0a305d;
+}
+
+.free-shipping-notice {
+  font-size: 11.5px;
+  color: #64748b;
+  margin-top: 14px;
+  text-align: center;
+  background: #f0fdf4;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px dashed #bbf7d0;
+}
