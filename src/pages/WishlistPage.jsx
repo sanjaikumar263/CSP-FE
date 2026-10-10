@@ -5,6 +5,7 @@ import SafeImage from '../components/SafeImage';
 import placeholderSvg from '../assets/placeholder.svg';
 import { useWishlist } from '../context/WishlistContext';
 import { useCart } from '../context/CartContext';
+import { getProductPriceInfo } from '../utils/priceUtils';
 import './WishlistPage.css';
 
 export default function WishlistPage() {
@@ -154,14 +155,26 @@ export default function WishlistPage() {
                       )}
 
                       <div className="wishlist-card-price-row">
-                        <span className="price-current">
-                          {item.currency || 'MYR'} {typeof item.price === 'number' ? item.price.toFixed(2) : item.price}
-                        </span>
-                        {item.originalPrice && (
-                          <span className="price-original">
-                            {item.currency || 'MYR'} {typeof item.originalPrice === 'number' ? item.originalPrice.toFixed(2) : item.originalPrice}
-                          </span>
-                        )}
+                        {(() => {
+                          const priceInfo = getProductPriceInfo(item);
+                          return (
+                            <>
+                              <span className={`price-current ${priceInfo.hasOffer ? 'has-offer' : ''}`}>
+                                {priceInfo.currency} {priceInfo.priceDisplay}
+                              </span>
+                              {priceInfo.hasOffer && priceInfo.originalPriceDisplay && (
+                                <span className="price-original">
+                                  {priceInfo.currency} {priceInfo.originalPriceDisplay}
+                                </span>
+                              )}
+                              {priceInfo.hasOffer && priceInfo.discountPercentage && (
+                                <span className="wishlist-discount-badge">
+                                  {priceInfo.discountPercentage}% OFF
+                                </span>
+                              )}
+                            </>
+                          );
+                        })()}
                       </div>
 
                       <div className="wishlist-card-actions">

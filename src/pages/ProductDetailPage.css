@@ -90,23 +90,30 @@
 .pd-thumb-box {
   width: 72px;
   height: 90px;
-  border-radius: 4px;
+  border-radius: 6px;
   overflow: hidden;
-  border: 2px solid #E5E7EB;
+  border: 2px solid #E2E8F0;
   cursor: pointer;
   transition: all 0.2s ease;
-  background-color: #F9FAFB;
+  background-color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .pd-thumb-box img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  object-position: center;
 }
 
 .pd-thumb-box.active,
 .pd-thumb-box:hover {
   border-color: var(--primary-maroon, #0a305d);
+  box-shadow: 0 2px 8px rgba(10, 48, 93, 0.15);
 }
 
 .pd-video-thumb {
@@ -136,18 +143,27 @@
   flex: 1;
   min-width: 0;
   position: relative;
-  border-radius: 6px;
+  border-radius: 8px;
   overflow: hidden;
-  background-color: #F3F4F6;
-  aspect-ratio: 3 / 4;
-  max-height: 580px;
+  background-color: #ffffff;
+  border: 1px solid #E2E8F0;
+  aspect-ratio: 4 / 5;
+  min-height: 480px;
+  max-height: 600px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: zoom-in;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
 }
 
 .pd-main-image {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  object-position: center;
   display: block;
   will-change: transform, transform-origin;
   transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), transform-origin 0.06s ease-out;
@@ -385,57 +401,79 @@
 }
 
 .pd-sale-price {
-  font-size: 32px;
+  font-size: 30px;
   font-weight: 800;
-  color: #B91C1C;
+  color: var(--primary-maroon, #0A305D);
   letter-spacing: -0.02em;
 }
 
 .pd-regular-strike {
-  font-size: 19px;
-  font-weight: 500;
+  font-size: 18px;
+  font-weight: 400;
   color: #94A3B8;
   text-decoration: line-through;
-  text-decoration-thickness: 1.5px;
+  text-decoration-thickness: 1.2px;
 }
 
 .pd-normal-price {
-  font-size: 28px;
+  font-size: 30px;
   font-weight: 800;
-  color: var(--primary-maroon, #0a305d);
+  color: var(--primary-maroon, #0A305D);
 }
 
 .pd-discount-badge {
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
-  color: #B91C1C;
-  background: #FEE2E2;
-  border: 1px solid #FECACA;
-  padding: 3px 9px;
-  border-radius: 20px;
+  color: #047857;
+  background: #ECFDF5;
+  border: 1px solid #A7F3D0;
+  padding: 2.5px 8px;
+  border-radius: 4px;
   letter-spacing: 0.03em;
   align-self: center;
+  white-space: nowrap;
 }
 
 .rel-price {
   display: flex;
   align-items: baseline;
-  gap: 8px;
+  gap: 6px;
   font-size: 13.5px;
   font-weight: 700;
   color: var(--primary-maroon, #0a305d);
+  flex-wrap: wrap;
+  row-gap: 2px;
 }
 
 .rel-sale-price {
   font-weight: 800;
-  color: #B91C1C;
+  color: var(--primary-maroon, #0a305d);
+  font-size: 14px;
+  white-space: nowrap;
 }
 
 .rel-regular-strike {
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 11.5px;
+  font-weight: 400;
   color: #94A3B8;
   text-decoration: line-through;
+  text-decoration-thickness: 1.2px;
+  white-space: nowrap;
+}
+
+.rel-discount-badge {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #047857;
+  background: #ECFDF5;
+  border: 1px solid #A7F3D0;
+  padding: 1px 5px;
+  border-radius: 4px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  line-height: 1.2;
 }
 
 .pd-sku-header {
@@ -742,6 +780,24 @@
 
 .pd-size-pill-btn.active .pd-size-soldout-label {
   color: #FCA5A5;
+}
+
+.pd-size-diff-tag {
+  font-size: 9.5px;
+  font-weight: 800;
+  color: #B45309;
+  background: #FEF3C7;
+  border: 1px solid #FDE68A;
+  padding: 1px 5px;
+  border-radius: 6px;
+  margin-top: 3px;
+  letter-spacing: 0.02em;
+}
+
+.pd-size-pill-btn.active .pd-size-diff-tag {
+  background: #FDE68A;
+  color: #78350F;
+  border-color: #FCD34D;
 }
 
 /* Stock Inventory Badge (Separate Stock Display) */
@@ -1244,7 +1300,9 @@
 .tab-detail-img {
   width: 100%;
   height: 280px;
-  object-fit: cover;
+  object-fit: contain;
+  background-color: #ffffff;
+  border: 1px solid #E2E8F0;
   border-radius: 6px;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
 }
@@ -1301,13 +1359,19 @@
 .rel-img-wrapper {
   aspect-ratio: 3 / 4;
   overflow: hidden;
-  background-color: #F8FAFC;
+  background-color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .rel-img-wrapper img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  object-position: center;
   transition: transform 0.4s ease;
 }
 

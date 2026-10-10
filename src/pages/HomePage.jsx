@@ -12,6 +12,7 @@ import SafeImage from '../components/SafeImage';
 import placeholderSvg from '../assets/placeholder.svg';
 import { API_BASE_URL } from '../config';
 import { useWishlist } from '../context/WishlistContext';
+import { getProductPriceInfo } from '../utils/priceUtils';
 import './HomePage.css';
 
 export default function HomePage() {
@@ -129,23 +130,27 @@ export default function HomePage() {
         const data = await res.json();
         if (res.ok && data.success && Array.isArray(data.data) && data.data.length > 0) {
           const mapped = data.data.slice(0, 6).map((item, idx) => {
-            const rawPrice = item.price;
-            const numPrice = typeof rawPrice === 'number' ? rawPrice : (parseFloat(rawPrice) || 0);
-            
-            const rawOrig = item.originalPrice;
-            const numOrig = rawOrig ? (typeof rawOrig === 'number' ? rawOrig : parseFloat(rawOrig)) : null;
+            const priceInfo = getProductPriceInfo(item);
 
             return {
               id: item._id || item.id || idx + 1,
               _id: item._id,
               name: item.name,
               category: item.category || 'Soft Silk',
-              price: numPrice,
-              originalPrice: numOrig,
+              price: priceInfo.currentPrice,
+              priceDisplay: priceInfo.priceDisplay,
+              originalPrice: priceInfo.originalPrice,
+              originalPriceDisplay: priceInfo.originalPriceDisplay,
+              hasOffer: priceInfo.hasOffer,
+              discountPercentage: priceInfo.discountPercentage,
+              salePrice: item.salePrice,
               currency: item.currency || 'MYR',
               image: item.image || item.images?.[0] || placeholderSvg,
+              images: item.images,
               isNew: item.isNewProduct !== undefined ? item.isNewProduct : true,
-              rating: item.rating || 5.0
+              rating: item.rating || 5.0,
+              sizePrices: item.sizePrices,
+              variants: item.variants
             };
           });
           setTrendingProducts(mapped);
@@ -435,9 +440,18 @@ export default function HomePage() {
                       <div className="product-title">{prod.name}</div>
                     </Link>
                     <div className="product-price-row">
-                      <span className="price-current">{prod.currency} {prod.price.toFixed(2)}</span>
-                      {prod.originalPrice && (
-                        <span className="price-original">{prod.currency} {prod.originalPrice.toFixed(2)}</span>
+                      <span className={`price-current ${prod.hasOffer ? 'has-offer' : ''}`}>
+                        {prod.currency} {prod.priceDisplay || (prod.price ? Number(prod.price).toFixed(2) : '0.00')}
+                      </span>
+                      {prod.hasOffer && prod.originalPriceDisplay && (
+                        <span className="price-original">
+                          {prod.currency} {prod.originalPriceDisplay}
+                        </span>
+                      )}
+                      {prod.hasOffer && prod.discountPercentage && (
+                        <span className="product-discount-badge">
+                          {prod.discountPercentage}% OFF
+                        </span>
                       )}
                     </div>
                     <button

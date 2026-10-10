@@ -74,19 +74,30 @@ export function CartProvider({ children }) {
     const sizeKey = selectedSize ? selectedSize.toLowerCase().replace(/\s+/g, '_') : 'default';
     const compositeId = `${prodId}__c_${colorKey}__s_${sizeKey}`;
 
-    // Calculate effective price
+    // Calculate effective price with support for variant/size specific pricing
+    const optPrice = typeof optionsOrColor === 'object' && optionsOrColor ? optionsOrColor.price : null;
+    const optSalePrice = typeof optionsOrColor === 'object' && optionsOrColor ? optionsOrColor.salePrice : null;
+
     let effectivePrice = 0;
-    if (product.salePrice !== undefined && product.salePrice !== null && product.salePrice !== '') {
+    if (optSalePrice !== undefined && optSalePrice !== null && optSalePrice !== '') {
+      effectivePrice = typeof optSalePrice === 'number' ? optSalePrice : parseFloat(String(optSalePrice).replace(/[^0-9.]/g, '')) || 0;
+    } else if (optPrice !== undefined && optPrice !== null && optPrice !== '') {
+      effectivePrice = typeof optPrice === 'number' ? optPrice : parseFloat(String(optPrice).replace(/[^0-9.]/g, '')) || 0;
+    } else if (product.salePrice !== undefined && product.salePrice !== null && product.salePrice !== '') {
       effectivePrice = typeof product.salePrice === 'number' ? product.salePrice : parseFloat(String(product.salePrice).replace(/[^0-9.]/g, '')) || 0;
     } else if (product.price !== undefined && product.price !== null) {
       effectivePrice = typeof product.price === 'number' ? product.price : parseFloat(String(product.price).replace(/[^0-9.]/g, '')) || 0;
     }
 
     let originalPrice = null;
+    const regPrice = (optPrice !== undefined && optPrice !== null && optPrice !== '')
+      ? (typeof optPrice === 'number' ? optPrice : parseFloat(String(optPrice).replace(/[^0-9.]/g, '')) || null)
+      : (typeof product.price === 'number' ? product.price : parseFloat(String(product.price).replace(/[^0-9.]/g, '')) || null);
+
     if (product.originalPrice !== undefined && product.originalPrice !== null) {
       originalPrice = typeof product.originalPrice === 'number' ? product.originalPrice : parseFloat(String(product.originalPrice).replace(/[^0-9.]/g, '')) || null;
-    } else if (product.salePrice && product.price && product.price > effectivePrice) {
-      originalPrice = typeof product.price === 'number' ? product.price : parseFloat(String(product.price).replace(/[^0-9.]/g, '')) || null;
+    } else if (regPrice && regPrice > effectivePrice) {
+      originalPrice = regPrice;
     }
 
     const newItem = {

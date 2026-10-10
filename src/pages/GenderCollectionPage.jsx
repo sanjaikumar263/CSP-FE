@@ -11,6 +11,7 @@ import kidsBannerFallback from '../assets/kids_banner.jpg';
 import { API_BASE_URL } from '../config';
 import { getTopLevelCategoryTabs, isProductInCategory } from '../data/categoriesData';
 import { useWishlist } from '../context/WishlistContext';
+import { getProductPriceInfo } from '../utils/priceUtils';
 import './GenderCollectionPage.css';
 
 const GENDER_HERO_DATA = {
@@ -194,10 +195,10 @@ export default function GenderCollectionPage() {
 
     // 3. Sorting
     list = [...list].sort((a, b) => {
-      const priceA = typeof a.price === 'number' ? a.price : parseFloat(a.price) || 0;
-      const priceB = typeof b.price === 'number' ? b.price : parseFloat(b.price) || 0;
-      if (priceSort === 'price-low-high') return priceA - priceB;
-      if (priceSort === 'price-high-low') return priceB - priceA;
+      const pInfoA = getProductPriceInfo(a);
+      const pInfoB = getProductPriceInfo(b);
+      if (priceSort === 'price-low-high') return pInfoA.currentPrice - pInfoB.currentPrice;
+      if (priceSort === 'price-high-low') return pInfoB.currentPrice - pInfoA.currentPrice;
       return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
     });
 
@@ -431,14 +432,26 @@ export default function GenderCollectionPage() {
                     </h3>
 
                     <div className="gp-card-price-row">
-                      <span className="gp-current-price">
-                        {product.currency || 'MYR'} {typeof product.price === 'number' ? product.price.toFixed(2) : product.price}
-                      </span>
-                      {product.originalPrice && (
-                        <span className="gp-original-price">
-                          {product.currency || 'MYR'} {product.originalPrice.toFixed(2)}
-                        </span>
-                      )}
+                      {(() => {
+                        const priceInfo = getProductPriceInfo(product);
+                        return (
+                          <>
+                            <span className={`gp-current-price ${priceInfo.hasOffer ? 'has-offer' : ''}`}>
+                              {priceInfo.currency} {priceInfo.priceDisplay}
+                            </span>
+                            {priceInfo.hasOffer && priceInfo.originalPriceDisplay && (
+                              <span className="gp-original-price">
+                                {priceInfo.currency} {priceInfo.originalPriceDisplay}
+                              </span>
+                            )}
+                            {priceInfo.hasOffer && priceInfo.discountPercentage && (
+                              <span className="gp-discount-badge">
+                                {priceInfo.discountPercentage}% OFF
+                              </span>
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
 
                     <div className="gp-card-actions">

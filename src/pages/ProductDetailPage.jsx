@@ -10,6 +10,7 @@ import { useWishlist } from '../context/WishlistContext';
 import { useCart } from '../context/CartContext';
 import SizeChartModal from '../components/SizeChartModal';
 import { getEffectiveSizeChart } from '../data/sizeChartPresets';
+import { getProductPriceInfo } from '../utils/priceUtils';
 import './ProductDetailPage.css';
 
 export default function ProductDetailPage() {
@@ -307,11 +308,52 @@ export default function ProductDetailPage() {
     return matchC && matchS;
   });
 
+  // Check sizePrices for custom size pricing
+  const sizePriceMatch = Array.isArray(apiProduct.sizePrices)
+    ? apiProduct.sizePrices.find(sp => sp.size && sp.size.toLowerCase() === activeSize?.toLowerCase())
+    : null;
+
+  const currentPrice = (currentVariant?.price !== undefined && currentVariant?.price !== null && currentVariant?.price !== '')
+    ? (typeof currentVariant.price === 'number' ? currentVariant.price : parseFloat(String(currentVariant.price).replace(/[^0-9.]/g, '')) || product.price)
+    : (sizePriceMatch?.price !== undefined && sizePriceMatch?.price !== null && sizePriceMatch?.price !== ''
+      ? (typeof sizePriceMatch.price === 'number' ? sizePriceMatch.price : parseFloat(String(sizePriceMatch.price).replace(/[^0-9.]/g, '')) || product.price)
+      : product.price);
+
+  const currentSalePrice = (currentVariant?.salePrice !== undefined && currentVariant?.salePrice !== null && currentVariant?.salePrice !== '')
+    ? (typeof currentVariant.salePrice === 'number' ? currentVariant.salePrice : parseFloat(String(currentVariant.salePrice).replace(/[^0-9.]/g, '')) || null)
+    : (sizePriceMatch?.salePrice !== undefined && sizePriceMatch?.salePrice !== null && sizePriceMatch?.salePrice !== ''
+      ? (typeof sizePriceMatch.salePrice === 'number' ? sizePriceMatch.salePrice : parseFloat(String(sizePriceMatch.salePrice).replace(/[^0-9.]/g, '')) || null)
+      : product.salePrice);
+
   const variantStock = currentVariant
     ? (parseInt(currentVariant.stockQuantity, 10) || 0)
     : (variantsList.length === 0 ? product.stockQuantity : 0);
 
   const isVariantInStock = variantStock > 0;
+
+  const getSizePriceDiff = (sizeStr) => {
+    const sp = Array.isArray(apiProduct.sizePrices)
+      ? apiProduct.sizePrices.find(s => s.size && s.size.toLowerCase() === sizeStr.toLowerCase())
+      : null;
+    const vMatch = variantsList.find(v => {
+      const matchC = !activeColor || !v.color || v.color.toLowerCase() === activeColor.toLowerCase();
+      const matchS = v.size && v.size.toLowerCase() === sizeStr.toLowerCase();
+      return matchC && matchS;
+    });
+
+    const sPrice = (vMatch?.price !== undefined && vMatch?.price !== null && vMatch?.price !== '')
+      ? (typeof vMatch.price === 'number' ? vMatch.price : parseFloat(String(vMatch.price).replace(/[^0-9.]/g, '')) || product.price)
+      : (sp?.price !== undefined && sp?.price !== null && sp?.price !== ''
+        ? (typeof sp.price === 'number' ? sp.price : parseFloat(String(sp.price).replace(/[^0-9.]/g, '')) || product.price)
+        : product.price);
+
+    const diff = sPrice - product.price;
+    return {
+      price: sPrice,
+      diff: diff,
+      hasDiff: Math.abs(diff) > 0.01
+    };
+  };
 
   const getSizeStockForColor = (sizeStr) => {
     if (variantsList.length === 0) return product.stockQuantity;
@@ -341,7 +383,9 @@ export default function ProductDetailPage() {
       colorCode: activeColorObj?.code || '#0A305D',
       image: activeSelectedImage,
       sku: currentVariant?.sku || product.sku,
-      stockQuantity: variantStock
+      stockQuantity: variantStock,
+      price: currentPrice,
+      salePrice: currentSalePrice
     });
   };
 
@@ -354,7 +398,9 @@ export default function ProductDetailPage() {
       image: activeSelectedImage,
       sku: currentVariant?.sku || product.sku,
       quantity: quantity,
-      stockQuantity: variantStock
+      stockQuantity: variantStock,
+      price: currentPrice,
+      salePrice: currentSalePrice
     });
     setCartFeedback(true);
     setTimeout(() => setCartFeedback(false), 2500);
@@ -369,7 +415,9 @@ export default function ProductDetailPage() {
       image: activeSelectedImage,
       sku: currentVariant?.sku || product.sku,
       quantity: quantity,
-      stockQuantity: variantStock
+      stockQuantity: variantStock,
+      price: currentPrice,
+      salePrice: currentSalePrice
     });
     openCart();
   };
@@ -510,18 +558,18 @@ export default function ProductDetailPage() {
             {/* Price */}
             <div className="pd-price-box">
               <div className="pd-price-amount">
-                {product.salePrice && product.salePrice > 0 ? (
+                {currentSalePrice && currentSalePrice > 0 ? (
                   <>
-                    <span className="pd-sale-price">MYR {product.salePrice.toFixed(2)}</span>
-                    <span className="pd-regular-strike">MYR {product.price.toFixed(2)}</span>
-                    {product.price > product.salePrice && (
+                    <span className="pd-sale-price">MYR {currentSalePrice.toFixed(2)}</span>
+                    <span className="pd-regular-strike">MYR {currentPrice.toFixed(2)}</span>
+                    {currentPrice > currentSalePrice && (
                       <span className="pd-discount-badge">
-                        {Math.round(((product.price - product.salePrice) / product.price) * 100)}% OFF
+                        {Math.round(((currentPrice - currentSalePrice) / currentPrice) * 100)}% OFF
                       </span>
                     )}
                   </>
                 ) : (
-                  <span className="pd-normal-price">MYR {product.price.toFixed(2)}</span>
+                  <span className="pd-normal-price">MYR {currentPrice.toFixed(2)}</span>
                 )}
               </div>
               <div className="pd-tax-note">Tax included. <Link to="/about" className="tax-shipping-link">Shipping</Link> calculated at checkout.</div>
@@ -634,6 +682,8 @@ export default function ProductDetailPage() {
                     const isSelected = activeSize.toLowerCase() === s.toLowerCase();
                     const sizeStock = getSizeStockForColor(s);
                     const isSizeOut = sizeStock <= 0;
+                    const priceInfo = getSizePriceDiff(s);
+
                     return (
                       <button
                         key={s}
@@ -643,6 +693,11 @@ export default function ProductDetailPage() {
                         title={`${s} ${isSizeOut ? '(Sold out in this combination)' : `(${sizeStock} available)`}`}
                       >
                         <span className="pd-size-text">{s}</span>
+                        {priceInfo.hasDiff && (
+                          <span className="pd-size-diff-tag">
+                            {priceInfo.diff > 0 ? `+MYR ${priceInfo.diff.toFixed(0)}` : `-MYR ${Math.abs(priceInfo.diff).toFixed(0)}`}
+                          </span>
+                        )}
                         {isSizeOut && (
                           <span className="pd-size-soldout-label">Sold Out</span>
                         )}
@@ -862,12 +917,7 @@ export default function ProductDetailPage() {
             <div className="pd-related-grid">
               {relatedProducts.map((rel) => {
                 const relId = rel._id || rel.id;
-                const relPrice = typeof rel.price === 'number'
-                  ? rel.price
-                  : (parseFloat(String(rel.price).replace(/[^0-9.]/g, '')) || 0);
-                const relSalePrice = (rel.salePrice !== undefined && rel.salePrice !== null && rel.salePrice !== '')
-                  ? (typeof rel.salePrice === 'number' ? rel.salePrice : parseFloat(String(rel.salePrice).replace(/[^0-9.]/g, '')) || null)
-                  : null;
+                const priceInfo = getProductPriceInfo(rel);
                 const relImg = rel.image || (Array.isArray(rel.images) && rel.images.length > 0 ? rel.images[0] : placeholderSvg);
 
                 return (
@@ -879,13 +929,18 @@ export default function ProductDetailPage() {
                       <div className="rel-info">
                         <div className="rel-name">{rel.name || rel.title}</div>
                         <div className="rel-price">
-                          {relSalePrice && relSalePrice > 0 ? (
+                          {priceInfo.hasOffer ? (
                             <>
-                              <span className="rel-sale-price">MYR {relSalePrice.toFixed(2)}</span>
-                              <span className="rel-regular-strike">MYR {relPrice.toFixed(2)}</span>
+                              <span className="rel-sale-price">{priceInfo.currency} {priceInfo.priceDisplay}</span>
+                              {priceInfo.originalPriceDisplay && (
+                                <span className="rel-regular-strike">{priceInfo.currency} {priceInfo.originalPriceDisplay}</span>
+                              )}
+                              {priceInfo.discountPercentage && (
+                                <span className="rel-discount-badge">{priceInfo.discountPercentage}% OFF</span>
+                              )}
                             </>
                           ) : (
-                            <span>MYR {relPrice.toFixed(2)}</span>
+                            <span>{priceInfo.currency} {priceInfo.priceDisplay}</span>
                           )}
                         </div>
                       </div>

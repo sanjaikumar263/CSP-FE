@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import AdminSidebar from '../components/AdminSidebar';
 import { API_BASE_URL } from '../config';
 import { getGroupedCategoriesForAdmin } from '../data/categoriesData';
+import { getProductPriceInfo } from '../utils/priceUtils';
 import './ProductListPage.css';
 
 const ADMIN_GROUPED_CATEGORIES = getGroupedCategoriesForAdmin();
@@ -27,24 +28,32 @@ export default function ProductListPage() {
       const res = await fetch(`${API_BASE_URL}/products`);
       const data = await res.json();
       if (res.ok && data.success && Array.isArray(data.data)) {
-        const mapped = data.data.map((item, idx) => ({
-          id: item._id || item.id || idx + 1,
-          _id: item._id,
-          sw: `sw${(idx % 8) + 1}`,
-          img: item.image || item.images?.[0] || '',
-          name: item.name,
-          sku: item.sku || `CSP${item._id?.slice(-6) || '100'}`,
-          cat: item.category || 'Soft Silk',
-          categories: item.categories || [],
-          gender: item.gender || 'Women',
-          price: item.currency ? `${item.currency} ${item.price?.toFixed(2)}` : `MYR ${item.price}`,
-          stock: item.stockQuantity ?? 10,
-          variantsCount: Array.isArray(item.variants) ? item.variants.length : 0,
-          colors: item.colors || (item.color ? [{ name: item.color, code: '#0A305D' }] : []),
-          sizes: item.sizes || [],
-          status: item.status || (item.inStock ? 'published' : 'outofstock'),
-          date: item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '16 Jul 2026'
-        }));
+        const mapped = data.data.map((item, idx) => {
+          const priceInfo = getProductPriceInfo(item);
+          const curr = item.currency || 'MYR';
+          return {
+            id: item._id || item.id || idx + 1,
+            _id: item._id,
+            sw: `sw${(idx % 8) + 1}`,
+            img: item.image || item.images?.[0] || '',
+            name: item.name,
+            sku: item.sku || `CSP${item._id?.slice(-6) || '100'}`,
+            cat: item.category || 'Soft Silk',
+            categories: item.categories || [],
+            gender: item.gender || 'Women',
+            currency: curr,
+            price: `${curr} ${priceInfo.priceDisplay}`,
+            originalPriceDisplay: priceInfo.originalPriceDisplay,
+            hasOffer: priceInfo.hasOffer,
+            discountPercentage: priceInfo.discountPercentage,
+            stock: item.stockQuantity ?? 10,
+            variantsCount: Array.isArray(item.variants) ? item.variants.length : 0,
+            colors: item.colors || (item.color ? [{ name: item.color, code: '#0A305D' }] : []),
+            sizes: item.sizes || [],
+            status: item.status || (item.inStock ? 'published' : 'outofstock'),
+            date: item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '16 Jul 2026'
+          };
+        });
         setProducts(mapped);
       } else {
         setProducts([]);
@@ -293,7 +302,21 @@ export default function ProductListPage() {
                     </td>
                     <td>{p.cat}</td>
                     <td><span className="pill" style={{ background: '#f1f5f9', color: '#334155', fontWeight: 600 }}>{p.gender}</span></td>
-                    <td>{p.price}</td>
+                    <td>
+                      <div style={{ fontWeight: 700, color: '#0a305d', whiteSpace: 'nowrap' }}>
+                        {p.price}
+                      </div>
+                      {p.hasOffer && p.originalPriceDisplay && (
+                        <div style={{ fontSize: '11px', color: '#94A3B8', textDecoration: 'line-through', whiteSpace: 'nowrap' }}>
+                          {p.currency || 'MYR'} {p.originalPriceDisplay}
+                        </div>
+                      )}
+                      {p.hasOffer && p.discountPercentage && (
+                        <span style={{ fontSize: '9.5px', fontWeight: 700, color: '#047857', background: '#ECFDF5', border: '1px solid #A7F3D0', padding: '1px 5px', borderRadius: '4px', display: 'inline-block', marginTop: '2px', whiteSpace: 'nowrap' }}>
+                          {p.discountPercentage}% OFF
+                        </span>
+                      )}
+                    </td>
                     <td>
                       <div style={{ fontWeight: 700 }}>{p.stock}</div>
                       {p.variantsCount > 0 && (

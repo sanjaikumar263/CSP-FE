@@ -45,13 +45,27 @@ const SIZE_BUNDLES = [
   { label: 'Kurta / Blouse (36 - 44)', items: ['36', '38', '40', '42', '44'] }
 ];
 
-function generateVariantList(currentColors, currentSizes, existingVariants = [], baseSku = '') {
+function generateVariantList(currentColors, currentSizes, existingVariants = [], baseSku = '', currentSizePrices = {}, basePrice = '', baseSalePrice = '') {
   if (currentColors.length === 0 && currentSizes.length === 0) {
     return [];
   }
 
   const cleanBaseSku = (baseSku || 'CSP').trim();
   const results = [];
+
+  const getSizePrice = (sizeName) => {
+    if (currentSizePrices && currentSizePrices[sizeName] && currentSizePrices[sizeName].price !== undefined && currentSizePrices[sizeName].price !== '') {
+      return currentSizePrices[sizeName].price;
+    }
+    return basePrice || '';
+  };
+
+  const getSizeSalePrice = (sizeName) => {
+    if (currentSizePrices && currentSizePrices[sizeName] && currentSizePrices[sizeName].salePrice !== undefined && currentSizePrices[sizeName].salePrice !== '') {
+      return currentSizePrices[sizeName].salePrice;
+    }
+    return baseSalePrice || '';
+  };
 
   // Case 1: Colors exist, no sizes selected (e.g. Sarees or Shawls with Free Size)
   if (currentColors.length > 0 && currentSizes.length === 0) {
@@ -67,7 +81,9 @@ function generateVariantList(currentColors, currentSizes, existingVariants = [],
           ...match,
           color: c.name,
           colorCode: c.code || '#0A305D',
-          size: match.size || 'Free Size'
+          size: match.size || 'Free Size',
+          price: match.price !== undefined && match.price !== '' ? match.price : getSizePrice(match.size || 'Free Size'),
+          salePrice: match.salePrice !== undefined && match.salePrice !== '' ? match.salePrice : getSizeSalePrice(match.size || 'Free Size')
         });
       } else {
         results.push({
@@ -75,6 +91,8 @@ function generateVariantList(currentColors, currentSizes, existingVariants = [],
           color: c.name,
           colorCode: c.code || '#0A305D',
           size: 'Free Size',
+          price: getSizePrice('Free Size'),
+          salePrice: getSizeSalePrice('Free Size'),
           stockQuantity: 0,
           sku: defaultVariantSku,
           inStock: false
@@ -98,7 +116,9 @@ function generateVariantList(currentColors, currentSizes, existingVariants = [],
           ...match,
           color: match.color || 'Standard Color',
           colorCode: match.colorCode || '#0A305D',
-          size: s
+          size: s,
+          price: match.price !== undefined && match.price !== '' ? match.price : getSizePrice(s),
+          salePrice: match.salePrice !== undefined && match.salePrice !== '' ? match.salePrice : getSizeSalePrice(s)
         });
       } else {
         results.push({
@@ -106,6 +126,8 @@ function generateVariantList(currentColors, currentSizes, existingVariants = [],
           color: 'Standard Color',
           colorCode: '#0A305D',
           size: s,
+          price: getSizePrice(s),
+          salePrice: getSizeSalePrice(s),
           stockQuantity: 0,
           sku: defaultVariantSku,
           inStock: false
@@ -131,7 +153,9 @@ function generateVariantList(currentColors, currentSizes, existingVariants = [],
           ...match,
           color: c.name,
           colorCode: c.code || '#0A305D',
-          size: s
+          size: s,
+          price: match.price !== undefined && match.price !== '' ? match.price : getSizePrice(s),
+          salePrice: match.salePrice !== undefined && match.salePrice !== '' ? match.salePrice : getSizeSalePrice(s)
         });
       } else {
         results.push({
@@ -139,6 +163,8 @@ function generateVariantList(currentColors, currentSizes, existingVariants = [],
           color: c.name,
           colorCode: c.code || '#0A305D',
           size: s,
+          price: getSizePrice(s),
+          salePrice: getSizeSalePrice(s),
           stockQuantity: 0,
           sku: defaultVariantSku,
           inStock: false
@@ -190,10 +216,14 @@ export default function ProductAddPage() {
   const [colors, setColors] = useState([]);
   const [sizes, setSizes] = useState([]);
   const [variants, setVariants] = useState([]);
+  // Size-level price mapping: { [sizeStr]: { price: string, salePrice: string } }
+  const [sizePrices, setSizePrices] = useState({});
   const [customColorName, setCustomColorName] = useState('');
   const [customColorCode, setCustomColorCode] = useState('#0A305D');
   const [customSizeInput, setCustomSizeInput] = useState('');
   const [bulkStockInput, setBulkStockInput] = useState('0');
+  const [bulkPriceInput, setBulkPriceInput] = useState('');
+  const [bulkSalePriceInput, setBulkSalePriceInput] = useState('');
   const [sizeChart, setSizeChart] = useState(DEFAULT_SIZE_CHART);
 
   // Fetch product by ID if in Edit Mode
@@ -207,8 +237,10 @@ export default function ProductAddPage() {
             const p = data.data;
             setName(p.name || '');
             setDescription(p.description || '');
-            setPrice(p.price !== undefined && p.price !== null ? p.price.toString() : '');
-            setSalePrice(p.salePrice !== undefined && p.salePrice !== null ? p.salePrice.toString() : '');
+            const baseP = p.price !== undefined && p.price !== null ? p.price.toString() : '';
+            const baseSp = p.salePrice !== undefined && p.salePrice !== null ? p.salePrice.toString() : '';
+            setPrice(baseP);
+            setSalePrice(baseSp);
             setSku(p.sku || '');
             setStockQuantity(p.stockQuantity ?? 0);
             const resolved = findCategoryHierarchy(p.category || (p.categories && p.categories[0]), p.gender || 'Women');
@@ -241,20 +273,67 @@ export default function ProductAddPage() {
             }
             setSizes(loadedSizes);
 
+            // Handle size prices
+            const loadedSizePrices = {};
+            if (Array.isArray(p.sizePrices)) {
+              p.sizePrices.forEach(sp => {
+                if (sp.size) {
+                  loadedSizePrices[sp.size] = {
+                    price: sp.price !== undefined && sp.price !== null ? sp.price.toString() : '',
+                    salePrice: sp.salePrice !== undefined && sp.salePrice !== null ? sp.salePrice.toString() : ''
+                  };
+                }
+              });
+            }
+
+            // Also check variants for per-size prices if sizePrices was not explicitly defined
+            if (p.variants && Array.isArray(p.variants) && p.variants.length > 0) {
+              p.variants.forEach(v => {
+                if (v.size && !loadedSizePrices[v.size] && (v.price !== undefined || v.salePrice !== undefined)) {
+                  loadedSizePrices[v.size] = {
+                    price: v.price !== undefined && v.price !== null ? v.price.toString() : '',
+                    salePrice: v.salePrice !== undefined && v.salePrice !== null ? v.salePrice.toString() : ''
+                  };
+                }
+              });
+            }
+
+            // Default any missing loaded sizes to product base price
+            loadedSizes.forEach(s => {
+              if (!loadedSizePrices[s]) {
+                loadedSizePrices[s] = {
+                  price: baseP,
+                  salePrice: baseSp
+                };
+              }
+            });
+            setSizePrices(loadedSizePrices);
+
             // Handle variants
             if (p.variants && Array.isArray(p.variants) && p.variants.length > 0) {
-              setVariants(p.variants.map((v, i) => ({
-                id: v.id || v._id || `v-${i}`,
-                color: v.color || '',
-                colorCode: v.colorCode || '#0A305D',
-                size: v.size || 'Free Size',
-                stockQuantity: v.stockQuantity ?? 0,
-                sku: v.sku || '',
-                inStock: (v.stockQuantity ?? 0) > 0,
-                image: v.image || ''
-              })));
+              setVariants(p.variants.map((v, i) => {
+                const varPrice = v.price !== undefined && v.price !== null && v.price !== ''
+                  ? v.price.toString()
+                  : (loadedSizePrices[v.size]?.price || baseP);
+                const varSalePrice = v.salePrice !== undefined && v.salePrice !== null && v.salePrice !== ''
+                  ? v.salePrice.toString()
+                  : (loadedSizePrices[v.size]?.salePrice || baseSp);
+
+                return {
+                  id: v.id || v._id || `v-${i}`,
+                  color: v.color || '',
+                  colorCode: v.colorCode || '#0A305D',
+                  size: v.size || 'Free Size',
+                  price: varPrice,
+                  salePrice: varSalePrice,
+                  stockQuantity: v.stockQuantity ?? 0,
+                  sku: v.sku || '',
+                  inStock: (v.stockQuantity ?? 0) > 0,
+                  image: v.image || ''
+                };
+              }));
             } else {
-              setVariants(generateVariantList(loadedColors, loadedSizes, [], p.sku || ''));
+              setVariants(generateVariantList(loadedColors, loadedSizes, [], p.sku || '', loadedSizePrices, baseP, baseSp));
             }
 
             // Build Thumbs with Color Association from colorImages and images
@@ -329,7 +408,7 @@ export default function ProductAddPage() {
       nextColors = [...colors, { id: `c-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`, name: preset.name, code: preset.code }];
     }
     setColors(nextColors);
-    setVariants(prev => generateVariantList(nextColors, sizes, prev, sku));
+    setVariants(prev => generateVariantList(nextColors, sizes, prev, sku, sizePrices, price, salePrice));
   };
 
   const handleAddCustomColor = (e) => {
@@ -363,7 +442,7 @@ export default function ProductAddPage() {
     }
 
     setColors(nextColors);
-    setVariants(prev => generateVariantList(nextColors, sizes, prev, sku));
+    setVariants(prev => generateVariantList(nextColors, sizes, prev, sku, sizePrices, price, salePrice));
     setCustomColorName('');
     setToast({ show: true, msg: `Added ${addedCount} color${addedCount > 1 ? 's' : ''}!` });
     setTimeout(() => setToast({ show: false, msg: '' }), 1500);
@@ -372,7 +451,7 @@ export default function ProductAddPage() {
   const handleRemoveColor = (colorName) => {
     const nextColors = colors.filter(c => c.name.toLowerCase() !== colorName.toLowerCase());
     setColors(nextColors);
-    setVariants(prev => generateVariantList(nextColors, sizes, prev, sku));
+    setVariants(prev => generateVariantList(nextColors, sizes, prev, sku, sizePrices, price, salePrice));
     // Reset images assigned to removed color to unassigned
     setThumbs(ts => ts.map(t => (t.color?.toLowerCase() === colorName.toLowerCase() ? { ...t, color: '' } : t)));
     if (activeImageColorTab.toLowerCase() === colorName.toLowerCase()) {
@@ -383,7 +462,7 @@ export default function ProductAddPage() {
   const handleClearAllColors = () => {
     if (colors.length === 0) return;
     setColors([]);
-    setVariants(prev => generateVariantList([], sizes, prev, sku));
+    setVariants(prev => generateVariantList([], sizes, prev, sku, sizePrices, price, salePrice));
     setThumbs(ts => ts.map(t => ({ ...t, color: '' })));
     setActiveImageColorTab('ALL');
     setToast({ show: true, msg: 'Cleared all colors' });
@@ -407,13 +486,20 @@ export default function ProductAddPage() {
   const handleToggleSizePreset = (sizeStr) => {
     const exists = sizes.includes(sizeStr);
     let nextSizes;
+    const nextSizePrices = { ...sizePrices };
+
     if (exists) {
       nextSizes = sizes.filter(s => s !== sizeStr);
+      delete nextSizePrices[sizeStr];
     } else {
       nextSizes = [...sizes, sizeStr];
+      if (!nextSizePrices[sizeStr]) {
+        nextSizePrices[sizeStr] = { price: price || '', salePrice: salePrice || '' };
+      }
     }
     setSizes(nextSizes);
-    setVariants(prev => generateVariantList(colors, nextSizes, prev, sku));
+    setSizePrices(nextSizePrices);
+    setVariants(prev => generateVariantList(colors, nextSizes, prev, sku, nextSizePrices, price, salePrice));
     setSizeChart(prev => syncSizeChartWithSizes(prev, nextSizes));
   };
 
@@ -426,10 +512,14 @@ export default function ProductAddPage() {
     const parts = raw.split(/[,;\n]+/).map(s => s.trim()).filter(Boolean);
     let addedCount = 0;
     let nextSizes = [...sizes];
+    const nextSizePrices = { ...sizePrices };
 
     parts.forEach(part => {
       if (!nextSizes.includes(part)) {
         nextSizes.push(part);
+        if (!nextSizePrices[part]) {
+          nextSizePrices[part] = { price: price || '', salePrice: salePrice || '' };
+        }
         addedCount++;
       }
     });
@@ -441,7 +531,8 @@ export default function ProductAddPage() {
     }
 
     setSizes(nextSizes);
-    setVariants(prev => generateVariantList(colors, nextSizes, prev, sku));
+    setSizePrices(nextSizePrices);
+    setVariants(prev => generateVariantList(colors, nextSizes, prev, sku, nextSizePrices, price, salePrice));
     setSizeChart(prev => syncSizeChartWithSizes(prev, nextSizes));
     setCustomSizeInput('');
     setToast({ show: true, msg: `Added ${addedCount} size${addedCount > 1 ? 's' : ''}!` });
@@ -450,15 +541,22 @@ export default function ProductAddPage() {
 
   const handleApplySizeBundle = (bundleItems) => {
     let nextSizes = [...sizes];
+    const nextSizePrices = { ...sizePrices };
     let addedCount = 0;
+
     bundleItems.forEach(item => {
       if (!nextSizes.includes(item)) {
         nextSizes.push(item);
+        if (!nextSizePrices[item]) {
+          nextSizePrices[item] = { price: price || '', salePrice: salePrice || '' };
+        }
         addedCount++;
       }
     });
+
     setSizes(nextSizes);
-    setVariants(prev => generateVariantList(colors, nextSizes, prev, sku));
+    setSizePrices(nextSizePrices);
+    setVariants(prev => generateVariantList(colors, nextSizes, prev, sku, nextSizePrices, price, salePrice));
     setSizeChart(prev => syncSizeChartWithSizes(prev, nextSizes));
     setToast({ show: true, msg: `Added ${addedCount} size${addedCount > 1 ? 's' : ''} from bundle!` });
     setTimeout(() => setToast({ show: false, msg: '' }), 1500);
@@ -466,24 +564,126 @@ export default function ProductAddPage() {
 
   const handleRemoveSize = (sizeStr) => {
     const nextSizes = sizes.filter(s => s !== sizeStr);
+    const nextSizePrices = { ...sizePrices };
+    delete nextSizePrices[sizeStr];
     setSizes(nextSizes);
-    setVariants(prev => generateVariantList(colors, nextSizes, prev, sku));
+    setSizePrices(nextSizePrices);
+    setVariants(prev => generateVariantList(colors, nextSizes, prev, sku, nextSizePrices, price, salePrice));
     setSizeChart(prev => syncSizeChartWithSizes(prev, nextSizes));
   };
 
   const handleClearAllSizes = () => {
     if (sizes.length === 0) return;
     setSizes([]);
-    setVariants(prev => generateVariantList(colors, [], prev, sku));
+    setSizePrices({});
+    setVariants(prev => generateVariantList(colors, [], prev, sku, {}, price, salePrice));
     setSizeChart(prev => syncSizeChartWithSizes(prev, []));
     setToast({ show: true, msg: 'Cleared all sizes' });
     setTimeout(() => setToast({ show: false, msg: '' }), 1500);
   };
 
-  // Variant Stock & SKU Management
+  // Size-Level Price Customization Handlers
+  const handleSizePriceChange = (sizeName, val) => {
+    setSizePrices(prev => ({
+      ...prev,
+      [sizeName]: {
+        ...(prev[sizeName] || {}),
+        price: val
+      }
+    }));
+    // Synchronize all variant combinations that have this size
+    setVariants(prev => prev.map(v => (v.size === sizeName ? { ...v, price: val } : v)));
+  };
+
+  const handleSizeSalePriceChange = (sizeName, val) => {
+    setSizePrices(prev => ({
+      ...prev,
+      [sizeName]: {
+        ...(prev[sizeName] || {}),
+        salePrice: val
+      }
+    }));
+    // Synchronize all variant combinations that have this size
+    setVariants(prev => prev.map(v => (v.size === sizeName ? { ...v, salePrice: val } : v)));
+  };
+
+  const handleQuickPriceAdjustment = (sizeName, delta) => {
+    const currentPrice = sizePrices[sizeName]?.price !== undefined && sizePrices[sizeName]?.price !== ''
+      ? parseFloat(sizePrices[sizeName].price)
+      : (parseFloat(price) || 0);
+    const newPrice = Math.max(0, currentPrice + delta).toFixed(2);
+    handleSizePriceChange(sizeName, newPrice);
+    showToast(`Set ${sizeName} price to MYR ${newPrice}`, 'success', false);
+  };
+
+  const handleResetSizePrice = (sizeName) => {
+    setSizePrices(prev => ({
+      ...prev,
+      [sizeName]: {
+        price: price || '',
+        salePrice: salePrice || ''
+      }
+    }));
+    setVariants(prev => prev.map(v => (v.size === sizeName ? { ...v, price: price || '', salePrice: salePrice || '' } : v)));
+    showToast(`Reset ${sizeName} to base price (MYR ${price || '0.00'})`, 'success', false);
+  };
+
+  const handleApplyBasePriceToAllSizes = () => {
+    const updated = {};
+    sizes.forEach(s => {
+      updated[s] = { price: price || '', salePrice: salePrice || '' };
+    });
+    setSizePrices(updated);
+    setVariants(prev => prev.map(v => ({ ...v, price: price || '', salePrice: salePrice || '' })));
+    showToast(`Applied base price (MYR ${price || '0.00'}) to all sizes!`, 'success', false);
+  };
+
+  const PLUS_SIZES = ['3XL', '4XL', '5XL', '42', '44', '46'];
+
+  const handleApplyPlusSizeSurcharge = (surcharge = 20) => {
+    const baseNum = parseFloat(price) || 0;
+    let affectedCount = 0;
+    const updated = { ...sizePrices };
+
+    sizes.forEach(s => {
+      if (PLUS_SIZES.includes(s)) {
+        const current = updated[s]?.price !== undefined && updated[s].price !== '' ? parseFloat(updated[s].price) : baseNum;
+        const newPrice = (current + surcharge).toFixed(2);
+        updated[s] = {
+          ...(updated[s] || {}),
+          price: newPrice
+        };
+        affectedCount++;
+      }
+    });
+
+    if (affectedCount === 0) {
+      showToast('No Plus Sizes (3XL, 4XL, 5XL, 42, 44, 46) found in selected sizes.', 'error', false);
+      return;
+    }
+
+    setSizePrices(updated);
+    setVariants(prev => prev.map(v => {
+      if (PLUS_SIZES.includes(v.size) && updated[v.size]?.price) {
+        return { ...v, price: updated[v.size].price };
+      }
+      return v;
+    }));
+    showToast(`Added +MYR ${surcharge} surcharge to ${affectedCount} plus size${affectedCount > 1 ? 's' : ''}!`, 'success', false);
+  };
+
+  // Variant Stock, Price & SKU Management
   const handleVariantStockChange = (varId, val) => {
     const num = Math.max(0, parseInt(val, 10) || 0);
     setVariants(prev => prev.map(v => v.id === varId ? { ...v, stockQuantity: num, inStock: num > 0 } : v));
+  };
+
+  const handleVariantPriceChange = (varId, val) => {
+    setVariants(prev => prev.map(v => v.id === varId ? { ...v, price: val } : v));
+  };
+
+  const handleVariantSalePriceChange = (varId, val) => {
+    setVariants(prev => prev.map(v => v.id === varId ? { ...v, salePrice: val } : v));
   };
 
   const handleVariantSkuChange = (varId, val) => {
@@ -497,9 +697,62 @@ export default function ProductAddPage() {
   const handleApplyBulkStock = () => {
     const num = Math.max(0, parseInt(bulkStockInput, 10) || 0);
     setVariants(prev => prev.map(v => ({ ...v, stockQuantity: num, inStock: num > 0 })));
-    setToast({ show: true, msg: `Set stock to ${num} for all combinations!` });
-    setTimeout(() => setToast({ show: false, msg: '' }), 1800);
+    showToast(`Set stock to ${num} for all combinations!`, 'success', false);
   };
+
+  const handleApplyBulkPrice = () => {
+    if (!bulkPriceInput || isNaN(parseFloat(bulkPriceInput))) {
+      showToast('Please enter a valid price to apply in bulk', 'error', false);
+      return;
+    }
+    const formatted = parseFloat(bulkPriceInput).toFixed(2);
+    const updatedSizePrices = {};
+    sizes.forEach(s => {
+      updatedSizePrices[s] = {
+        price: formatted,
+        salePrice: bulkSalePriceInput ? parseFloat(bulkSalePriceInput).toFixed(2) : (sizePrices[s]?.salePrice || '')
+      };
+    });
+    setSizePrices(updatedSizePrices);
+    setVariants(prev => prev.map(v => ({
+      ...v,
+      price: formatted,
+      salePrice: bulkSalePriceInput ? parseFloat(bulkSalePriceInput).toFixed(2) : v.salePrice
+    })));
+    showToast(`Set regular price to MYR ${formatted} for all combinations!`, 'success', false);
+  };
+
+  // Calculate dynamic price range across all sizes and combinations
+  const getPriceRangeSummary = () => {
+    const allPrices = [];
+    if (price && !isNaN(parseFloat(price)) && parseFloat(price) > 0) {
+      allPrices.push(parseFloat(price));
+    }
+    sizes.forEach(s => {
+      const sp = sizePrices[s];
+      if (sp?.price && !isNaN(parseFloat(sp.price)) && parseFloat(sp.price) > 0) {
+        allPrices.push(parseFloat(sp.price));
+      }
+    });
+    variants.forEach(v => {
+      if (v.price && !isNaN(parseFloat(v.price)) && parseFloat(v.price) > 0) {
+        allPrices.push(parseFloat(v.price));
+      }
+    });
+
+    if (allPrices.length === 0) return null;
+    const min = Math.min(...allPrices);
+    const max = Math.max(...allPrices);
+    const hasMultiplePrices = max > min + 0.001;
+
+    return {
+      min: min.toFixed(2),
+      max: max.toFixed(2),
+      hasMultiplePrices
+    };
+  };
+
+  const priceRange = getPriceRangeSummary();
 
   // Category Cascading Handlers
   const currentGroups = getDepartmentHierarchy(gender);
@@ -737,8 +990,25 @@ export default function ProductAddPage() {
         return;
       }
       if (!price || isNaN(parseFloat(price)) || parseFloat(price) <= 0) {
-        showToast('Please enter a valid price before publishing', 'error', false);
+        showToast('Please enter a valid base price before publishing', 'error', false);
         return;
+      }
+
+      // Validate size-level prices if specified
+      for (const s of sizes) {
+        const sp = sizePrices[s];
+        if (sp?.price && (isNaN(parseFloat(sp.price)) || parseFloat(sp.price) <= 0)) {
+          showToast(`Please enter a valid regular price for size ${s}`, 'error', false);
+          return;
+        }
+        if (sp?.salePrice && (isNaN(parseFloat(sp.salePrice)) || parseFloat(sp.salePrice) < 0)) {
+          showToast(`Sale price for size ${s} must be a valid positive number`, 'error', false);
+          return;
+        }
+        if (sp?.salePrice && sp?.price && parseFloat(sp.salePrice) > parseFloat(sp.price)) {
+          showToast(`Sale price for size ${s} cannot be greater than its regular price`, 'error', false);
+          return;
+        }
       }
     } else if (targetStatus === 'draft') {
       if (price && (isNaN(parseFloat(price)) || parseFloat(price) < 0)) {
@@ -768,6 +1038,23 @@ export default function ProductAddPage() {
       ? variants.reduce((sum, v) => sum + (parseInt(v.stockQuantity, 10) || 0), 0)
       : (parseInt(stockQuantity, 10) || 0);
 
+    // Build sizePrices mapping
+    const sizePricesPayload = sizes.map(s => {
+      const sp = sizePrices[s];
+      const sPrice = sp?.price !== undefined && sp.price !== ''
+        ? parseFloat(sp.price)
+        : (parseFloat(price) || 0);
+      const sSalePrice = sp?.salePrice !== undefined && sp.salePrice !== ''
+        ? parseFloat(sp.salePrice)
+        : (salePrice ? parseFloat(salePrice) : null);
+
+      return {
+        size: s,
+        price: sPrice,
+        salePrice: sSalePrice
+      };
+    });
+
     // Build colorImages mapping
     const colorImagesPayload = colors.map(c => {
       const matchingImgs = thumbs
@@ -780,16 +1067,31 @@ export default function ProductAddPage() {
       };
     }).filter(ci => ci.images.length > 0);
 
-    // Build variants with linked color images
+    // Build variants with linked color images and size/variant prices
     const cleanSku = (sku || 'CSP').trim();
     const formattedVariants = variants.map(v => {
       const colorImgs = thumbs.filter(t => t.color && t.color.toLowerCase() === v.color.toLowerCase() && t.src);
       const varImg = colorImgs.length > 0 ? colorImgs[0].src : primaryImg;
+
+      const vPrice = v.price !== undefined && v.price !== '' && v.price !== null
+        ? parseFloat(v.price)
+        : (sizePrices[v.size]?.price !== undefined && sizePrices[v.size].price !== ''
+          ? parseFloat(sizePrices[v.size].price)
+          : (parseFloat(price) || 0));
+
+      const vSalePrice = v.salePrice !== undefined && v.salePrice !== '' && v.salePrice !== null
+        ? parseFloat(v.salePrice)
+        : (sizePrices[v.size]?.salePrice !== undefined && sizePrices[v.size].salePrice !== ''
+          ? parseFloat(sizePrices[v.size].salePrice)
+          : (salePrice ? parseFloat(salePrice) : null));
+
       return {
         id: v.id,
         color: v.color,
         colorCode: v.colorCode || '#0A305D',
         size: v.size,
+        price: vPrice,
+        salePrice: vSalePrice,
         stockQuantity: Math.max(0, parseInt(v.stockQuantity, 10) || 0),
         sku: v.sku || `${cleanSku}-${v.color.replace(/[^a-zA-Z0-9]/g, '').slice(0, 3).toUpperCase()}-${v.size.replace(/[^a-zA-Z0-9]/g, '').slice(0, 4).toUpperCase()}`,
         inStock: (parseInt(v.stockQuantity, 10) || 0) > 0,
@@ -816,6 +1118,7 @@ export default function ProductAddPage() {
       color: colors.length > 0 ? colors[0].name : '',
       colors: colors.map(c => ({ name: c.name, code: c.code || '#0A305D' })),
       sizes: sizes,
+      sizePrices: sizePricesPayload,
       colorImages: colorImagesPayload,
       variants: formattedVariants,
       sizeChart: sizeChart
@@ -1127,11 +1430,30 @@ export default function ProductAddPage() {
 
             {/* Pricing & Stock Panel */}
             <div className="panel">
-              <h3>Pricing &amp; Inventory</h3>
-              <div className="phint">Set retail pricing and inventory quantity.</div>
-              <div className="two-col">
+              <div className="panel-header-row">
+                <div>
+                  <h3>Pricing &amp; Inventory</h3>
+                  <div className="phint" style={{ marginBottom: 0 }}>Set base retail pricing and inventory quantity.</div>
+                </div>
+                {priceRange && priceRange.hasMultiplePrices && (
+                  <div className="combination-count-pill" style={{ background: '#FEF3C7', color: '#92400E', borderColor: '#FDE68A' }}>
+                    🏷️ Size Pricing: MYR {priceRange.min} – MYR {priceRange.max}
+                  </div>
+                )}
+              </div>
+
+              {priceRange && priceRange.hasMultiplePrices && (
+                <div className="pricing-range-alert">
+                  <span className="alert-icon">💡</span>
+                  <span>
+                    <strong>Different pricing for sizes is active:</strong> Customer prices will dynamically adjust between <strong>MYR {priceRange.min}</strong> and <strong>MYR {priceRange.max}</strong> depending on their selected size.
+                  </span>
+                </div>
+              )}
+
+              <div className="two-col" style={{ marginTop: '14px' }}>
                 <div className="field">
-                  <label htmlFor="pprice">Regular price *</label>
+                  <label htmlFor="pprice">Base Regular Price *</label>
                   <div className="prefix-input">
                     <span className="prefix-span">MYR</span>
                     <input
@@ -1151,7 +1473,7 @@ export default function ProductAddPage() {
                   </div>
                 </div>
                 <div className="field">
-                  <label htmlFor="psale">Sale price <span style={{ fontWeight: 400, color: 'var(--ink-faint)' }}>(optional)</span></label>
+                  <label htmlFor="psale">Base Sale Price <span style={{ fontWeight: 400, color: 'var(--ink-faint)' }}>(optional)</span></label>
                   <div className="prefix-input">
                     <span className="prefix-span">MYR</span>
                     <input
@@ -1205,9 +1527,9 @@ export default function ProductAddPage() {
             <div className="panel variants-master-panel">
               <div className="panel-header-row">
                 <div>
-                  <h3>Colors, Sizes &amp; Separate Stock Tracking</h3>
+                  <h3>Colors, Sizes, Pricing &amp; Stock Tracking</h3>
                   <div className="phint" style={{ marginBottom: 0 }}>
-                    Configure multiple colors and sizes. Upload photos specifically for each color, and track independent stock.
+                    Configure multiple colors and sizes, assign different prices for sizes, upload color photos, and track separate stock.
                   </div>
                 </div>
                 <div className="combination-count-pill">
@@ -1319,8 +1641,8 @@ export default function ProductAddPage() {
               <div className="var-section" id="available-sizes-section">
                 <div className="var-section-header">
                   <div>
-                    <label className="var-label">2. Available Sizes ({sizes.length})</label>
-                    <span className="var-hint">Select preset sizes, quick bundles, or enter custom sizes</span>
+                    <label className="var-label">2. Available Sizes &amp; Size Pricing ({sizes.length})</label>
+                    <span className="var-hint">Select preset sizes or bundles, and configure custom pricing for each size</span>
                   </div>
                   {sizes.length > 0 && (
                     <button
@@ -1355,6 +1677,11 @@ export default function ProductAddPage() {
                     {sizes.map(s => (
                       <span key={s} className="active-size-badge">
                         <span className="size-name-text">{s}</span>
+                        {sizePrices[s]?.price && parseFloat(sizePrices[s].price) !== parseFloat(price || 0) && (
+                          <span className="size-price-mini-tag">
+                            MYR {parseFloat(sizePrices[s].price).toFixed(2)}
+                          </span>
+                        )}
                         <button
                           type="button"
                           className="chip-remove-btn"
@@ -1403,40 +1730,219 @@ export default function ProductAddPage() {
                     + Add Size(s)
                   </button>
                 </form>
+
+                {/* ========================================================
+                    SIZE-BASED PRICING MANAGER TABLE
+                    ======================================================== */}
+                {sizes.length > 0 && (
+                  <div className="size-pricing-block">
+                    <div className="size-pricing-header">
+                      <div>
+                        <div className="size-pricing-title">
+                          <span className="size-pricing-icon">🏷️</span>
+                          <span>Different Price for Each Size</span>
+                          <span className="badge-pill-gold">Size Pricing Matrix</span>
+                        </div>
+                        <div className="size-pricing-hint">
+                          Set unique regular and sale prices for specific sizes. E.g. Plus sizes (3XL - 5XL) or custom blouse sizes can have higher pricing.
+                        </div>
+                      </div>
+                      <div className="size-pricing-quick-actions">
+                        <button
+                          type="button"
+                          className="size-pricing-action-btn"
+                          onClick={handleApplyBasePriceToAllSizes}
+                          title="Reset all sizes to product base regular & sale price"
+                        >
+                          <span>↺</span> Apply Base Price to All
+                        </button>
+                        <button
+                          type="button"
+                          className="size-pricing-action-btn surcharge-btn"
+                          onClick={() => handleApplyPlusSizeSurcharge(20)}
+                          title="Add +MYR 20.00 to 3XL, 4XL, 5XL, 42, 44, 46"
+                        >
+                          <span>⚡</span> +MYR 20 on Plus Sizes
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="size-pricing-table-container">
+                      <table className="size-pricing-table">
+                        <thead>
+                          <tr>
+                            <th style={{ width: '110px' }}>Size</th>
+                            <th style={{ width: '180px' }}>Regular Price (MYR) *</th>
+                            <th style={{ width: '180px' }}>Sale Price (MYR)</th>
+                            <th>Price vs Base</th>
+                            <th>Quick Surcharges</th>
+                            <th style={{ width: '80px', textAlign: 'center' }}>Reset</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {sizes.map(s => {
+                            const currentSizePrice = sizePrices[s]?.price !== undefined ? sizePrices[s].price : (price || '');
+                            const currentSizeSale = sizePrices[s]?.salePrice !== undefined ? sizePrices[s].salePrice : (salePrice || '');
+                            const numCurrent = parseFloat(currentSizePrice) || 0;
+                            const numBase = parseFloat(price) || 0;
+                            const diff = numCurrent - numBase;
+                            const isBase = !price || Math.abs(diff) < 0.001;
+
+                            return (
+                              <tr key={s}>
+                                <td>
+                                  <span className="size-pricing-tag-pill">{s}</span>
+                                </td>
+                                <td>
+                                  <div className="table-prefix-input">
+                                    <span className="table-prefix-span">MYR</span>
+                                    <input
+                                      type="text"
+                                      inputMode="decimal"
+                                      className="size-price-input"
+                                      placeholder={price || '0.00'}
+                                      value={currentSizePrice}
+                                      onChange={e => {
+                                        const val = e.target.value;
+                                        if (val === '' || /^\d*\.?\d*$/.test(val)) {
+                                          handleSizePriceChange(s, val);
+                                        }
+                                      }}
+                                    />
+                                  </div>
+                                </td>
+                                <td>
+                                  <div className="table-prefix-input">
+                                    <span className="table-prefix-span">MYR</span>
+                                    <input
+                                      type="text"
+                                      inputMode="decimal"
+                                      className="size-price-input"
+                                      placeholder={salePrice || 'Optional'}
+                                      value={currentSizeSale}
+                                      onChange={e => {
+                                        const val = e.target.value;
+                                        if (val === '' || /^\d*\.?\d*$/.test(val)) {
+                                          handleSizeSalePriceChange(s, val);
+                                        }
+                                      }}
+                                    />
+                                  </div>
+                                </td>
+                                <td>
+                                  {isBase ? (
+                                    <span className="price-diff-badge base">
+                                      Base {numBase > 0 ? `(MYR ${numBase.toFixed(2)})` : ''}
+                                    </span>
+                                  ) : diff > 0 ? (
+                                    <span className="price-diff-badge higher">
+                                      +MYR {diff.toFixed(2)} ({numBase > 0 ? `+${Math.round((diff / numBase) * 100)}%` : 'higher'})
+                                    </span>
+                                  ) : (
+                                    <span className="price-diff-badge lower">
+                                      -MYR {Math.abs(diff).toFixed(2)} ({numBase > 0 ? `-${Math.round((Math.abs(diff) / numBase) * 100)}%` : 'lower'})
+                                    </span>
+                                  )}
+                                </td>
+                                <td>
+                                  <div className="quick-adjust-group">
+                                    {[10, 20, 30, 50].map(amt => (
+                                      <button
+                                        key={amt}
+                                        type="button"
+                                        className="quick-adjust-btn"
+                                        onClick={() => handleQuickPriceAdjustment(s, amt)}
+                                        title={`Add +MYR ${amt} to ${s}`}
+                                      >
+                                        +{amt}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </td>
+                                <td style={{ textAlign: 'center' }}>
+                                  <button
+                                    type="button"
+                                    className="size-price-reset-btn"
+                                    onClick={() => handleResetSizePrice(s)}
+                                    title={`Reset ${s} to base product price`}
+                                  >
+                                    ↺ Reset
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* 3. Combinations Matrix & Separate Stock */}
               <div className="var-section combinations-matrix-block">
                 <div className="var-section-header">
                   <div>
-                    <label className="var-label">3. Combinations &amp; Separate Stock Inventory</label>
-                    <span className="var-hint">Set exact stock count for each color and size combination</span>
+                    <label className="var-label">3. Combinations, Pricing &amp; Stock Inventory</label>
+                    <span className="var-hint">Set exact price, sale price, and stock count for each color and size combination</span>
                   </div>
                 </div>
 
                 {variants.length > 0 && (
                   <div className="bulk-stock-bar">
                     <div className="bulk-stock-left">
-                      <span className="bulk-label">⚡ Quick Stock Fill:</span>
-                      <div className="bulk-input-group">
-                        <input
-                          type="number"
-                          min="0"
-                          placeholder="Stock"
-                          value={bulkStockInput}
-                          onChange={e => setBulkStockInput(e.target.value)}
-                          className="bulk-stock-input"
-                        />
-                        <button
-                          type="button"
-                          className="bulk-apply-btn"
-                          onClick={handleApplyBulkStock}
-                        >
-                          Apply to All Combinations
-                        </button>
+                      <div className="bulk-sub-group">
+                        <span className="bulk-label">⚡ Bulk Stock:</span>
+                        <div className="bulk-input-group">
+                          <input
+                            type="number"
+                            min="0"
+                            placeholder="Stock"
+                            value={bulkStockInput}
+                            onChange={e => setBulkStockInput(e.target.value)}
+                            className="bulk-stock-input"
+                          />
+                          <button
+                            type="button"
+                            className="bulk-apply-btn"
+                            onClick={handleApplyBulkStock}
+                          >
+                            Set Stock
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="bulk-sub-group">
+                        <span className="bulk-label">⚡ Bulk Regular Price:</span>
+                        <div className="bulk-input-group">
+                          <input
+                            type="text"
+                            inputMode="decimal"
+                            placeholder="Price"
+                            value={bulkPriceInput}
+                            onChange={e => {
+                              const val = e.target.value;
+                              if (val === '' || /^\d*\.?\d*$/.test(val)) setBulkPriceInput(val);
+                            }}
+                            className="bulk-price-input"
+                          />
+                          <button
+                            type="button"
+                            className="bulk-apply-btn"
+                            onClick={handleApplyBulkPrice}
+                          >
+                            Set Price
+                          </button>
+                        </div>
                       </div>
                     </div>
+
                     <div className="bulk-stock-right">
+                      {priceRange && priceRange.hasMultiplePrices && (
+                        <span className="price-range-summary-badge">
+                          🏷️ Price Range: <strong>MYR {priceRange.min} – MYR {priceRange.max}</strong>
+                        </span>
+                      )}
                       <span className="total-stock-badge">
                         Total Stock: <strong>{variants.reduce((sum, v) => sum + (parseInt(v.stockQuantity, 10) || 0), 0)}</strong> units
                       </span>
@@ -1452,15 +1958,24 @@ export default function ProductAddPage() {
                           <th>Color</th>
                           <th>Size</th>
                           <th>Combination SKU</th>
-                          <th style={{ width: '130px' }}>Separate Stock</th>
+                          <th style={{ width: '135px' }}>Price (MYR)</th>
+                          <th style={{ width: '135px' }}>Sale Price (MYR)</th>
+                          <th style={{ width: '100px' }}>Stock</th>
                           <th>Status</th>
-                          <th style={{ width: '50px', textAlign: 'center' }}>Remove</th>
+                          <th style={{ width: '45px', textAlign: 'center' }}>Remove</th>
                         </tr>
                       </thead>
                       <tbody>
                         {variants.map(v => {
                           const currentStock = parseInt(v.stockQuantity, 10) || 0;
                           const isInStock = currentStock > 0;
+                          const varPrice = v.price !== undefined && v.price !== null && v.price !== ''
+                            ? v.price
+                            : (sizePrices[v.size]?.price || price || '');
+                          const varSalePrice = v.salePrice !== undefined && v.salePrice !== null && v.salePrice !== ''
+                            ? v.salePrice
+                            : (sizePrices[v.size]?.salePrice || salePrice || '');
+
                           return (
                             <tr key={v.id || `${v.color}-${v.size}`}>
                               <td>
@@ -1480,6 +1995,42 @@ export default function ProductAddPage() {
                                   onChange={e => handleVariantSkuChange(v.id, e.target.value)}
                                   placeholder="e.g. CSP-RED-M"
                                 />
+                              </td>
+                              <td>
+                                <div className="table-prefix-input compact">
+                                  <span className="table-prefix-span">MYR</span>
+                                  <input
+                                    type="text"
+                                    inputMode="decimal"
+                                    className="table-mini-price-input"
+                                    value={varPrice}
+                                    onChange={e => {
+                                      const val = e.target.value;
+                                      if (val === '' || /^\d*\.?\d*$/.test(val)) {
+                                        handleVariantPriceChange(v.id, val);
+                                      }
+                                    }}
+                                    placeholder={price || '0.00'}
+                                  />
+                                </div>
+                              </td>
+                              <td>
+                                <div className="table-prefix-input compact">
+                                  <span className="table-prefix-span">MYR</span>
+                                  <input
+                                    type="text"
+                                    inputMode="decimal"
+                                    className="table-mini-price-input"
+                                    value={varSalePrice}
+                                    onChange={e => {
+                                      const val = e.target.value;
+                                      if (val === '' || /^\d*\.?\d*$/.test(val)) {
+                                        handleVariantSalePriceChange(v.id, val);
+                                      }
+                                    }}
+                                    placeholder={salePrice || '—'}
+                                  />
+                                </div>
                               </td>
                               <td>
                                 <input
@@ -1522,7 +2073,7 @@ export default function ProductAddPage() {
                     <div style={{ fontSize: '24px', marginBottom: '8px' }}>🎨 📏</div>
                     <div style={{ fontWeight: 700, color: '#1E293B', marginBottom: '4px' }}>No combinations generated yet</div>
                     <div style={{ fontSize: '12.5px', color: '#64748B' }}>
-                      Select at least one Color or Size above. Combinations with individual stock controls will appear here automatically.
+                      Select at least one Color or Size above. Combinations with individual pricing &amp; stock controls will appear here automatically.
                     </div>
                   </div>
                 )}

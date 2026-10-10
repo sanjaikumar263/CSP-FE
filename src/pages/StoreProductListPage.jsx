@@ -8,11 +8,11 @@ import placeholderSvg from '../assets/placeholder.svg';
 import { API_BASE_URL } from '../config';
 import { CATEGORY_TREE, getCategoriesByGender, isProductInCategory } from '../data/categoriesData';
 import { useWishlist } from '../context/WishlistContext';
+import { getProductPriceInfo } from '../utils/priceUtils';
 import './StoreProductListPage.css';
 
-
 // Initial sample catalog items matching the screenshot
-const STORE_PRODUCTS = [
+const RAW_STORE_PRODUCTS = [
   {
     id: 1,
     name: 'Kanchipuram Silk Saree',
@@ -126,6 +126,20 @@ const STORE_PRODUCTS = [
     inStock: true
   }
 ];
+
+const STORE_PRODUCTS = RAW_STORE_PRODUCTS.map((item, idx) => {
+  const priceInfo = getProductPriceInfo(item);
+  return {
+    ...item,
+    id: item.id || idx + 1,
+    price: priceInfo.currentPrice,
+    priceDisplay: priceInfo.priceDisplay,
+    originalPrice: priceInfo.originalPrice,
+    originalPriceDisplay: priceInfo.originalPriceDisplay,
+    hasOffer: priceInfo.hasOffer,
+    discountPercentage: priceInfo.discountPercentage
+  };
+});
 
 export default function StoreProductListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -303,21 +317,33 @@ export default function StoreProductListPage() {
         if (isCancelled) return;
 
         if (res.ok && data.success && Array.isArray(data.data)) {
-          const mapped = data.data.map((item, idx) => ({
-            id: item._id || item.id || idx + 1,
-            name: item.name,
-            category: item.category || 'Banarasi Silk',
-            price: item.price,
-            originalPrice: item.originalPrice || item.salePrice || null,
-            currency: item.currency || 'MYR',
-            image: item.image || item.images?.[0] || placeholderSvg,
-            isNew: item.isNewProduct || idx % 2 === 0,
-            color: item.color || 'Pink',
-            occasion: item.occasion || 'Wedding',
-            gender: item.gender || 'Women',
-            categories: item.categories || (item.category ? [item.category] : []),
-            inStock: item.inStock ?? true
-          }));
+          const mapped = data.data.map((item, idx) => {
+            const priceInfo = getProductPriceInfo(item);
+            return {
+              id: item._id || item.id || idx + 1,
+              _id: item._id,
+              name: item.name,
+              category: item.category || 'Banarasi Silk',
+              price: priceInfo.currentPrice,
+              priceDisplay: priceInfo.priceDisplay,
+              originalPrice: priceInfo.originalPrice,
+              originalPriceDisplay: priceInfo.originalPriceDisplay,
+              hasOffer: priceInfo.hasOffer,
+              discountPercentage: priceInfo.discountPercentage,
+              salePrice: item.salePrice,
+              currency: item.currency || 'MYR',
+              image: item.image || item.images?.[0] || placeholderSvg,
+              images: item.images,
+              isNew: item.isNewProduct !== undefined ? item.isNewProduct : (idx % 2 === 0),
+              color: item.color || 'Pink',
+              occasion: item.occasion || 'Wedding',
+              gender: item.gender || 'Women',
+              categories: item.categories || (item.category ? [item.category] : []),
+              inStock: item.inStock ?? true,
+              sizePrices: item.sizePrices,
+              variants: item.variants
+            };
+          });
 
           const hasServerPagination = data.totalCount !== undefined || data.totalProducts !== undefined || data.totalPages !== undefined;
 
@@ -921,12 +947,17 @@ export default function StoreProductListPage() {
                       </Link>
 
                       <div className="card-price-row">
-                        <span className="card-price-current">
-                          {prod.currency} {prod.price ? prod.price.toFixed(2) : '0.00'}
+                        <span className={`card-price-current ${prod.hasOffer ? 'has-offer' : ''}`}>
+                          {prod.currency} {prod.priceDisplay || (prod.price ? Number(prod.price).toFixed(2) : '0.00')}
                         </span>
-                        {prod.originalPrice && (
+                        {prod.hasOffer && prod.originalPriceDisplay && (
                           <span className="card-price-original">
-                            {prod.currency} {prod.originalPrice.toFixed(2)}
+                            {prod.currency} {prod.originalPriceDisplay}
+                          </span>
+                        )}
+                        {prod.hasOffer && prod.discountPercentage && (
+                          <span className="card-discount-badge">
+                            {prod.discountPercentage}% OFF
                           </span>
                         )}
                       </div>

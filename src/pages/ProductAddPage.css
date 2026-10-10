@@ -1265,6 +1265,347 @@ main {
   border-radius: 8px;
 }
 
+/* ========================================================
+   SIZE-SPECIFIC PRICING MANAGER STYLES
+   ======================================================== */
+.pricing-range-alert {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #FEF3C7;
+  border: 1px solid #FDE68A;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-top: 12px;
+  font-size: 12.5px;
+  color: #92400E;
+  line-height: 1.45;
+}
+
+.pricing-range-alert .alert-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.size-price-mini-tag {
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #FDE68A;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 10px;
+  margin-left: 3px;
+  letter-spacing: 0.02em;
+}
+
+.size-pricing-block {
+  background: #FAFBFD;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 16px 16px;
+  margin-top: 18px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+}
+
+.size-pricing-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.size-pricing-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #0A305D;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.size-pricing-icon {
+  font-size: 16px;
+}
+
+.badge-pill-gold {
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #FDE68A;
+  font-size: 10.5px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 12px;
+  letter-spacing: 0.03em;
+  text-transform: none;
+}
+
+.size-pricing-hint {
+  font-size: 12px;
+  color: #64748B;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+.size-pricing-quick-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.size-pricing-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #ffffff;
+  border: 1px solid #CBD5E1;
+  color: #334155;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+
+.size-pricing-action-btn:hover {
+  background: #F8FAFC;
+  border-color: #0A305D;
+  color: #0A305D;
+}
+
+.size-pricing-action-btn.surcharge-btn {
+  background: #FFFBEB;
+  border-color: #FCD34D;
+  color: #B45309;
+}
+
+.size-pricing-action-btn.surcharge-btn:hover {
+  background: #FEF3C7;
+  border-color: #F59E0B;
+  color: #92400E;
+}
+
+.size-pricing-table-container {
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  overflow-x: auto;
+  background: #ffffff;
+}
+
+.size-pricing-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+
+.size-pricing-table th {
+  background: #F8FAFC;
+  color: #475569;
+  text-align: left;
+  padding: 10px 12px;
+  font-weight: 800;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1.5px solid #E2E8F0;
+}
+
+.size-pricing-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #F1F5F9;
+  vertical-align: middle;
+}
+
+.size-pricing-table tr:hover td {
+  background: #FAFBFD;
+}
+
+.size-pricing-tag-pill {
+  display: inline-block;
+  background: #0A305D;
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  letter-spacing: 0.03em;
+}
+
+.table-prefix-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.table-prefix-input .table-prefix-span {
+  position: absolute;
+  left: 9px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #64748B;
+  pointer-events: none;
+}
+
+.table-prefix-input .size-price-input {
+  width: 100%;
+  max-width: 160px;
+  padding: 7px 8px 7px 40px;
+  border: 1.5px solid #CBD5E1;
+  border-radius: 6px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #0F172A;
+  outline: none;
+  background: #ffffff;
+  transition: all 0.15s ease;
+}
+
+.table-prefix-input .size-price-input:focus {
+  border-color: #0A305D;
+  box-shadow: 0 0 0 2.5px rgba(10, 48, 93, 0.15);
+}
+
+.table-prefix-input.compact .table-prefix-span {
+  position: absolute;
+  left: 7px;
+  font-size: 10.5px;
+  font-weight: 800;
+  color: #64748B;
+  pointer-events: none;
+}
+
+.table-prefix-input.compact .table-mini-price-input {
+  width: 100%;
+  max-width: 125px;
+  padding: 6px 6px 6px 36px;
+  border: 1.5px solid #CBD5E1;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #0F172A;
+  outline: none;
+  background: #ffffff;
+  transition: all 0.15s ease;
+}
+
+.table-prefix-input.compact .table-mini-price-input:focus {
+  border-color: #0A305D;
+  box-shadow: 0 0 0 2px rgba(10, 48, 93, 0.15);
+}
+
+.price-diff-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.price-diff-badge.base {
+  background: #F1F5F9;
+  color: #475569;
+  border: 1px solid #E2E8F0;
+}
+
+.price-diff-badge.higher {
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #FDE68A;
+}
+
+.price-diff-badge.lower {
+  background: #ECFDF5;
+  color: #065F46;
+  border: 1px solid #A7F3D0;
+}
+
+.quick-adjust-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.quick-adjust-btn {
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  color: #1D4ED8;
+  padding: 3px 7px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.quick-adjust-btn:hover {
+  background: #DBEAFE;
+  border-color: #3B82F6;
+}
+
+.size-price-reset-btn {
+  background: none;
+  border: none;
+  color: #64748B;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 3px 6px;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.size-price-reset-btn:hover {
+  background: #F1F5F9;
+  color: #0F172A;
+}
+
+.bulk-sub-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bulk-price-input {
+  width: 85px;
+  padding: 6px 8px;
+  border: 1.5px solid #CBD5E1;
+  border-radius: 6px;
+  font-size: 12.5px;
+  font-weight: 700;
+  text-align: center;
+  outline: none;
+}
+
+.bulk-price-input:focus {
+  border-color: #0A305D;
+  box-shadow: 0 0 0 2px rgba(10, 48, 93, 0.15);
+}
+
+.price-range-summary-badge {
+  font-size: 12px;
+  color: #92400E;
+  background: #FEF3C7;
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid #FDE68A;
+}
+
+.price-range-summary-badge strong {
+  color: #78350F;
+  font-weight: 800;
+}
+
 /* Highlight pulse when scrolled from Size Chart Add Size button */
 .highlight-pulse {
   animation: sectionPulse 1.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -1309,6 +1650,10 @@ main {
     grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
   }
   .bulk-stock-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .size-pricing-header {
     flex-direction: column;
     align-items: flex-start;
   }
